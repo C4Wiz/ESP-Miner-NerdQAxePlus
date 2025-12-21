@@ -67,7 +67,7 @@
     "SHARE_TOO_SMALL": "Share for this pool too small!"
   },
   "PERFORMANCE": {
-    "TITLE": "Performance",
+    "TITLE": "Power Usage",
     "POWER": "Power",
     "INPUT_CURRENT": "Input Current",
     "INPUT_VOLTAGE": "Input Voltage",
