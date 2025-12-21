@@ -12,6 +12,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { IUpdateStatus } from 'src/app/models/IUpdateStatus';
 import { OtpAuthService, EnsureOtpResult } from '../../services/otp-auth.service';
 import { ISystemInfo } from '../../models/ISystemInfo';
+import { getAppVersion } from 'src/app/app.module';
 
 @Component({
   selector: 'app-settings',
@@ -52,6 +53,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public showChangelog: boolean = false;
   public changelog: string = '';
   public currentVersion: string = '';
+  public currentWebVersion: string = '';
 
   public otpEnabled: boolean = false;
 
@@ -83,6 +85,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.info$.pipe(this.loadingService.lockUIUntilComplete())
       .subscribe(info => {
         this.currentVersion = info.version;
+        this.currentWebVersion = this.getAppVersion();
         //this.deviceModel = "NerdQAxe++";
         this.deviceModel = info.deviceModel;
         this.ASICModel = info.ASICModel;
@@ -521,5 +524,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return `esp-miner-factory-${this.normalizedModel}-${release.tag_name}.bin`;
   }
 
+  public getAppVersion() {
+    return getAppVersion();
+  }
 
 }
