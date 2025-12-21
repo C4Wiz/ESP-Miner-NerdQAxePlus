@@ -67,7 +67,8 @@
     "SHARE_TOO_SMALL": "Pourcentage pour ce pool trop faible!"
   },
   "PERFORMANCE": {
-    "TITLE": "Consommation électrique",
+    "TITLE": "Performance",
+    "TITLE_POWER_USAGE": "Consommation électrique",
     "POWER": "Puissance",
     "INPUT_CURRENT": "Courant d'entrée",
     "INPUT_VOLTAGE": "Tension d'Entrée",

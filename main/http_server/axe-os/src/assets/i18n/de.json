@@ -67,7 +67,8 @@
     "SHARE_TOO_SMALL": "Anteil für diesen Pool zu klein!"
   },
   "PERFORMANCE": {
-    "TITLE": "Elektrische Messwerte",
+    "TITLE": "Leistung",
+    "TITLE_POWER_USAGE": "Elektrische Messwerte",
     "POWER": "Leistungsaufnahme",
     "INPUT_CURRENT": "Eingangsstrom",
     "INPUT_VOLTAGE": "Eingangsspannung",
