@@ -68,7 +68,7 @@
   },
   "PERFORMANCE": {
     "TITLE": "Leistung",
-    "POWER": "Leistung",
+    "POWER": "Leistungsaufnahme",
     "INPUT_CURRENT": "Eingangsstrom",
     "INPUT_VOLTAGE": "Eingangsspannung",
     "ASIC_VOLTAGE": "ASIC-Spannung",
