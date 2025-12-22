@@ -95,8 +95,6 @@ esp_err_t GET_system_info(httpd_req_t *req)
      *
      *  - current      : milliampere (mA)
      *      • Raw / low-level value
-     *      • Used by power management, protection logic, logging,
-     *        and legacy consumers
      *
      *  - currentA     : ampere (A)
      *      • Human-friendly floating-point value
