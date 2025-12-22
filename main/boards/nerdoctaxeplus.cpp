@@ -20,7 +20,7 @@ NerdOctaxePlus::NerdOctaxePlus() : NerdQaxePlus() {
     m_maxVin = 13.0;
     m_minVin = 11.0;
     m_minCurrentA = 0.0f;
-    m_maxCurrentA = 10.0f;
+    m_maxCurrentA = 15.0f;
 
 #ifdef NERDOCTAXEPLUS
     m_theme = new ThemeNerdoctaxeplus();
