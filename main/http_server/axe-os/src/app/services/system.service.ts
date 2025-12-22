@@ -19,6 +19,7 @@ const defaultInfo: ISystemInfo = {
   maxVoltage: 4.5,
   minVoltage: 5.5,
   current: 2237.5,
+  currentA: 0,
   temp: 60,
   vrTemp: 45,
   hashRateTimestamp: 1724398272483,
