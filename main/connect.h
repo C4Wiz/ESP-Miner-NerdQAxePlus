@@ -17,14 +17,13 @@ typedef struct {
     uint8_t     ap_channel;
     uint8_t     ap_max_conn;
     bool        ps_disable;       // disable PS during provisioning
-    wifi_country_t country;       // if .cc[0]==0 -> defaults to DE/ETSI
+    wifi_country_t country;
 
     uint16_t    notify_fail_after_retries;
 } apsta_config_t;
 
 // Start modes
 esp_err_t apsta_start_block_until_sta_ip_then_drop_ap(const apsta_config_t *cfg);
-esp_err_t apsta_start_async_drop_ap_on_sta_ip(const apsta_config_t *cfg);
 
 // Web-UI helpers
 esp_err_t apsta_set_country_by_code(const char cc[3]);

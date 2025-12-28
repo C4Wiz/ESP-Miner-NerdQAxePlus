@@ -20,9 +20,11 @@
 #include "boards/nerdqaxeplus.h"
 #include "boards/nerdqaxeplus2.h"
 #include "boards/nerdqx.h"
+#include "connect.h"
 #include "create_jobs_task.h"
 #include "discord.h"
 #include "global_state.h"
+#include "guards.h"
 #include "hashrate_monitor_task.h"
 #include "history.h"
 #include "http_server.h"
@@ -33,13 +35,11 @@
 #include "otp/otp.h"
 #include "ping_task.h"
 #include "serial.h"
-#include "stratum/stratum_manager_fallback.h"
 #include "stratum/stratum_manager_dual_pool.h"
+#include "stratum/stratum_manager_fallback.h"
 #include "system.h"
-#include "wifi_health.h"
-#include "guards.h"
-#include "connect.h"
 #include "utils.h"
+#include "wifi_health.h"
 
 #define STRATUM_WATCHDOG_TIMEOUT_SECONDS 3600
 
@@ -83,30 +83,31 @@ bool is_time_synced(void)
     return (sntp.isTimeSynced() && now() >= 1609459200);
 }
 
-
-static void on_wifi_status(apsta_wifi_status_t st, uint16_t retry, void *ctx) {
+static void on_wifi_status(apsta_wifi_status_t st, uint16_t retry, void *ctx)
+{
     switch (st) {
-        case APSTA_WIFI_CONNECTED:
-            SYSTEM_MODULE.setWifiStatus("Connected!");
-            break;
-        case APSTA_WIFI_RETRYING: {
-            char buf[20];
-            snprintf(buf, sizeof(buf), "Retrying: %u", retry);
-            SYSTEM_MODULE.setWifiStatus(buf);
-            break;
-        }
-        case APSTA_WIFI_CONNECT_FAILED:
-            SYSTEM_MODULE.setWifiStatus("Connect Failed!");
-            break;
-        case APSTA_WIFI_CONNECTING:
-        case APSTA_WIFI_DISCONNECTED:
-        default:
-            // NOP
-            break;
+    case APSTA_WIFI_CONNECTED:
+        SYSTEM_MODULE.setWifiStatus("Connected!");
+        break;
+    case APSTA_WIFI_RETRYING: {
+        char buf[20];
+        snprintf(buf, sizeof(buf), "Retrying: %u", retry);
+        SYSTEM_MODULE.setWifiStatus(buf);
+        break;
+    }
+    case APSTA_WIFI_CONNECT_FAILED:
+        SYSTEM_MODULE.setWifiStatus("Connect Failed!");
+        break;
+    case APSTA_WIFI_CONNECTING:
+    case APSTA_WIFI_DISCONNECTED:
+    default:
+        // NOP
+        break;
     }
 }
 
-static void on_ap_state(bool ap_on, void *ctx) {
+static void on_ap_state(bool ap_on, void *ctx)
+{
     SYSTEM_MODULE.setAPState(ap_on);
 }
 
@@ -115,7 +116,7 @@ static void setup_wifi()
     // pull the wifi credentials and hostname out of NVS
     char *wifi_ssid = Config::getWifiSSID();
     char *wifi_pass = Config::getWifiPass();
-    char *hostname  = Config::getHostname();
+    char *hostname = Config::getHostname();
 
     // release on exit of scope (RAII)
     MemoryGuard gSsid(wifi_ssid);
@@ -131,19 +132,22 @@ static void setup_wifi()
     apsta_register_status_callback(on_wifi_status, NULL);
     apsta_register_ap_state_callback(on_ap_state, NULL);
 
-    apsta_config_t cfg = {
-        .sta_ssid = wifi_ssid,
-        .sta_pass = wifi_pass,
-        .ap_ssid  = NULL,     // auto "nerdaxe-xxxx"
-        .ap_channel = 1,
-        .ap_max_conn = 4,
-        .ps_disable = true,
-        .country = { .cc = "DE", .schan = 1, .nchan = 13, .policy = WIFI_COUNTRY_POLICY_AUTO },
-        .notify_fail_after_retries = 10
-    };
+    apsta_config_t cfg{};
+
+    cfg.sta_ssid = wifi_ssid;
+    cfg.sta_pass = wifi_pass;
+    cfg.ap_ssid = NULL; // auto "nerdaxe-xxxx"
+    cfg.ap_channel = 1;
+    cfg.ap_max_conn = 4;
+    cfg.ps_disable = true;
+    cfg.country.cc[0] = 'D';
+    cfg.country.cc[1] = 'E';
+    cfg.country.schan = 1;
+    cfg.country.nchan = 13;
+    cfg.country.policy = WIFI_COUNTRY_POLICY_AUTO;
+    cfg.notify_fail_after_retries = 10;
 
     ESP_ERROR_CHECK(apsta_start_block_until_sta_ip_then_drop_ap(&cfg));
-
 }
 
 // Function to configure the Task Watchdog Timer (TWDT)
@@ -163,7 +167,8 @@ void initWatchdog()
     }
 }
 
-StratumManager* newStratumManager() {
+StratumManager *newStratumManager()
+{
     int mode = (int) Config::getPoolMode();
     switch (mode) {
     case 0:
@@ -207,7 +212,6 @@ void monitor_all_task_watermarks() {
     }
 }
 #endif
-
 
 extern "C" void app_main(void)
 {
@@ -257,7 +261,6 @@ extern "C" void app_main(void)
     // fan and serial and load settings from nvs
     board->loadSettings();
     board->initBoard();
-
 
     SYSTEM_MODULE.setBoard(board);
 
@@ -334,7 +337,7 @@ extern "C" void app_main(void)
 
         if (POWER_MANAGEMENT_MODULE.isShutdown()) {
             // not needed, we deregister the WDT in the stratumtask on shutdown
-            //esp_task_wdt_deinit();
+            // esp_task_wdt_deinit();
             ESP_LOGW(TAG, "suspended");
             vTaskSuspend(NULL);
         }

@@ -12,6 +12,7 @@
 #include "nvs_flash.h"
 #include "lwip/ip_addr.h"
 #include "lwip/inet.h"
+#include "esp_timer.h"
 
 static const char *TAG = "wifi_apsta";
 
@@ -46,6 +47,27 @@ static inline void notify_status(apsta_wifi_status_t st) {
 
 static inline void notify_ap_state(bool on) {
     if (s_ap_cb) s_ap_cb(on, s_ap_cb_ctx);
+}
+
+static esp_timer_handle_t s_reconnect_tmr;
+
+static void reconnect_timer_cb(void *arg) {
+    // Timer callback runs in esp_timer task context.
+    // Keep it short; just trigger reconnect.
+    esp_wifi_connect();
+}
+
+static void ensure_reconnect_timer_inited(void) {
+    if (s_reconnect_tmr) return;
+
+    const esp_timer_create_args_t targs = {
+        .callback = &reconnect_timer_cb,
+        .arg = NULL,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "wifi_reconn",
+        .skip_unhandled_events = true,
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&targs, &s_reconnect_tmr));
 }
 
 // --- Internal best-practice knobs ---
@@ -97,19 +119,28 @@ static void evt_hdlr(void *arg, esp_event_base_t base, int32_t id, void *data) {
             notify_status(APSTA_WIFI_RETRYING);
         }
 
-        if (s_retries <= kMaxImmediateRetries) {
-            vTaskDelay(pdMS_TO_TICKS(500 + 250 * (s_retries - 1)));
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(3000));
-        }
-        esp_wifi_connect();
+        // start reconnect timer
+        ensure_reconnect_timer_inited();
+
+        uint32_t delay_ms = (s_retries <= kMaxImmediateRetries)
+            ? (500 + 250 * (s_retries - 1))
+            : 3000;
+
+        // (Re)arm one-shot timer
+        ESP_ERROR_CHECK(esp_timer_stop(s_reconnect_tmr));
+        ESP_ERROR_CHECK(esp_timer_start_once(s_reconnect_tmr, (uint64_t)delay_ms * 1000ULL));
     }
 }
 
 
 // Default to ETSI (DE) if unset
+static bool cc_is_valid(const wifi_country_t *c) {
+    return c && c->cc[0] >= 'A' && c->cc[0] <= 'Z' && c->cc[1] >= 'A' && c->cc[1] <= 'Z';
+}
+
 static void country_defaults_if_empty(wifi_country_t *c) {
-    if (!c || c->cc[0]) return;
+    if (!c) return;
+    if (cc_is_valid(c)) return;
     c->cc[0] = 'D'; c->cc[1] = 'E'; c->cc[2] = '\0';
     c->schan = 1; c->nchan = 13; c->policy = WIFI_COUNTRY_POLICY_AUTO;
 }
@@ -120,7 +151,7 @@ static esp_err_t build_temp_ap_ssid(char *buf, size_t len) {
     uint8_t mac[6]{};
     esp_err_t err = esp_wifi_get_mac(WIFI_IF_STA, mac);
     if (err != ESP_OK) return err;
-    int n = snprintf(buf, len, "nerdaxe-%02x%02x", mac[0], mac[1]);
+    int n = snprintf(buf, len, "nerdaxe-%02x%02x", mac[4], mac[5]);
     if (n < 0 || (size_t)n >= len) return ESP_ERR_INVALID_SIZE;
     return ESP_OK;
 }
@@ -265,12 +296,6 @@ esp_err_t apsta_start_block_until_sta_ip_then_drop_ap(const apsta_config_t *cfg)
     return ESP_OK;
 }
 
-esp_err_t apsta_start_async_drop_ap_on_sta_ip(const apsta_config_t *cfg) {
-    ESP_ERROR_CHECK(ensure_basics_inited());
-    s_async_mode = true;
-    return start_common(cfg);
-}
-
 // ---- Runtime helpers / Getters ----
 
 esp_err_t apsta_set_country_by_code(const char cc_in[3]) {
@@ -307,6 +332,7 @@ esp_err_t apsta_set_sta_credentials(const char *ssid, const char *pass) {
 }
 
 bool apsta_sta_has_ip(void) {
+    if (!s_evtgrp) return false;
     EventBits_t b = xEventGroupGetBits(s_evtgrp);
     return (b & BIT_STA_GOT_IP) != 0;
 }
