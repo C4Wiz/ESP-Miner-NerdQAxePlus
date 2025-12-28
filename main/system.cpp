@@ -37,7 +37,7 @@ const char* connect_get_mac_addr(void)
     snprintf(buf, sizeof(buf),
              "%02x:%02x:%02x:%02x:%02x:%02x",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return buf; // Achtung: static Buffer
+    return buf; // static Buffer!
 }
 
 System::System() {
