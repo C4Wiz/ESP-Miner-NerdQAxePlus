@@ -39,6 +39,7 @@
 #include "wifi_health.h"
 #include "guards.h"
 #include "connect.h"
+#include "utils.h"
 
 #define STRATUM_WATCHDOG_TIMEOUT_SECONDS 3600
 

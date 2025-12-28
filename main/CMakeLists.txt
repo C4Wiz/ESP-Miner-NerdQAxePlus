@@ -5,6 +5,7 @@ SRCS
     "system.cpp"
     "sntp.cpp"
     "connect.cpp"
+    "utils.cpp"
     "boards/board.cpp"
     "boards/nerdaxe.cpp"
     "boards/nerdaxegamma.cpp"
