@@ -192,20 +192,13 @@
                     [format]="'1.1-1'">
                   </app-gauge>
                 </div>
-                <!--
-                  Input Current Gauge
-                  -------------------
-                  Uses currentA (Ampere) for display.
-                  Gauge range (min/max) is device-specific and provided
-                  by the backend board profile.
-                -->
                 <div class="col-6">
                   <app-gauge
                     [value]="info.currentA"
                     [min]="info.minCurrentA ?? 0"
                     [max]="info.maxCurrentA ?? 8"
-                    [warn]="(info.maxCurrentA ?? 8) * 0.80"
-                    [crit]="(info.maxCurrentA ?? 8) * 0.95"
+                    [warn]="(info.maxCurrentA ?? 8) * 0.95"
+                    [crit]="(info.maxCurrentA ?? 8) * 1.00"
                     [unit]="'A'"
                     [label]="'PERFORMANCE.INPUT_CURRENT' | translate"
                     [format]="'1.2-2'">
