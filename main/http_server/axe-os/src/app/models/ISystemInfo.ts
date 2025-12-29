@@ -13,31 +13,10 @@ export interface ISystemInfo {
     voltage: number,
     maxVoltage: number,
     minVoltage: number,
-
-    /**
-     * Input current in milliampere (mA).
-     * Low-level field, kept for compatibility with existing consumers.
-     */
     current: number,  // mA (raw)
-
-    /**
-     * Input current in ampere (A).
-     * UI-friendly float value (preferred for dashboard etc.).
-     */
     currentA?: number;
-
-    /**
-     * Gauge minimum for input current in ampere (A).
-     * Provided by device-specific board profile.
-     */
     minCurrentA?: number;
-
-    /**
-     * Gauge maximum for input current in ampere (A).
-     * Provided by device-specific board profile.
-     */
     maxCurrentA?: number;
-
     temp: number,
     vrTemp: number,
     hashRateTimestamp: number,

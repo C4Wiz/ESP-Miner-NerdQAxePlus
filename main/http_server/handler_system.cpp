@@ -84,36 +84,9 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["power"]              = POWER_MANAGEMENT_MODULE.getPower();
     doc["maxPower"]           = board->getMaxPin();
     doc["minPower"]           = board->getMinPin();
+    doc["voltage"]            = POWER_MANAGEMENT_MODULE.getVoltage();
     doc["maxVoltage"]         = board->getMaxVin();
     doc["minVoltage"]         = board->getMinVin();
-    /*
-     * ============================================================
-     * Unit Conventions – System / Dashboard API
-     * ============================================================
-     *
-     * Electrical units are exported with explicit semantics:
-     *
-     *  - current      : milliampere (mA)
-     *      • Raw / low-level value
-     *
-     *  - currentA     : ampere (A)
-     *      • Human-friendly floating-point value
-     *      • Intended for Web UI / Dashboard display ONLY
-     *
-     *  - minCurrentA  : ampere (A)
-     *  - maxCurrentA  : ampere (A)
-     *      • Device-specific gauge range for UI scaling
-     *      • Defined by the active board profile
-     *
-     * IMPORTANT:
-     *  - Do NOT derive ampere values in the frontend.
-     *  - All unit conversions MUST happen in the backend.
-     *  - UI code must treat values as unit-safe and final.
-     *
-     * This separation avoids ambiguity (mA vs A) and ensures
-     * consistent visualization across different device models.
-     * ============================================================
-     */
     doc["current"]            = POWER_MANAGEMENT_MODULE.getCurrent();           // mA (raw)
     doc["currentA"]           = POWER_MANAGEMENT_MODULE.getCurrent() / 1000.0f; // A (UI)
     doc["minCurrentA"]        = board->getMinCurrentA(); // A

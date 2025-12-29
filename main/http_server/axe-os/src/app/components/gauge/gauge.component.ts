@@ -110,16 +110,10 @@ export class GaugeComponent {
   @Input() label: string = ''; // Label below the gauge
   @Input() format: string = '1.2-2'; // Default format with 2 decimal places
 
-  /* =======================
-   * NEW: color thresholds
-   * ======================= */
   @Input() warn?: number; // orange threshold
   @Input() crit?: number; // red threshold
 
-  /* =======================
-   * NEW: colors (optional)
-   * ======================= */
-  @Input() okColor: string = '#22c55e';   // green
+  @Input() okColor: string = '#2d8ad7';   // default blue
   @Input() warnColor: string = '#f59e0b'; // orange
   @Input() critColor: string = '#ef4444'; // red
 
@@ -127,15 +121,12 @@ export class GaugeComponent {
   center: number = 50; // Center of the circle
   viewBox: string = '0 0 100 100'; // SVG viewBox
 
-  /* =======================
-   * EXISTING LOGIC (unchanged)
-   * ======================= */
   get circumference(): number {
     return 2 * Math.PI * this.radius;
   }
 
   get offset(): number {
-    let progress = (this.value - this.min) / (this.max - this.min) * 0.75;
+    let progress = ((this.value ?? 0) - this.min) / (this.max - this.min) * 0.75;
 
     if (progress > 0.75) {
       progress = 0.75;
@@ -147,10 +138,6 @@ export class GaugeComponent {
     const progress = 0.75; // Full arc length for 270°
     return this.circumference * (1 - Math.min(Math.max(progress, 0), 1));
   }
-
-  /* =======================
-   * NEW: color logic
-   * ======================= */
 
   get level(): 'ok' | 'warn' | 'crit' {
     if (typeof this.crit === 'number' && this.value >= this.crit) {
