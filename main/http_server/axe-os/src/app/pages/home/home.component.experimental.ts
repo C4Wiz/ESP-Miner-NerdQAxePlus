@@ -126,8 +126,8 @@ export class HomeExperimentalComponent implements AfterViewChecked, OnInit, OnDe
   private hashrateYAxisMaxTicks: number = 5;
   private hashrateYAxisMinStepThs: number = 0.005;
   private tempYAxisMinStepC: number = 2;
-  // Chunk size for the history drainer
-  private chunkSizeDrainer: number = 100;
+  // Chunk size for the history drainer (0 means no limit)
+  private chunkSizeDrainer: number = 0;
   // --- Rendering smoothing (visual only)
   // Applies to the 1min hashrate dataset. This does not modify data, only the curve rendering.
   // Rule: high point density => higher tension, low density => lower tension.
