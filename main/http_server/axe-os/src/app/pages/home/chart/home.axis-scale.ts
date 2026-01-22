@@ -53,6 +53,28 @@ export interface ComputedAxisBounds {
   };
 }
 
+/**
+ * Compute a width X window.
+ *
+ * Chart.js will auto-fit the x-range to existing data unless min/max are set.
+ * This helper keeps the viewport stable (e.g. always 1 hour), even when only
+ * a few points exist (or right after the history has been cleared).
+ */
+export function computeXWindow(
+  labels: number[],
+  windowMs: number,
+  nowMs: number = Date.now(),
+): { xMinMs: number; xMaxMs: number } {
+  const safeWindow = Math.max(0, Math.round(Number(windowMs) || 0));
+
+  const last = Array.isArray(labels) && labels.length ? Number(labels[labels.length - 1]) : NaN;
+  const xMaxRaw = Number.isFinite(last) ? Math.max(nowMs, last) : nowMs;
+  const xMaxMs = xMaxRaw;
+  const xMinMs = xMaxMs - safeWindow;
+
+  return { xMinMs, xMaxMs };
+}
+
 function isFiniteNumber(v: any): v is number {
   return typeof v === 'number' && Number.isFinite(v);
 }
@@ -136,7 +158,8 @@ export function computeAxisBounds(input: AxisScaleInputs): ComputedAxisBounds {
     const padTop = clamp(Math.max(range * padPctTop, minPadHs, flatPad), 0, maxAbs * maxPadPctOfMax);
     const padBottom = clamp(Math.max(range * padPctBottom, minPadHs, flatPad), 0, maxAbs * maxPadPctOfMax);
 
-    let adjMin = hm.mn - padBottom;
+    // Never allow negative minima (hashrate cannot be negative).
+    let adjMin = Math.max(0, hm.mn - padBottom);
     let adjMax = hm.mx + padTop;
 
     const live = input.liveRefHs;
@@ -167,8 +190,11 @@ export function computeAxisBounds(input: AxisScaleInputs): ComputedAxisBounds {
     if (stepThs < input.hashrateMinStepThs) stepThs = input.hashrateMinStepThs;
 
     const stepHs = stepThs * HS_PER_THS;
-    const minAligned = Math.floor(adjMin / stepHs) * stepHs;
+    let minAligned = Math.floor(adjMin / stepHs) * stepHs;
     const maxAligned = Math.ceil(adjMax / stepHs) * stepHs;
+
+    // Clamp again after alignment (alignment can drop slightly below 0).
+    minAligned = Math.max(0, minAligned);
 
     out.y = {
       min: minAligned,
@@ -180,7 +206,8 @@ export function computeAxisBounds(input: AxisScaleInputs): ComputedAxisBounds {
 
   // Temperature axis
   if (tm.mn !== undefined && tm.mx !== undefined) {
-    const targetMin = tm.mn - 2;
+    // Temps cannot be negative; clamp min to 0 to avoid whitespace artifacts.
+    const targetMin = Math.max(0, tm.mn - 2);
     const targetMax = tm.mx + 3;
 
     const maxTicks = Math.max(2, Math.round(Number(input.maxTicks || 7)));
@@ -197,8 +224,10 @@ export function computeAxisBounds(input: AxisScaleInputs): ComputedAxisBounds {
     }
     if (stepC < input.tempMinStepC) stepC = input.tempMinStepC;
 
-    const minAligned = Math.floor(targetMin / stepC) * stepC;
+    let minAligned = Math.floor(targetMin / stepC) * stepC;
     const maxAligned = Math.ceil(targetMax / stepC) * stepC;
+
+    minAligned = Math.max(0, minAligned);
 
     out.y_temp = {
       min: minAligned,
