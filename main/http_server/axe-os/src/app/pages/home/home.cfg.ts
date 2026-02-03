@@ -191,6 +191,11 @@ export interface TempScaleCfg {
    * (used when you want a stable, readable temp scale)
    */
   latestPadC: number;
+  /**
+   * Minimum delta (°C) required before we update the temp axis bounds.
+   * This creates a small deadband so the chart doesn't "jump" on tiny changes.
+   */
+  hysteresisC?: number;
 }
 
 
@@ -206,6 +211,8 @@ export interface HomeStorageKeys {
   legendVisibility: string;
   viewMode: string;
   minHistoryTimestampMs: string;
+  /** Visual-only collapse state for the Home chart container. */
+  chartCollapsed: string;
 }
 
 /**
@@ -216,6 +223,90 @@ export interface HomeUiDefaults {
   legendHidden: HomeLegendHiddenDefaults;
 }
 
+
+
+// ---- Tile / bar / square helpers (Experimental dashboard)
+
+/**
+ * Uptime formatting rules used in the Hashrate tile.
+ * Kept in config so we can tweak unit cutoffs without touching component code.
+ */
+export interface UptimeFormatCfg {
+  minutesInHour: number;
+  minutesInDay: number;
+  minutesInWeek: number;
+  minutesInMonth: number;
+  /** If true, always include minutes (even when days/weeks are shown). */
+  alwaysShowMinutes: boolean;
+  /** If true, always include seconds (even when hours/days are shown). */
+  alwaysShowSeconds: boolean;
+}
+
+/**
+ * Key/limit mapping used to provide stable aliases for the "Input current" power bar.
+ * The backend has seen multiple shapes over firmware versions.
+ */
+export interface PowerUsageAliasCfg {
+  /** Values above this are treated as mA and converted to A. */
+  milliAmpThreshold: number;
+  /** Fallback max current (A) if nothing can be derived. */
+  fallbackMaxA: number;
+  /** If max <= min, expand range by this many A. */
+  minRangeA: number;
+
+  /** Candidate keys for min current (first finite wins). */
+  minKeys: string[];
+  /** Candidate keys for max current (first finite wins). */
+  maxKeys: string[];
+}
+
+/**
+ * DOM override helper config.
+ * We keep selectors + theme heuristics here so the component stays a thin container.
+ */
+export interface BarDomSyncCfg {
+  /** Query selector for power bars inside the Power Usage tile. */
+  powerBarSelector: string;
+  /** The unit text that identifies the Input Current bar (e.g. 'A'). */
+  currentInputUnit: string;
+
+  /** Query selector for the VR temp bar element. */
+  vrTempBarSelector: string;
+  /** Query selector for a bar's fill element. */
+  fillSelector: string;
+  /** Query selector for a bar's label element. */
+  labelSelector: string;
+  /** Query selector for a bar's value element. */
+  valueSelector: string;
+
+  /** Theme-name hints to detect light/dark without hard dependencies. */
+  lightThemeHints: string[];
+  darkThemeHints: string[];
+}
+
+export interface HomeTilesCfg {
+  uptime: UptimeFormatCfg;
+  powerUsageAliases: PowerUsageAliasCfg;
+  domSync: BarDomSyncCfg;
+
+  /** Visual-only thresholds for the Input Current (A) bar. */
+  inputCurrent: {
+    warnRel: number;
+    critRel: number;
+  };
+
+  /** Visual-only normal band for Input Voltage (V). */
+  inputVoltageBand: {
+    low: number;
+    high: number;
+  };
+
+  /** Voltage regulator temperature thresholds in °C (absolute). */
+  vrTempBand: {
+    warnC: number;
+    critC: number;
+  };
+}
 export interface HomeCfg {
   storage: {
     keys: HomeStorageKeys;
@@ -223,6 +314,7 @@ export interface HomeCfg {
     maxPersistedPoints: number;
   };
   uiDefaults: HomeUiDefaults;
+  tiles: HomeTilesCfg;
   axisPadding: AxisPaddingCfg;
   /**
    * Implement X-axis viewport size in milliseconds.
@@ -356,6 +448,8 @@ export const HOME_CFG: HomeCfg = {
       // Historical name was tempViewMode_exp; we call it viewMode in code.
       viewMode: 'tempViewMode_exp',
       minHistoryTimestampMs: 'minHistoryTimestampMs_exp',
+      // Visual-only: remember if the user collapsed the chart container.
+      chartCollapsed: 'chartCollapsed_exp',
     },
     // Keep storage reasonably bounded; chart can still hold more live points.
     maxPersistedPoints: 20000,
@@ -371,6 +465,79 @@ export const HOME_CFG: HomeCfg = {
       hr1h: true,
       hr1d: true,
     },
+  },
+
+  tiles: {
+    uptime: {
+      minutesInHour: 60,
+      minutesInDay: 24 * 60,
+      minutesInWeek: 7 * 24 * 60,
+      // coarse month approximation (matches previous logic)
+      minutesInMonth: 30 * 24 * 60,
+      alwaysShowMinutes: true,
+      alwaysShowSeconds: false,
+    },
+
+    powerUsageAliases: {
+      milliAmpThreshold: 1000,
+      fallbackMaxA: 6,
+      minRangeA: 6,
+      minKeys: [
+        'minCurrentA',
+        'minCurrent',
+        'currentMin',
+        'inputCurrentMin',
+        'iinMin',
+      ],
+      maxKeys: [
+        'maxCurrentA',
+        'maxCurrent',
+        'currentMax',
+        'inputCurrentMax',
+        'iinMax',
+        'inputCurrentLimit',
+        'currentLimit',
+        'iinLimit',
+      ],
+    },
+
+    domSync: {
+      powerBarSelector: '.power-usage-box .power-bars .power-bar',
+      currentInputUnit: 'A',
+      vrTempBarSelector: '.power-bar[data-bar="vr-temp"]',
+      fillSelector: '.power-bar__fill',
+      labelSelector: '.power-bar__label',
+      valueSelector: '.power-bar__value',
+      lightThemeHints: ['default', 'corporate', 'light'],
+      darkThemeHints: ['dark', 'cosmic'],
+    },
+
+    /**
+     * Input current (A) bar rendering thresholds (visual-only).
+     *
+     * - < warnRel: normal grey fill
+     * - >= warnRel and <= critRel: grey->yellow gradient
+     * - > critRel: solid ASIC-temp-pill red with white text
+     */
+    inputCurrent: {
+      warnRel: 0.94,
+      critRel: 0.98,
+    },
+
+    /**
+     * Input voltage (V) "normal" band.
+     * Outside this band we show a grey->yellow gradient (visual-only).
+     */
+    inputVoltageBand: {
+      low: 11.5,
+      high: 12.6,
+    },
+    /** Voltage regulator temperature thresholds (°C). */
+    vrTempBand: {
+      warnC: 94,
+      critC: 115,
+    },
+
   },
 
   axisPadding: {
@@ -469,6 +636,8 @@ export const HOME_CFG: HomeCfg = {
   tempScale: {
     // Previously hardcoded as +/- 3°C around latest min/max.
     latestPadC: 3,
+    // Keep temp axis stable unless it needs to move by >= 1°C.
+    hysteresisC: 1,
   },
 
   warmup: {
