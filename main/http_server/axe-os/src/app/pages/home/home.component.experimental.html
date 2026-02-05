@@ -198,6 +198,17 @@
 
               </div>
 
+              <!-- Nerd*OS logo (single pool) -->
+              <div class="nerdos-logo-wrap nerdos-logo-wrap--single" *ngIf="!isDualPool">
+                <div class="nerdos-logo-wrap__inner" [style.--nerdos-logo-color]="nerdOsLogoColor">
+                  <div
+                    class="nerdos-logo"
+                    aria-label="01001110 01100101 01110010 01100100 00101010 01001111 01010011"
+                  ></div>
+                  <span class="nerdos-logo-tooltip">01001110 01100101 01110010 01100100 00101010 01001111 01010011</span>
+                </div>
+              </div>
+
               <!-- Templates -->
               <ng-template #poolHalf let-pool="pool" let-idx="idx" let-usingFallback="usingFallback">
                 <div class="pool-tile-half" dir="ltr" [class.pool-tile-half--dual]="isDualPool">
@@ -384,8 +395,8 @@
 
                     <!-- Input current bar -->
                     <div class="power-bar" role="img"
-                         [class.power-bar--warn]="isBarWarn(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)"
-                         [class.power-bar--crit]="isBarCrit(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)"
+                         [class.power-bar--warn]="isInputCurrentWarn(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)"
+                         [class.power-bar--crit]="isInputCurrentCrit(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)"
                          [class.power-bar--max]="isBarMax(info.currentA, info.maxCurrentA ?? 6)"
                          [attr.aria-label]="('PERFORMANCE.INPUT_CURRENT' | translate) + ': ' + (info.currentA | number: '1.2-2') + ' A'">
                       <div class="power-bar__fill"
@@ -398,8 +409,8 @@
 
                     <!-- Input voltage bar -->
                     <div class="power-bar" role="img"
-                         [class.power-bar--warn]="isBarWarn(info.voltage, info.minVoltage, info.maxVoltage)"
-                         [class.power-bar--crit]="isBarCrit(info.voltage, info.minVoltage, info.maxVoltage)"
+                         [class.power-bar--warn]="isInputVoltageWarn(info.voltage)"
+                         [class.power-bar--crit]="false"
                          [class.power-bar--max]="isBarMax(info.voltage, info.maxVoltage)"
                          [attr.aria-label]="('PERFORMANCE.INPUT_VOLTAGE' | translate) + ': ' + (info.voltage | number: '1.1-1') + ' V'">
                       <div class="power-bar__fill"
@@ -528,9 +539,9 @@
                   <div class="heat-bars">
                     <!-- VR temp bar -->
                     <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
-                         [class.power-bar--warn]="isBarWarn(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max, BAR_LIMITS.vrTemp.warnRel)"
-                         [class.power-bar--crit]="isBarCrit(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max, BAR_LIMITS.vrTemp.critRel)"
-                         [class.power-bar--max]="isBarMax(info.vrTemp, BAR_LIMITS.vrTemp.max)"
+                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
+                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp)"
+                         [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
                          [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
                       <div class="power-bar__fill"
                            [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max)"></div>
@@ -557,6 +568,19 @@
                     <div class="heat-spacer" aria-hidden="true"></div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nerd*OS logo (dual pool) -->
+          <div class="nerdos-logo-row nerdos-logo-row--dual" *ngIf="isDualPool">
+            <div class="nerdos-logo-wrap nerdos-logo-wrap--dual">
+              <div class="nerdos-logo-wrap__inner" [style.--nerdos-logo-color]="nerdOsLogoColor">
+                <div
+                  class="nerdos-logo"
+                  aria-label="01001110 01100101 01110010 01100100 00101010 01001111 01010011"
+                ></div>
+                <span class="nerdos-logo-tooltip">01001110 01100101 01110010 01100100 00101010 01001111 01010011</span>
               </div>
             </div>
           </div>

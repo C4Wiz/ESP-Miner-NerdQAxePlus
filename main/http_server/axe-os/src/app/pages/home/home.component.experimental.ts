@@ -31,10 +31,11 @@ import {
   installNerdChartsDebugBootstrap,
   GraphGuard,
   computeXWindow,
-  computeAxisBounds,
+  computeHomeChartScales,
   applyAxisBoundsToChartOptions,
   HomeWarmupMachine,
-  } from './chart';
+  shouldInsertRestartCut,
+} from './chart';
 
 import { NbThemeService } from '@nebular/theme';
 import { NbTrigger } from '@nebular/theme';
@@ -73,7 +74,8 @@ import { maxAsicTemp,
   isBetween,
   formatUptime,
   normalizeHomeTileInfo,
-  HomeBarDomSync
+  HomeBarDomSync,
+  hexToRgba
 } from './tiles/utils';
 @Component({
   selector: 'app-home-experimental',
@@ -141,6 +143,27 @@ export class HomeExperimentalComponent implements AfterViewChecked, OnInit, OnDe
   public isInputVoltageWarn(voltage: any): boolean {
     const band = HOME_CFG.tiles.inputVoltageBand;
     return isOutsideBand(voltage, band.low, band.high);
+  }
+
+  /**
+   * Input current warning thresholds depend on device max current.
+   * - For devices < lowMaxAThreshold: warn/crit at 98% / 99%
+   * - For devices >= lowMaxAThreshold: use default warn/crit
+   */
+  public isInputCurrentWarn(currentA: any, minA: any, maxA: any): boolean {
+    const cfg = HOME_CFG.tiles.inputCurrent;
+    const max = Number(maxA);
+    const useLow = Number.isFinite(max) && max < Number(cfg.lowMaxAThreshold ?? 8);
+    const warnRel = useLow ? Number(cfg.lowWarnRel ?? 0.98) : Number(cfg.warnRel ?? 0.94);
+    return isBarWarn(currentA, minA, maxA, warnRel);
+  }
+
+  public isInputCurrentCrit(currentA: any, minA: any, maxA: any): boolean {
+    const cfg = HOME_CFG.tiles.inputCurrent;
+    const max = Number(maxA);
+    const useLow = Number.isFinite(max) && max < Number(cfg.lowMaxAThreshold ?? 8);
+    const critRel = useLow ? Number(cfg.lowCritRel ?? 0.99) : Number(cfg.critRel ?? 0.98);
+    return isBarCrit(currentA, minA, maxA, critRel);
   }
 
   /** Voltage Regulator temperature bands (yellow/red) are configured in HOME_CFG. */
@@ -374,6 +397,7 @@ export class HomeExperimentalComponent implements AfterViewChecked, OnInit, OnDe
   private debugAxisPadding: boolean = false;
   private readonly axisPadOverrideEnabledKey: string = '__nerdCharts_axisPaddingOverrideEnabled';
   private readonly axisPadStorageKey: string = '__nerdCharts_axisPadding';
+  public nerdOsLogoColor: string = hexToRgba(HOME_CFG.colors.hashrateBase, 0.6);
 
   ngAfterViewChecked(): void {
     // Ensure chart is initialized only once when the canvas becomes available
@@ -474,10 +498,6 @@ export class HomeExperimentalComponent implements AfterViewChecked, OnInit, OnDe
         useThrottledRender: this.historyDrainUseThrottledRender,
       }
     );
-    const documentStyle = getComputedStyle(document.documentElement);
-    const bodyStyle = getComputedStyle(document.body);
-    const textColor = bodyStyle.getPropertyValue('--card-text-color');
-    const textColorSecondary = bodyStyle.getPropertyValue('--card-text-color');
     // Load optional min-history timestamp (used after debug clear to prevent immediate refill)
     try {
       const v = Number(this.chartStorage.loadMinHistoryTimestampMs());
@@ -1022,29 +1042,47 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     // but we can't compute Y-bounds without data.
     if (!labels.length) return;
 
-    const hr10m = this.chart.isDatasetVisible(1) ? this.dataData10m : null;
-    const hr1h = this.chart.isDatasetVisible(2) ? this.dataData1h : null;
-    const hr1d = this.chart.isDatasetVisible(3) ? this.dataData1d : null;
     const temp4 = this.chart.isDatasetVisible(4);
     const temp5 = this.chart.isDatasetVisible(5);
     const vreg = temp4 ? this.dataVregTemp : (!temp4 && !temp5 ? this.dataVregTemp : null);
     const asic = temp5 ? this.dataAsicTemp : (!temp4 && !temp5 ? this.dataAsicTemp : null);
-    const bounds = computeAxisBounds({
-      labels,
+
+    const visibility = {
+      hr1m: this.chart.isDatasetVisible(0),
+      hr10m: this.chart.isDatasetVisible(1),
+      hr1h: this.chart.isDatasetVisible(2),
+      hr1d: this.chart.isDatasetVisible(3),
+    };
+    const series = {
       hr1m: this.dataData1m,
-      hr10m,
-      hr1h,
-      hr1d,
-      vregTemp: vreg,
-      asicTemp: asic,
+      hr10m: this.dataData10m,
+      hr1h: this.dataData1h,
+      hr1d: this.dataData1d,
+      vregTemp: vreg ?? [],
+      asicTemp: asic ?? [],
+    };
+
+    const { bounds, tempAxisMin, tempAxisMax } = computeHomeChartScales({
+      labels,
       xMinMs,
       xMaxMs,
+      series,
+      visibility,
       axisPadCfg: this.axisPadCfg,
       maxTicks: this.hashrateYAxisMaxTicks,
       hashrateMinStepThs: this.hashrateYAxisMinStepThs,
       tempMinStepC: this.tempYAxisMinStepC,
       liveRefHs: this.lastLivePoolSumHs,
+      softIncludeRel: HOME_CFG.yAxis.hashrateSoftIncludeRel,
+      axisMinPadC: HOME_CFG.tempScale.axisMinPadC,
+      axisMaxPadC: HOME_CFG.tempScale.axisMaxPadC,
+      tempHysteresisC: HOME_CFG.tempScale.hysteresisC,
+      prevTempMin: this.lastTempAxisMin,
+      prevTempMax: this.lastTempAxisMax,
     });
+
+    if (Number.isFinite(tempAxisMin as any)) this.lastTempAxisMin = tempAxisMin as number;
+    if (Number.isFinite(tempAxisMax as any)) this.lastTempAxisMax = tempAxisMax as number;
 
     applyAxisBoundsToChartOptions(this.chartOptions, bounds);
   }
@@ -1332,9 +1370,13 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       const liveOkNow = Number.isFinite(livePoolSum) && livePoolSum > 0;
       const stageNow = this.warmupMachine.getStage();
       const historyHr1m = Number(entry.hashrate_1m);
-      const restartMarker = (!liveOkNow) && (
-        (!Number.isFinite(vregRaw) || !Number.isFinite(asicRaw)) || (Number.isFinite(historyHr1m) && historyHr1m <= 0)
-      );
+      const restartMarker = shouldInsertRestartCut({
+        liveOkNow,
+        vregRaw,
+        asicRaw,
+        historyHr1m,
+        tempMinValidC: Number(HOME_CFG.warmup.tempMinValidC ?? 10),
+      });
 
       if (stageNow === 'READY' && restartMarker) {
         this.warmupMachine.reset(entry.timestamp);
@@ -1560,46 +1602,6 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     return this.chartStorage.loadLastTimestamp();
   }
 
-  private updateTempScaleFromLatest(): void {
-  // Keep temp axis zoomed: latest temps +/- latestPadC (makes fluctuations visible).
-  const lastV = findLastFinite(this.dataVregTemp as any[]);
-  const lastA = findLastFinite(this.dataAsicTemp as any[]);
-  if (lastV == null && lastA == null) return;
-
-  const vals = [lastV, lastA].filter(v => v != null && Number.isFinite(Number(v))) as number[];
-  if (!vals.length) return;
-
-  const minLast = Math.min(...vals);
-  const maxLast = Math.max(...vals);
-
-  const pad = HOME_CFG.tempScale.latestPadC;
-  const hysteresis = Math.max(0, Number(HOME_CFG.tempScale.hysteresisC ?? 0));
-  const targetMin = Math.max(0, Math.floor(minLast - pad));
-  const targetMax = Math.ceil(maxLast + pad);
-
-  let min = targetMin;
-  let max = targetMax;
-
-  // If we already have a stable axis, only update when the change is meaningful.
-  if (Number.isFinite(this.lastTempAxisMin as any) && Number.isFinite(this.lastTempAxisMax as any)) {
-    const prevMin = Number(this.lastTempAxisMin);
-    const prevMax = Number(this.lastTempAxisMax);
-    const minDiff = Math.abs(targetMin - prevMin);
-    const maxDiff = Math.abs(targetMax - prevMax);
-    if (minDiff < hysteresis && maxDiff < hysteresis) {
-      min = prevMin;
-      max = prevMax;
-    }
-  }
-
-  if (this.chartOptions?.scales?.y_temp) {
-    this.chartOptions.scales.y_temp.min = min;
-    this.chartOptions.scales.y_temp.max = max;
-    this.lastTempAxisMin = min;
-    this.lastTempAxisMax = max;
-  }
-}
-
   private updateChart() {
     this.chartData.labels = this.dataLabel;
     this.chartData.datasets[0].data = this.dataData1m;
@@ -1619,8 +1621,6 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     }
 
     this.updateAxesScaleAdaptive();
-    // Ensure temp axis reflects the latest values (overrides adaptive temp bounds).
-    this.updateTempScaleFromLatest();
     this.applyHashrate1mSmoothing();
 
     this.chart.update();

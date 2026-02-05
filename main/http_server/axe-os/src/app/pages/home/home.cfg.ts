@@ -187,15 +187,16 @@ export interface Hashrate1mSmoothingCfg {
  */
 export interface TempScaleCfg {
   /**
-   * Pads min/max around the latest window by +/- this many °C.
-   * (used when you want a stable, readable temp scale)
-   */
-  latestPadC: number;
-  /**
    * Minimum delta (°C) required before we update the temp axis bounds.
    * This creates a small deadband so the chart doesn't "jump" on tiny changes.
    */
   hysteresisC?: number;
+  /**
+   * Padding applied to temperature axis bounds (adaptive scaling).
+   * Example: axisMinPadC=1, axisMaxPadC=2 => min = mn - 1, max = mx + 2.
+   */
+  axisMinPadC?: number;
+  axisMaxPadC?: number;
 }
 
 
@@ -291,6 +292,9 @@ export interface HomeTilesCfg {
 
   /** Visual-only thresholds for the Input Current (A) bar. */
   inputCurrent: {
+    lowMaxAThreshold?: number;
+    lowWarnRel?: number;
+    lowCritRel?: number;
     warnRel: number;
     critRel: number;
   };
@@ -349,6 +353,8 @@ export interface HomeCfg {
     hashrateMaxTicksDefault: number;
     hashrateTickCountClamp: TickCountClamp;
     minTickSteps: MinTickSteps;
+    /** Max relative expansion to keep other hashrate series visible without rescaling. */
+    hashrateSoftIncludeRel: number;
   };
   graphGuard: GraphGuardTuning;
   historyDrain: HistoryDrainCfg;
@@ -520,8 +526,14 @@ export const HOME_CFG: HomeCfg = {
      * - > critRel: solid ASIC-temp-pill red with white text
      */
     inputCurrent: {
-      warnRel: 0.94,
-      critRel: 0.98,
+      /** If maxCurrentA is below this, use the "low" warn/crit ratios. */
+      lowMaxAThreshold: 8,
+      /** Warn ratio for devices below lowMaxAThreshold (e.g. <=8A). */
+      lowWarnRel: 0.98,
+      /** Crit ratio for devices below lowMaxAThreshold (e.g. <=8A). */
+      lowCritRel: 0.99,
+      warnRel: 0.96,
+      critRel: 0.99,
     },
 
     /**
@@ -585,6 +597,7 @@ export const HOME_CFG: HomeCfg = {
       hashrateMinStepThs: 0.005,
       tempMinStepC: 2,
     },
+    hashrateSoftIncludeRel: 0.05,
   },
 
   graphGuard: {
@@ -634,10 +647,11 @@ export const HOME_CFG: HomeCfg = {
   },
 
   tempScale: {
-    // Previously hardcoded as +/- 3°C around latest min/max.
-    latestPadC: 3,
     // Keep temp axis stable unless it needs to move by >= 1°C.
     hysteresisC: 1,
+    // Adaptive temp axis padding (bottom / top).
+    axisMinPadC: 1,
+    axisMaxPadC: 2,
   },
 
   warmup: {
