@@ -70,6 +70,8 @@ const defaultInfo: ISystemInfo = {
   fanspeed: 100,
   manualFanSpeed: 100,
   fanrpm: 0,
+  fanrpm2: 0,
+  fanCount: 1,
   autoscreenoff: 0,
   lastResetReason: "Unknown",
   jobInterval: 1200,
@@ -159,6 +161,26 @@ export class SystemService {
 
       if (limit > 0) {
         params = params.set('limit', limit);
+      }
+    }
+    const endpoint = `${uri}/api/system/info`;
+    return this.httpClient.get<ISystemInfo>(endpoint, { params });
+  }
+
+  // Experimental dashboard: request extended history window (span) without affecting other callers.
+  public getInfoWithSpan(ts = 0, limit = 0, spanMs = 0, uri = ''): Observable<ISystemInfo> {
+    let params = new HttpParams();
+
+    if (ts > 0) {
+      params = params
+        .set('ts', ts)
+        .set('cur', Date.now());
+
+      if (limit > 0) {
+        params = params.set('limit', limit);
+      }
+      if (spanMs > 0) {
+        params = params.set('history_span', spanMs).set('experimental', '1');
       }
     }
     const endpoint = `${uri}/api/system/info`;
@@ -335,4 +357,3 @@ export class SystemService {
     return this.httpClient.get('/api/otp/status') as Observable<{ enabled: boolean }>;
   }
 }
-
