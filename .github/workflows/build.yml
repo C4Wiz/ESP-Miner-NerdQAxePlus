@@ -10,7 +10,7 @@ jobs:
       matrix:
         include:
           - board: NERDQAXEPLUS2
-            upload_www: false
+            upload_www: true
             label: NerdQAxe++
 
     steps:
