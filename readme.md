@@ -18,11 +18,11 @@ Credits to the devs:
 
 The newest releases are always here:
 
-https://github.com/shufps/ESP-Miner-NerdQAxePlus/releases
+https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/releases
 
 ### Recommended Method: The Webflasher
 
-The [Webflasher](https://shufps.github.io/nerdqaxe-web-flasher/) (modified fork of the great [Bitaxe Webflasher](https://github.com/bitaxeorg/bitaxe-web-flasher) by [Wantclue](https://github.com/WantClue)) is the easiest method of updating all Nerd*axe variants.
+The [Webflasher](https://C4Wiz.github.io/nerdqaxe-web-flasher/) (modified fork of the great [Bitaxe Webflasher](https://github.com/bitaxeorg/bitaxe-web-flasher) by [Wantclue](https://github.com/WantClue)) is the easiest method of updating all Nerd*axe variants.
 
 [<img src="https://github.com/user-attachments/assets/4168f23a-bfe7-4536-91e3-7af6df9a203a" style="border:5px solid red;width:200px">](https://shufps.github.io/nerdqaxe-web-flasher/)
 
