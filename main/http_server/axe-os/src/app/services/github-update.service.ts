@@ -134,23 +134,23 @@ export class GithubUpdateService {
    * Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
    */
   public compareVersions(v1: string, v2: string): number {
-    // Remove 'v' prefix if present
-    const cleanV1 = v1.replace(/^v/, '');
-    const cleanV2 = v2.replace(/^v/, '');
+  // Remove 'v' prefix and any suffix like -OC, -rc1, etc.
+  const cleanV1 = v1.replace(/^v/, '').split('-')[0];
+  const cleanV2 = v2.replace(/^v/, '').split('-')[0];
 
-    const parts1 = cleanV1.split('.').map(p => parseInt(p) || 0);
-    const parts2 = cleanV2.split('.').map(p => parseInt(p) || 0);
+  const parts1 = cleanV1.split('.').map(p => parseInt(p) || 0);
+  const parts2 = cleanV2.split('.').map(p => parseInt(p) || 0);
 
-    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-      const p1 = parts1[i] || 0;
-      const p2 = parts2[i] || 0;
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const p1 = parts1[i] || 0;
+    const p2 = parts2[i] || 0;
 
-      if (p1 > p2) return 1;
-      if (p1 < p2) return -1;
-    }
-
-    return 0;
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
   }
+
+  return 0;
+}
 
   /**
    * Compare current version with latest release
