@@ -219,8 +219,12 @@ export class GithubUpdateService {
    * Find asset in release by filename
    */
   public findAsset(release: GithubRelease, filename: string): GithubAsset | undefined {
-    return release.assets.find(asset => asset.name === filename);
-  }
+  // First try exact match
+  const exact = release.assets.find(asset => asset.name === filename);
+  if (exact) return exact;
 
-
+  // Fall back to partial match (handles versioned filenames like esp-miner-factory-NerdQAxe++-v1.0.36.1-OC.bin)
+  return release.assets.find(asset =>
+    asset.name.toLowerCase().includes(filename.toLowerCase())
+  );
 }
