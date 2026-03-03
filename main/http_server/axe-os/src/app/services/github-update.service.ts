@@ -228,3 +228,4 @@ export class GithubUpdateService {
     asset.name.toLowerCase().includes(filename.toLowerCase())
   );
 }
+}
