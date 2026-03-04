@@ -1,0 +1,22 @@
+/* ADD these rules to settings.component.scss */
+
+.release-checkbox-row {
+  display: flex;
+  justify-content: space-between; /* prerelease toggle left, button right */
+  align-items: center;
+  margin-top: 0.5rem;
+  margin-right: 10px;
+}
+
+.last-checked {
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  text-align: right;
+  margin-right: 10px;
+
+  small {
+    color: var(--text-hint-color);
+    font-style: italic;
+    font-size: 0.8em;
+  }
+}
