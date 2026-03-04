@@ -26,7 +26,7 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_pidSettings.i = 10;   //  0.10
     m_pidSettings.d = 1000; // 10.00
 
-    m_maxPin = 100.0;
+    m_maxPin = 120.0; // max power now 120w (10A fuse)
     m_minPin = 52.0;
     m_maxVin = 13.0;
     m_minVin = 11.0;
