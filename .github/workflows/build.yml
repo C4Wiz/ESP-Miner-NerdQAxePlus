@@ -1,15 +1,10 @@
 name: Build and Release ESP32 Firmware
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:
     inputs:
-      branch:
-        description: 'Branch to build from'
-        required: true
-        default: 'main'
-        type: string
       tag:
-        description: 'Release tag (e.g. v1.0.0) — must match an existing GitHub release to upload assets'
+        description: 'Release tag to build and upload assets to (e.g. v1.0.37.1-OC)'
         required: true
         type: string
 
@@ -22,35 +17,27 @@ jobs:
           - board: NERDQAXEPLUS2
             upload_www: true
             label: NerdQAxe++
-    outputs:
-      release_exists: ${{ env.RELEASE_EXISTS }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.inputs.branch }}
 
     - name: Set Version Tag from input
       run: |
-        version="${{ github.event.inputs.tag }}"
-        echo "VERSION_TAG=${version}" >> $GITHUB_ENV
-        echo "${version}" > version.txt
-        echo "VERSION_TAG=${version}"
+        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
 
     - name: Install GitHub CLI
       run: |
         sudo apt-get update -y
         sudo apt-get install -y gh
 
-    - name: Check if release exists
-      id: check_release
+    - name: Verify release exists
       run: |
-        if gh release view "${{ env.VERSION_TAG }}" >/dev/null 2>&1; then
-          echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
-        else
-          echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
+        if ! gh release view "${{ env.VERSION_TAG }}" >/dev/null 2>&1; then
+          echo "ERROR: No GitHub release found for tag '${{ env.VERSION_TAG }}'. Please create the release before running this workflow."
+          exit 1
         fi
+        echo "Release '${{ env.VERSION_TAG }}' found — proceeding with build."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -86,7 +73,7 @@ jobs:
         0xf10000 build/ota_data_initial.bin \
         -o esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
 
-    - name: Generate SHA-256 Sum of factory file
+    - name: Generate SHA-256 Sum
       run: |
         sha256sum esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin > esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.sha256
 
@@ -101,38 +88,6 @@ jobs:
         sudo mv build/esp-miner.bin build/esp-miner-${{ matrix.label }}.bin
         sudo mv build/esp-miner.elf build/esp-miner-${{ matrix.label }}.elf
 
-    - name: Upload factory binary
-      if: env.RELEASE_EXISTS == 'false'
-      uses: actions/upload-artifact@v4
-      with:
-        name: esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
-        path: esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
-        retention-days: 7
-
-    - name: Upload ELF for crash analysis
-      if: env.RELEASE_EXISTS == 'false'
-      uses: actions/upload-artifact@v4
-      with:
-        name: esp-miner-${{ matrix.label }}.elf
-        path: build/esp-miner-${{ matrix.label }}.elf
-        retention-days: 7
-
-    - name: Upload BIN firmware
-      if: env.RELEASE_EXISTS == 'false'
-      uses: actions/upload-artifact@v4
-      with:
-        name: esp-miner-${{ matrix.label }}.bin
-        path: build/esp-miner-${{ matrix.label }}.bin
-        retention-days: 7
-
-    - name: Upload www.bin (only once)
-      if: env.RELEASE_EXISTS == 'false' && matrix.board == 'NERDQAXEPLUS2'
-      uses: actions/upload-artifact@v4
-      with:
-        name: www.bin
-        path: build/www.bin
-        retention-days: 7
-
     - name: Create files list
       run: |
         echo "esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin" > file_list.txt
@@ -143,15 +98,9 @@ jobs:
         fi
 
     - name: Set files variable
-      id: set_files_var
       run: echo "files=$(cat file_list.txt | tr '\n' ',')" >> $GITHUB_ENV
 
-    - name: Skip release upload if release not found
-      if: env.RELEASE_EXISTS == 'false'
-      run: echo "No GitHub release found for '${{ env.VERSION_TAG }}' — skipping release upload."
-
-    - name: Upload to Existing Release
-      if: env.RELEASE_EXISTS == 'true'
+    - name: Upload assets to release
       uses: softprops/action-gh-release@v1
       with:
         files: ${{ env.files }}
@@ -163,19 +112,14 @@ jobs:
   update-release-body:
     runs-on: ubuntu-latest
     needs: build-and-release
-    if: needs.build-and-release.outputs.release_exists == 'true'
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.inputs.branch }}
 
     - name: Set Version Tag from input
       run: |
-        version="${{ github.event.inputs.tag }}"
-        echo "VERSION_TAG=${version}" >> $GITHUB_ENV
-        echo "${version}" > version.txt
-        echo "VERSION_TAG=${version}"
+        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
 
     - name: Download SHA-256 Artifacts
       uses: actions/download-artifact@v4
@@ -184,7 +128,7 @@ jobs:
 
     - name: Combine SHA-256 Sums
       run: |
-        files="$( find ./artifacts -name "*.sha256" | xargs )"
+        files="$(find ./artifacts -name "*.sha256" | xargs)"
         cat $files | sort -k2 > sha256-summary.txt
 
     - name: Install GitHub CLI
@@ -192,7 +136,7 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y gh
 
-    - name: Append to Release Body
+    - name: Append SHA-256 sums to release body
       run: |
         existing_notes="$(gh release view ${{ env.VERSION_TAG }} --json body -q '.body')"
         new_notes="$existing_notes\n"
