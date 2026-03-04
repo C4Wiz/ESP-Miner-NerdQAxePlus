@@ -45,14 +45,15 @@ Web-UI: {{ currentWebVersion }}<br/>
 
       <hr>
 
-      <!-- Row: Selector + check for updates button -->
+      <!-- Row: Selector + prerelease toggle -->
+      <!-- Row: Selector -->
       <div class="release-row">
         <div class="release-select">
           <label class="release-label">
             <strong>{{ 'UPDATE.SELECT_RELEASE' | translate }}:</strong>
           </label>
           <nb-select [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
-            placeholder="Select release" [disabled]="isOneClickUpdate || isCheckingForUpdates">
+            placeholder="Select release" [disabled]="isOneClickUpdate">
             <nb-option *ngFor="let r of (releases$ | async) ?? []; let i = index" [value]="r.id">
               {{ getReleaseLabel(r, i) }}
             </nb-option>
@@ -60,24 +61,13 @@ Web-UI: {{ currentWebVersion }}<br/>
         </div>
       </div>
 
-      <!-- Row: Prerelease checkbox + Check for Updates button -->
+      <!-- Row: Prerelease checkbox -->
       <div class="release-checkbox-row">
-        <nb-checkbox class="prerelease-toggle" [formControl]="includePrereleasesCtrl" [disabled]="isOneClickUpdate || isCheckingForUpdates">
+        <nb-checkbox class="prerelease-toggle" [formControl]="includePrereleasesCtrl" [disabled]="isOneClickUpdate">
           {{ 'UPDATE.SHOW_PRERELEASES' | translate }}
         </nb-checkbox>
-        <button nbButton status="basic" size="small"
-          [nbSpinner]="isCheckingForUpdates"
-          [disabled]="isOneClickUpdate || isCheckingForUpdates"
-          (click)="checkForUpdates()">
-          <nb-icon icon="refresh-outline" pack="eva"></nb-icon>&nbsp;
-          {{ 'UPDATE.CHECK_FOR_UPDATES' | translate }}
-        </button>
       </div>
 
-      <!-- Last checked timestamp -->
-      <div class="last-checked" *ngIf="lastChecked">
-        <small>{{ 'UPDATE.LAST_CHECKED' | translate }}: {{ lastChecked | date:'medium' }}</small>
-      </div>
 
       <!-- Meta of selected release -->
       <div class="version-info" *ngIf="selectedRelease">
