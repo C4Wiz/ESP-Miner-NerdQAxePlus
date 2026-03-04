@@ -1,7 +1,16 @@
 name: Build and Release ESP32 Firmware
 
-on:
-  workflow_dispatch:  # Manual trigger only
+workflow_dispatch:  # Manual trigger only
+    inputs:
+      branch:
+        description: 'Branch to build from'
+        required: true
+        default: 'main'
+        type: string
+      tag:
+        description: 'Release tag (e.g. v1.0.0) — must match an existing GitHub release to upload assets'
+        required: false
+        type: string
 
 jobs:
   build-and-release:
