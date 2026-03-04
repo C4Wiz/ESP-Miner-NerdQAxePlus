@@ -1,6 +1,7 @@
 name: Build and Release ESP32 Firmware
 
-workflow_dispatch:  # Manual trigger only
+on:
+  workflow_dispatch:  # Manual trigger only
     inputs:
       branch:
         description: 'Branch to build from'
@@ -9,7 +10,7 @@ workflow_dispatch:  # Manual trigger only
         type: string
       tag:
         description: 'Release tag (e.g. v1.0.0) — must match an existing GitHub release to upload assets'
-        required: false
+        required: true
         type: string
 
 jobs:
@@ -21,16 +22,18 @@ jobs:
           - board: NERDQAXEPLUS2
             upload_www: true
             label: NerdQAxe++
+    outputs:
+      release_exists: ${{ env.RELEASE_EXISTS }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
 
-    - name: Get Version Tag
-      id: version_tag
+    - name: Set Version Tag from input
       run: |
-        git fetch --tags  # Ensure all tags are fetched
-        version=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
+        version="${{ github.event.inputs.tag }}"
         echo "VERSION_TAG=${version}" >> $GITHUB_ENV
         echo "${version}" > version.txt
         echo "VERSION_TAG=${version}"
@@ -64,13 +67,11 @@ jobs:
 
     - name: Set Target
       run: |
-        # Run the Docker container to set ESP32-S3 target
         docker run --rm --user root -e BOARD=${{ matrix.board }} -v $PWD:/home/builder/project \
         shufps/esp-idf-builder:0.0.1 idf.py set-target esp32s3
 
     - name: Compile Binaries
       run: |
-        # Run the Docker container to build the project
         docker run --rm --user root -e BOARD=${{ matrix.board }} -v $PWD:/home/builder/project \
         shufps/esp-idf-builder:0.0.1 idf.py build
 
@@ -125,13 +126,12 @@ jobs:
         retention-days: 7
 
     - name: Upload www.bin (only once)
-      if: env.RELEASE_EXISTS == 'false' && matrix.board == 'NERDQAXEPLUS'
+      if: env.RELEASE_EXISTS == 'false' && matrix.board == 'NERDQAXEPLUS2'
       uses: actions/upload-artifact@v4
       with:
         name: www.bin
         path: build/www.bin
         retention-days: 7
-
 
     - name: Create files list
       run: |
@@ -146,8 +146,7 @@ jobs:
       id: set_files_var
       run: echo "files=$(cat file_list.txt | tr '\n' ',')" >> $GITHUB_ENV
 
-    # Skip release upload if no release exists
-    - name: Skip release upload if not tagged
+    - name: Skip release upload if release not found
       if: env.RELEASE_EXISTS == 'false'
       run: echo "No GitHub release found for '${{ env.VERSION_TAG }}' — skipping release upload."
 
@@ -168,12 +167,12 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
 
-    - name: Get Version Tag
-      id: version_tag
+    - name: Set Version Tag from input
       run: |
-        git fetch --tags  # Ensure all tags are fetched
-        version=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
+        version="${{ github.event.inputs.tag }}"
         echo "VERSION_TAG=${version}" >> $GITHUB_ENV
         echo "${version}" > version.txt
         echo "VERSION_TAG=${version}"
@@ -195,16 +194,11 @@ jobs:
 
     - name: Append to Release Body
       run: |
-        # Fetch the current release body
         existing_notes="$(gh release view ${{ env.VERSION_TAG }} --json body -q '.body')"
-
-        # Append the new content
         new_notes="$existing_notes\n"
         new_notes+='<!--\n'
         new_notes+="$(cat sha256-summary.txt)\n"
         new_notes+='-->\n'
-
-        # Update the release body
         gh release edit ${{ env.VERSION_TAG }} --notes "$(echo -e "$new_notes")"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
