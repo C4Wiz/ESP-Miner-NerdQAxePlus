@@ -1,7 +1,12 @@
 name: Build and Release ESP32 Firmware
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build and upload assets to (e.g. v1.0.37.1-OC)'
+        required: true
+        type: string
 
 jobs:
   build-and-release:
@@ -22,11 +27,9 @@ jobs:
     - name: Get Version Tag
       id: version_tag
       run: |
-        git fetch --tags  # Ensure all tags are fetched
-        version=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
-        echo "VERSION_TAG=${version}" >> $GITHUB_ENV
-        echo "${version}" > version.txt
-        echo "VERSION_TAG=${version}"
+        git fetch --tags
+        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "${{ github.event.inputs.tag }}" > version.txt
 
     - name: Install GitHub CLI
       run: |
@@ -124,11 +127,9 @@ jobs:
     - name: Get Version Tag
       id: version_tag
       run: |
-        git fetch --tags  # Ensure all tags are fetched
-        version=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
-        echo "VERSION_TAG=${version}" >> $GITHUB_ENV
-        echo "${version}" > version.txt
-        echo "VERSION_TAG=${version}"
+        git fetch --tags
+        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "${{ github.event.inputs.tag }}" > version.txt
 
     - name: Download SHA-256 Artifacts
       uses: actions/download-artifact@v4
