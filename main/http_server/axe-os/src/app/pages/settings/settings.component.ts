@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, Subject } from 'rxjs';
-import { switchMap, tap, take } from 'rxjs/operators';
+import { switchMap, tap, take, startWith } from 'rxjs/operators';
 import { GithubUpdateService, UpdateStatus, VersionComparison, GithubRelease } from '../../services/github-update.service';
 import { LoadingService } from '../../services/loading.service';
 import { SystemService } from '../../services/system.service';
@@ -108,7 +108,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
 
     // releases$ only fetches when the user explicitly clicks Check for Updates
-    //  no auto-fetch on page load to avoid burning through the GitHub API unauthenticated rate limit (60 req/hr)
+    // or toggles the prerelease checkbox — no auto-fetch on page load to avoid
+    // burning through the GitHub API unauthenticated rate limit (60 req/hr)
     this.releases$ = combineLatest([
       this.includePrereleasesCtrl.valueChanges.pipe(startWith(this.includePrereleasesCtrl.value)),
       this.info$,
@@ -116,7 +117,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     ]).pipe(
       switchMap(([include]) => {
         this.isCheckingForUpdates = true;
-        return this.githubUpdateService.getReleases(include).pipe(
+        return this.githubUpdateService.getReleases(include as boolean).pipe(
           map(list =>
             (list ?? []).filter(r =>
               r.assets?.some(a => a.name === this.buildFactoryNameFor(r))
@@ -368,6 +369,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.toastrService.warning(this.translate.instant('TOAST.NO_RELEASE_INFO'), this.translate.instant('TOAST.WARNING'));
       return;
     }
+
+    const confirmed = window.confirm(
+      `Install ${this.selectedRelease.tag_name} on this device?\n\nThe device will reboot after flashing.`
+    );
+    if (!confirmed) return;
 
     const filename = this.expectedFactoryFilename;
     console.log('Looking for file:', filename);
