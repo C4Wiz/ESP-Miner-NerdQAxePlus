@@ -108,10 +108,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
 
     // releases$ only fetches when the user explicitly clicks Check for Updates
-    // or toggles the prerelease checkbox — no auto-fetch on page load to avoid
-    // burning through the GitHub API unauthenticated rate limit (60 req/hr)
+    //  no auto-fetch on page load to avoid burning through the GitHub API unauthenticated rate limit (60 req/hr)
     this.releases$ = combineLatest([
-      this.includePrereleasesCtrl.valueChanges,
+      this.includePrereleasesCtrl.valueChanges.pipe(startWith(this.includePrereleasesCtrl.value)),
       this.info$,
       this.refreshTrigger$
     ]).pipe(
