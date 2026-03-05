@@ -386,7 +386,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const assetUrl = asset.browser_download_url;
+    const assetUrl = decodeURIComponent(asset.browser_download_url);
 
     this.otpAuth.ensureOtp$(
       "",
