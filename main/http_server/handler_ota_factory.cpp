@@ -19,7 +19,7 @@
 #include "macros.h"
 #include "psram_allocator.h"
 
-#define GITHUB_REPO "https://github.com/shufps/"
+#define GITHUB_REPO "https://github.com/C4Wiz/"
 
 #define FW_START 0x10000
 #define FW_LEN_MB 4
