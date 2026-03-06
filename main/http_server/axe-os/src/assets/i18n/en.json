@@ -334,7 +334,9 @@
     "SHOW_CHANGELOG": "Show Changelog",
     "HIDE_CHANGELOG": "Hide Changelog",
     "DIRECT_FROM_GITHUB": "Direct from GitHub",
-    "INSTALL_FROM_GITHUB": "Install from GitHub",
+    "INSTALL_FROM_GITHUB": "OTA Update",
+    "CHECK_FOR_UPDATES": "Check for Updates",
+    "LAST_CHECKED": "Last checked",
     "UPDATE_ONE_CLICK": "One Click Update",
     "MANUAL_FIRMWARE_UPDATE": "Manual Firmware Upload",
     "MANUAL_WWW_UPDATE": "Manual WWW Upload",
@@ -380,7 +382,8 @@
     "NO_RELEASE_INFO": "No release information available",
     "UPDATE_FAILED": "Update failed",
     "DEVICE_RESTARTED": "Device restarted",
-    "RESTART_FAILED": "Failed to restart device"
+    "RESTART_FAILED": "Failed to restart device",
+    "UPDATE_CHECK_FAILED": "Failed to fetch releases from GitHub."
   },
   "WIFI": {
     "TITLE": "WiFi Settings",

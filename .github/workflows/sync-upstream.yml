@@ -1,0 +1,141 @@
+name: Sync with Upstream
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_branch:
+        description: 'Upstream branch to sync from'
+        required: true
+        default: 'master'
+        type: string
+      strategy:
+        description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
+        required: true
+        default: 'merge'
+        type: choice
+        options:
+          - merge
+          - rebase
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout your fork
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Configure git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Add upstream remote
+      run: |
+        git remote add upstream https://github.com/shufps/ESP-Miner-NerdQAxePlus.git
+        git fetch upstream
+
+    - name: Check for upstream changes
+      id: check_changes
+      run: |
+        UPSTREAM_COMMITS=$(git rev-list HEAD..upstream/${{ github.event.inputs.upstream_branch }} --count)
+        echo "UPSTREAM_COMMITS=${UPSTREAM_COMMITS}" >> $GITHUB_ENV
+        echo "Upstream has ${UPSTREAM_COMMITS} new commit(s) since your last sync."
+        if [ "$UPSTREAM_COMMITS" -eq "0" ]; then
+          echo "SKIP=true" >> $GITHUB_ENV
+        else
+          echo "SKIP=false" >> $GITHUB_ENV
+        fi
+
+    - name: Already up to date
+      if: env.SKIP == 'true'
+      run: |
+        echo "Your fork is already up to date with upstream/${{ github.event.inputs.upstream_branch }}. Nothing to do."
+
+    - name: Create sync branch
+      if: env.SKIP == 'false'
+      run: |
+        SYNC_BRANCH="sync/upstream-$(date +'%Y%m%d-%H%M%S')"
+        echo "SYNC_BRANCH=${SYNC_BRANCH}" >> $GITHUB_ENV
+        git checkout -b "${SYNC_BRANCH}"
+
+    - name: Merge upstream changes
+      if: env.SKIP == 'false' && github.event.inputs.strategy == 'merge'
+      run: |
+        git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || {
+          echo "CONFLICTS=true" >> $GITHUB_ENV
+          echo "Merge conflicts detected. The PR will be opened so you can resolve them manually."
+          # Stage the conflict state so the branch can still be pushed
+          git add -A
+          git commit -m "chore: sync upstream — conflicts need manual resolution" || true
+        }
+
+    - name: Rebase onto upstream changes
+      if: env.SKIP == 'false' && github.event.inputs.strategy == 'rebase'
+      run: |
+        git rebase upstream/${{ github.event.inputs.upstream_branch }} || {
+          echo "CONFLICTS=true" >> $GITHUB_ENV
+          echo "Rebase conflicts detected. Aborting rebase and falling back to a merge commit for PR review."
+          git rebase --abort
+          git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || {
+            git add -A
+            git commit -m "chore: sync upstream (rebase fallback) — conflicts need manual resolution" || true
+          }
+        }
+
+    - name: Push sync branch
+      if: env.SKIP == 'false'
+      run: |
+        git push origin "${{ env.SYNC_BRANCH }}"
+
+    - name: Install GitHub CLI
+      if: env.SKIP == 'false'
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y gh
+
+    - name: Open Pull Request
+      if: env.SKIP == 'false'
+      run: |
+        UPSTREAM_COMMITS=${{ env.UPSTREAM_COMMITS }}
+
+        if [ "${{ env.CONFLICTS }}" == "true" ]; then
+          TITLE="⚠️ Sync upstream — conflicts need resolution (${{ github.event.inputs.upstream_branch }})"
+          BODY="## Upstream Sync ($(date +'%Y-%m-%d'))
+
+        This PR syncs **${{ env.UPSTREAM_COMMITS }} new upstream commit(s)** from \`shufps/ESP-Miner-NerdQAxePlus:${{ github.event.inputs.upstream_branch }}\`.
+
+        ⚠️ **Conflicts were detected** during the ${{ github.event.inputs.strategy }}. Please resolve them before merging this PR.
+
+        **Strategy used:** \`${{ github.event.inputs.strategy }}\`
+
+        ### Steps to resolve locally:
+        \`\`\`bash
+        git fetch origin
+        git checkout ${{ env.SYNC_BRANCH }}
+        # resolve conflicts in your editor
+        git add .
+        git commit
+        git push
+        \`\`\`"
+        else
+          TITLE="✅ Sync upstream — ${{ env.UPSTREAM_COMMITS }} new commit(s) from ${{ github.event.inputs.upstream_branch }}"
+          BODY="## Upstream Sync ($(date +'%Y-%m-%d'))
+
+        This PR syncs **${{ env.UPSTREAM_COMMITS }} new upstream commit(s)** from \`shufps/ESP-Miner-NerdQAxePlus:${{ github.event.inputs.upstream_branch }}\`.
+
+        No conflicts detected. Review the changes below and merge when ready.
+
+        **Strategy used:** \`${{ github.event.inputs.strategy }}\`"
+        fi
+
+        gh pr create \
+          --title "$TITLE" \
+          --body "$BODY" \
+          --base master \
+          --head "${{ env.SYNC_BRANCH }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

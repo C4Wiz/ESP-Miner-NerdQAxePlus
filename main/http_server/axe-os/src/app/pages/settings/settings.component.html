@@ -5,6 +5,7 @@ Version mismatch!<br/><br/>
 Firmware: {{ currentVersion }}<br/>
 Web-UI: {{ currentWebVersion }}<br/>
 </nb-card>
+
 <!-- Settings Card (stays separate) -->
 <nb-card>
   <nb-card-header>{{ 'SETTINGS.TITLE' | translate }}</nb-card-header>
@@ -45,15 +46,15 @@ Web-UI: {{ currentWebVersion }}<br/>
 
       <hr>
 
-      <!-- Row: Selector + prerelease toggle -->
-      <!-- Row: Selector -->
+      <!-- Row: Release selector -->
       <div class="release-row">
         <div class="release-select">
           <label class="release-label">
             <strong>{{ 'UPDATE.SELECT_RELEASE' | translate }}:</strong>
           </label>
           <nb-select [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
-            placeholder="Select release" [disabled]="isOneClickUpdate">
+            placeholder="Click 'Check for Updates' to load"
+            [disabled]="isOneClickUpdate || isCheckingForUpdates">
             <nb-option *ngFor="let r of (releases$ | async) ?? []; let i = index" [value]="r.id">
               {{ getReleaseLabel(r, i) }}
             </nb-option>
@@ -61,13 +62,25 @@ Web-UI: {{ currentWebVersion }}<br/>
         </div>
       </div>
 
-      <!-- Row: Prerelease checkbox -->
+      <!-- Row: Prerelease checkbox + Check for Updates button -->
       <div class="release-checkbox-row">
-        <nb-checkbox class="prerelease-toggle" [formControl]="includePrereleasesCtrl" [disabled]="isOneClickUpdate">
+        <nb-checkbox class="prerelease-toggle" [formControl]="includePrereleasesCtrl"
+          [disabled]="isOneClickUpdate || isCheckingForUpdates">
           {{ 'UPDATE.SHOW_PRERELEASES' | translate }}
         </nb-checkbox>
+        <button nbButton status="basic" size="small"
+          [nbSpinner]="isCheckingForUpdates"
+          [disabled]="isOneClickUpdate || isCheckingForUpdates"
+          (click)="checkForUpdates()">
+          <nb-icon icon="refresh-outline" pack="eva"></nb-icon>&nbsp;
+          {{ 'UPDATE.CHECK_FOR_UPDATES' | translate }}
+        </button>
       </div>
 
+      <!-- Last checked timestamp -->
+      <div class="last-checked" *ngIf="lastChecked">
+        <small>{{ 'UPDATE.LAST_CHECKED' | translate }}: {{ lastChecked | date:'medium' }}</small>
+      </div>
 
       <!-- Meta of selected release -->
       <div class="version-info" *ngIf="selectedRelease">
@@ -94,17 +107,13 @@ Web-UI: {{ currentWebVersion }}<br/>
 
       <!-- Update CTA + progress -->
       <div class="update-section">
-        <div class="d-flex align-items-center justify-content-between mt-2">
+        <div class="mt-2">
           <button nbButton [status]="updateStatus === UpdateStatus.UPDATE_AVAILABLE ? 'warning' : 'primary'"
             size="small" [nbSpinner]="isOneClickUpdate" [disabled]="isOneClickUpdate || !selectedRelease"
             (click)="directUpdateFromGithub()">
             <nb-icon icon="cloud-download-outline" pack="eva"></nb-icon>&nbsp;
             {{ 'UPDATE.INSTALL_FROM_GITHUB' | translate }}
           </button>
-          <nb-checkbox class="keep-config-toggle" [checked]="true" (click)="$event.preventDefault()"
-            [nbTooltip]="'UPDATE.KEEP_SETTINGS_DISABLED' | translate" nbTooltipPlacement="top">
-            {{ 'UPDATE.KEEP_CONFIG' | translate }}
-          </nb-checkbox>
         </div>
       </div>
 
@@ -129,13 +138,12 @@ Web-UI: {{ currentWebVersion }}<br/>
     </nb-card-body>
   </nb-card>
 
-
   <nb-card class="card-item" style="position: relative;">
     <nb-card-header>
       {{ 'UPDATE.LEGACY' | translate }}
     </nb-card-header>
     <nb-card-body>
-      <!-- Manual File Upload -->
+      <!-- Manual Firmware Upload -->
       <div class="update-section">
         <h6>{{ 'UPDATE.MANUAL_FIRMWARE_UPDATE' | translate }}</h6>
         <input type="file" #firmwareInput hidden (change)="onFirmwareFileSelected($event)" accept=".bin">
@@ -155,7 +163,7 @@ Web-UI: {{ currentWebVersion }}<br/>
 
       <hr>
 
-      <!-- Manual File Upload -->
+      <!-- Manual WWW Upload -->
       <div class="update-section">
         <h6>{{ 'UPDATE.MANUAL_WWW_UPDATE' | translate }}</h6>
         <input type="file" #websiteInput hidden (change)="onWebsiteFileSelected($event)" accept=".bin">

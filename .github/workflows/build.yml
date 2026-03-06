@@ -1,7 +1,12 @@
 name: Build and Release ESP32 Firmware
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build and upload assets to (e.g. v1.0.37.1-OC)'
+        required: true
+        type: string
 
 jobs:
   build-and-release:
@@ -9,33 +14,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - board: NERDQAXEPLUS
-            upload_www: true
-            label: NerdQAxe+
-          - board: NERDOCTAXEPLUS
-            upload_www: false
-            label: NerdOCTAXE+
           - board: NERDQAXEPLUS2
-            upload_www: false
+            upload_www: true
             label: NerdQAxe++
-          - board: NERDAXE
-            upload_www: false
-            label: NerdAxe
-          - board: NERDOCTAXEGAMMA
-            upload_www: false
-            label: NerdOCTAXE-Gamma
-          - board: NERDAXEGAMMA
-            upload_www: false
-            label: NerdAxeGamma
-          - board: NERDHAXEGAMMA
-            upload_www: false
-            label: NerdHaxe-Gamma
-          - board: NERDEKO
-            upload_www: false
-            label: NerdEKO
-          - board: NERDQX
-            upload_www: false
-            label: NerdQX
+    outputs:
+      release_exists: ${{ env.RELEASE_EXISTS }}
 
     steps:
     - name: Checkout repository
@@ -44,25 +27,23 @@ jobs:
     - name: Get Version Tag
       id: version_tag
       run: |
-        git fetch --tags  # Ensure all tags are fetched
-        version=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
-        echo "VERSION_TAG=${version}" >> $GITHUB_ENV
-        echo "${version}" > version.txt
-        echo "VERSION_TAG=${version}"
+        git fetch --tags
+        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "${{ github.event.inputs.tag }}" > version.txt
 
     - name: Install GitHub CLI
       run: |
         sudo apt-get update -y
         sudo apt-get install -y gh
 
-    - name: Check if release exists
-      id: check_release
+    - name: Verify release exists
       run: |
-        if gh release view "${{ env.VERSION_TAG }}" >/dev/null 2>&1; then
-          echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
-        else
-          echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
+        if ! gh release view "${{ env.VERSION_TAG }}" >/dev/null 2>&1; then
+          echo "ERROR: No GitHub release found for tag '${{ env.VERSION_TAG }}'. Please create the release before running this workflow."
+          exit 1
         fi
+        echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
+        echo "Release '${{ env.VERSION_TAG }}' found — proceeding with build."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -79,13 +60,11 @@ jobs:
 
     - name: Set Target
       run: |
-        # Run the Docker container to set ESP32-S3 target
         docker run --rm --user root -e BOARD=${{ matrix.board }} -v $PWD:/home/builder/project \
         shufps/esp-idf-builder:0.0.1 idf.py set-target esp32s3
 
     - name: Compile Binaries
       run: |
-        # Run the Docker container to build the project
         docker run --rm --user root -e BOARD=${{ matrix.board }} -v $PWD:/home/builder/project \
         shufps/esp-idf-builder:0.0.1 idf.py build
 
@@ -115,39 +94,6 @@ jobs:
         sudo mv build/esp-miner.bin build/esp-miner-${{ matrix.label }}.bin
         sudo mv build/esp-miner.elf build/esp-miner-${{ matrix.label }}.elf
 
-    - name: Upload factory binary
-      if: env.RELEASE_EXISTS == 'false'
-      uses: actions/upload-artifact@v4
-      with:
-        name: esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
-        path: esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
-        retention-days: 7
-
-    - name: Upload ELF for crash analysis
-      if: env.RELEASE_EXISTS == 'false'
-      uses: actions/upload-artifact@v4
-      with:
-        name: esp-miner-${{ matrix.label }}.elf
-        path: build/esp-miner-${{ matrix.label }}.elf
-        retention-days: 7
-
-    - name: Upload BIN firmware
-      if: env.RELEASE_EXISTS == 'false'
-      uses: actions/upload-artifact@v4
-      with:
-        name: esp-miner-${{ matrix.label }}.bin
-        path: build/esp-miner-${{ matrix.label }}.bin
-        retention-days: 7
-
-    - name: Upload www.bin (only once)
-      if: env.RELEASE_EXISTS == 'false' && matrix.board == 'NERDQAXEPLUS'
-      uses: actions/upload-artifact@v4
-      with:
-        name: www.bin
-        path: build/www.bin
-        retention-days: 7
-
-
     - name: Create files list
       run: |
         echo "esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin" > file_list.txt
@@ -161,39 +107,13 @@ jobs:
       id: set_files_var
       run: echo "files=$(cat file_list.txt | tr '\n' ',')" >> $GITHUB_ENV
 
-    # Skip release upload if no release exists
-    - name: Skip release upload if not tagged
-      if: env.RELEASE_EXISTS == 'false'
-      run: echo "No GitHub release found for '${{ env.VERSION_TAG }}' — skipping release upload."
-
-    - name: Upload to Existing Release
-      if: env.RELEASE_EXISTS == 'true'
+    - name: Upload to Release
       uses: softprops/action-gh-release@v1
       with:
         files: ${{ env.files }}
         tag_name: ${{ env.VERSION_TAG }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Install rclone
-      run: |
-        curl -fsSL https://rclone.org/install.sh | sudo bash
-
-    - name: Upload to Cloudflare R2 using rclone
-      env:
-        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
-      run: |
-        mkdir -p ~/.config/rclone
-        echo "$RCLONE_CONF" > ~/.config/rclone/rclone.conf
-
-        TARGET_DIR="webflasher/${{ env.VERSION_TAG }}"
-
-        while read file; do
-          rclone copyto "$file" "r2:${TARGET_DIR}/$(basename "$file")" --s3-acl public-read
-        done < file_list.txt
-
-    outputs:
-      release_exists: ${{ env.RELEASE_EXISTS }}
 
 
   update-release-body:
@@ -207,11 +127,9 @@ jobs:
     - name: Get Version Tag
       id: version_tag
       run: |
-        git fetch --tags  # Ensure all tags are fetched
-        version=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
-        echo "VERSION_TAG=${version}" >> $GITHUB_ENV
-        echo "${version}" > version.txt
-        echo "VERSION_TAG=${version}"
+        git fetch --tags
+        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "${{ github.event.inputs.tag }}" > version.txt
 
     - name: Download SHA-256 Artifacts
       uses: actions/download-artifact@v4
@@ -230,16 +148,11 @@ jobs:
 
     - name: Append to Release Body
       run: |
-        # Fetch the current release body
         existing_notes="$(gh release view ${{ env.VERSION_TAG }} --json body -q '.body')"
-
-        # Append the new content
         new_notes="$existing_notes\n"
         new_notes+='<!--\n'
         new_notes+="$(cat sha256-summary.txt)\n"
         new_notes+='-->\n'
-
-        # Update the release body
         gh release edit ${{ env.VERSION_TAG }} --notes "$(echo -e "$new_notes")"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
