@@ -201,19 +201,54 @@ export class GithubUpdateService {
    * Get changelog formatted as HTML
    */
   public getChangelog(release: GithubRelease): string {
-    if (!release.body) {
-      return 'No changelog available';
-    }
-
-    // Convert markdown to basic HTML (simple conversion)
-    return release.body
-      .replace(/### (.*)/g, '<h4>$1</h4>')
-      .replace(/## (.*)/g, '<h3>$1</h3>')
-      .replace(/# (.*)/g, '<h2>$1</h2>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\n/g, '<br>');
+  if (!release.body) {
+    return 'No changelog available';
   }
+
+  let html = release.body
+    // Escape HTML entities first
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Code blocks (before inline code)
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Headers (must come before bold/italic)
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    // Bold and italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Links where href is literally the word 'url' — use display text as href
+    .replace(/\[([^\]]+)\]\(url\)/g, '<a href="$1" target="_blank">$1</a>')
+    // Links with real URLs
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    // Horizontal rules — any line of 3+ dashes
+    .replace(/^-{3,}$/gm, '<hr>')
+    // Bullet lists
+    .replace(/((?:^[ \t]*[-*+] .+\n?)+)/gm, (match) => {
+      const items = match.trim().split('\n').map(line =>
+        `<li>${line.replace(/^[ \t]*[-*+] /, '').trim()}</li>`
+      ).join('');
+      return `<ul>${items}</ul>`;
+    })
+    // Numbered lists
+    .replace(/((?:^[ \t]*\d+\. .+\n?)+)/gm, (match) => {
+      const items = match.trim().split('\n').map(line =>
+        `<li>${line.replace(/^[ \t]*\d+\. /, '').trim()}</li>`
+      ).join('');
+      return `<ol>${items}</ol>`;
+    })
+    // Paragraph breaks
+    .replace(/\n{2,}/g, '</p><p>')
+    // Single newlines become <br>
+    .replace(/([^>])\n([^<])/g, '$1<br>$2');
+
+  return `<p>${html}</p>`;
+}
 
   /**
    * Find asset in release by filename
