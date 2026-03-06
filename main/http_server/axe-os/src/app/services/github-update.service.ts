@@ -185,12 +185,15 @@ export class GithubUpdateService {
         ).join('');
         return `<ol>${items}</ol>`;
       })
+      // Strip newlines around hr tags to prevent extra spacing
+      .replace(/(<hr>)\n*/g, '$1')
+      .replace(/\n*(<hr>)/g, '$1')
       // Paragraph breaks
       .replace(/\n{2,}/g, '</p><p>')
       // Single newlines become <br>
       .replace(/([^>])\n([^<])/g, '$1<br>$2');
 
-    return `<p>${html}</p>`;
+    return `<div>${html}</div>`;
   }
 
   /**
