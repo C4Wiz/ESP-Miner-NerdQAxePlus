@@ -145,6 +145,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
     );
 
     this.checkUpdateStatus();
+
+    // If the user has already done a manual check, toggling the prerelease
+    // checkbox should immediately re-fetch with the new setting
+    this.includePrereleasesCtrl.valueChanges.subscribe(() => {
+      if (this.lastChecked) {
+        this.refreshTrigger$.next();
+      }
+    });
   }
 
   private normalizeModel(model) {
