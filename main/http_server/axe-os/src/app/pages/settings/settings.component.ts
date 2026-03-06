@@ -138,10 +138,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
       }),
       tap(list => {
-        if (!this.selectedRelease || !list.find(r => r.id === this.selectedRelease!.id)) {
-          this.selectedRelease = list[0] ?? null;
-          this.updateSelectedReleaseDeps();
-        }
+         this.selectedRelease = list[0] ?? null;
+         this.updateSelectedReleaseDeps();
+      }),
       }),
       shareReplay({ refCount: true, bufferSize: 1 })
     );
