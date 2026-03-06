@@ -1,0 +1,65 @@
+name: Merge Master into Develop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  merge-master-to-develop:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Configure git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Fetch all branches
+      run: git fetch origin
+
+    - name: Attempt merge master into develop
+      id: merge
+      run: |
+        git checkout develop
+        if git merge --no-edit origin/master; then
+          echo "CONFLICTS=false" >> $GITHUB_ENV
+        else
+          echo "CONFLICTS=true" >> $GITHUB_ENV
+          git merge --abort
+        fi
+
+    - name: Push merged develop
+      if: env.CONFLICTS == 'false'
+      run: git push origin develop
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Open PR if conflicts detected
+      if: env.CONFLICTS == 'true'
+      run: |
+        BRANCH="merge/master-to-develop-$(date +'%Y%m%d-%H%M%S')"
+        git checkout -b "${BRANCH}" origin/develop
+        git merge --no-edit origin/master || true
+        git add -A
+        git commit -m "chore: merge master into develop — conflicts need manual resolution"
+        git push origin "${BRANCH}"
+
+        gh pr create \
+          --title "⚠️ Merge master → develop — conflicts need resolution" \
+          --body "Automated merge of \`master\` into \`develop\` failed due to conflicts. Please resolve them locally before merging this PR." \
+          --base develop \
+          --head "${BRANCH}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Summary
+      run: |
+        if [ "${{ env.CONFLICTS }}" == "false" ]; then
+          echo "✅ master merged into develop successfully." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Conflicts detected — PR opened for manual resolution." >> $GITHUB_STEP_SUMMARY
+        fi
