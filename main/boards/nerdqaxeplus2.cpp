@@ -13,11 +13,11 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_ifault = (float) (m_imax + 5);
 
     m_asicJobIntervalMs = 500;
-    m_asicFrequencies = {500, 515, 525, 550, 575, 590, 600, 615, 625, 650, 675, 700, 715, 725, 750, 775, 800, 815, 825, 850, 875, 900}; // Added 615-900 to frequency dropdown
+    m_asicFrequencies = {500, 515, 525, 550, 575, 590, 600, 615, 625, 650, 675, 700, 715, 725, 750, 775, 800, 815, 825, 850}; // Added 615-850 to frequency dropdown
     m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210, 1220, 1230, 1240, 1250, 1260, 1270, 1280, 1290, 1300, 1310, 1320, 1330, 1340, 1350, 1360, 1370, 1380, 1390, 1400}; // added 1210-1400 to voltage dropdown
     m_defaultAsicFrequency = m_asicFrequency = 600; // default frequency
     m_defaultAsicVoltageMillis = m_asicVoltageMillis = 1150; // default voltage
-    m_absMaxAsicFrequency = 900; // max overclock now 900
+    m_absMaxAsicFrequency = 850; // max overclock now 850
     m_absMaxAsicVoltageMillis = 1400;
     m_initVoltageMillis = 1200;
 
@@ -26,12 +26,12 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_pidSettings.i = 10;   //  0.10
     m_pidSettings.d = 1000; // 10.00
 
-    m_maxPin = 120.0; // max power now 120w (10A fuse)
+    m_maxPin = 144.0; // max power now 144w (12A fuse)
     m_minPin = 52.0;
     m_maxVin = 13.0;
     m_minVin = 11.0;
     m_minCurrentA = 0.0f;
-    m_maxCurrentA = 10.0f; // max amps now 10a (10a fuse required)
+    m_maxCurrentA = 12.0f; // max amps now 12a (12a fuse required)
 
     m_asicMaxDifficulty = 2048;
     m_asicMinDifficulty = 512;
