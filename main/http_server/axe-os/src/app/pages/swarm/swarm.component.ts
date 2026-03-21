@@ -237,7 +237,7 @@ export class SwarmComponent implements OnInit, OnDestroy {
   public edit(axe: any) {
     if (!axe?.supportsAsicApi) {
       this.toastrService.warning(
-        'To edit settings from the Swarm page, please update this device’s firmware.',
+        'To edit settings from the Swarm page, please update this device\u2019s firmware.',
         'Firmware Update Needed'
       );
       return;
@@ -346,7 +346,6 @@ export class SwarmComponent implements OnInit, OnDestroy {
     return this.ipToInt(a.IP) - this.ipToInt(b.IP);
   }
 
-
   private convertBestDiffToNumber(bestDiff: string | number): number {
     if (typeof bestDiff === 'number') {
       return bestDiff;
@@ -365,7 +364,8 @@ export class SwarmComponent implements OnInit, OnDestroy {
   }
 
   private calculateTotals() {
-    this.totals.hashRate = this.swarm.reduce((sum, axe) => sum + (axe.hashRate || 0), 0);
+    // hashRate from the API is in GH/s; convert to H/s so the hashSuffix pipe can auto-scale correctly.
+    this.totals.hashRate = this.swarm.reduce((sum, axe) => sum + (axe.hashRate || 0), 0) * 1_000_000_000;
     this.totals.power = this.swarm.reduce((sum, axe) => sum + (axe.power || 0), 0);
 
     const numericDiffs = this.swarm
