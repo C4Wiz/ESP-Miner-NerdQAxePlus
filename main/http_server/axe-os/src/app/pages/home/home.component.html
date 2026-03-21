@@ -21,6 +21,7 @@
                 <div>
                   <div *ngIf="!isDualPool" class="font-weight-bold text-lg">
                     {{ info.hashRate | hashSuffix }}
+                    <small>{{ 'UNITS.HASHRATE' | translate }}</small>
                   </div>
                   <div *ngIf="isDualPool" class="font-weight-bold text-lg">
                     {{ getPoolHashrate(0) | hashSuffix }}&nbsp;/&nbsp;{{ getPoolHashrate(1) | hashSuffix }}
@@ -32,7 +33,8 @@
                 </div>
               </div>
               <ng-container *ngIf="expectedHashRate$ | async as expectedHashRate">
-                <span class="text-success">{{ expectedHashRate | hashSuffix }}</span>
+                <span class="text-success">{{ expectedHashRate }} <small>{{ 'UNITS.HASHRATE' | translate
+                    }}</small></span>
                 <span class="text-hint">&nbsp;{{ 'HOME.EXPECTED' | translate }}</span>
               </ng-container>
             </nb-card-body>
