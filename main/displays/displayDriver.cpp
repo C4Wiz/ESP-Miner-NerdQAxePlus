@@ -43,11 +43,27 @@ static inline int32_t elapsed_ms(int64_t start_us, int64_t now) {
     return static_cast<int32_t>((now - start_us) / 1000);
 }
 
-static void formatHashrate(char *buf, int len, float hashrate) {
-    if (hashrate >= 10000.0) {
-        snprintf(buf, len, "%d", (int) (hashrate + 0.5f));
+static void formatHashrate(char *buf, int len, float hashrate_gh) {
+    if (hashrate_gh >= 1000.0f) {
+        float th = hashrate_gh / 1000.0f;
+        if (th >= 100.0f) {
+            snprintf(buf, len, "%.0f TH/s", th);
+        } else if (th >= 10.0f) {
+            snprintf(buf, len, "%.1f TH/s", th);
+        } else {
+            snprintf(buf, len, "%.2f TH/s", th);
+        }
+    } else if (hashrate_gh >= 1.0f) {
+        if (hashrate_gh >= 100.0f) {
+            snprintf(buf, len, "%.0f GH/s", hashrate_gh);
+        } else if (hashrate_gh >= 10.0f) {
+            snprintf(buf, len, "%.1f GH/s", hashrate_gh);
+        } else {
+            snprintf(buf, len, "%.2f GH/s", hashrate_gh);
+        }
     } else {
-        snprintf(buf, len, "%.1f", hashrate);
+        float mh = hashrate_gh * 1000.0f;
+        snprintf(buf, len, "%.0f MH/s", mh);
     }
 }
 
