@@ -237,7 +237,7 @@ export class SwarmComponent implements OnInit, OnDestroy {
   public edit(axe: any) {
     if (!axe?.supportsAsicApi) {
       this.toastrService.warning(
-        'To edit settings from the Swarm page, please update this device’s firmware.',
+        'To edit settings from the Swarm page, please update this device's firmware.',
         'Firmware Update Needed'
       );
       return;
