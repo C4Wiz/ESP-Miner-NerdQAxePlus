@@ -237,7 +237,7 @@ export class SwarmComponent implements OnInit, OnDestroy {
   public edit(axe: any) {
     if (!axe?.supportsAsicApi) {
       this.toastrService.warning(
-        'To edit settings from the Swarm page, please update this device\u2019s firmware.',
+        'To edit settings from the Swarm page, please update this device's firmware.',
         'Firmware Update Needed'
       );
       return;
@@ -346,6 +346,7 @@ export class SwarmComponent implements OnInit, OnDestroy {
     return this.ipToInt(a.IP) - this.ipToInt(b.IP);
   }
 
+
   private convertBestDiffToNumber(bestDiff: string | number): number {
     if (typeof bestDiff === 'number') {
       return bestDiff;
@@ -364,9 +365,11 @@ export class SwarmComponent implements OnInit, OnDestroy {
   }
 
   private calculateTotals() {
-    // hashRate from the API is in GH/s; convert to H/s so the hashSuffix pipe can auto-scale correctly.
-    this.totals.hashRate = this.swarm.reduce((sum, axe) => sum + (axe.hashRate || 0), 0) * 1_000_000_000;
-    this.totals.power = this.swarm.reduce((sum, axe) => sum + (axe.power || 0), 0);
+    this.totals = {
+      hashRate: this.swarm.reduce((sum, axe) => sum + (parseFloat(axe.hashRate) || 0), 0),
+      power: this.swarm.reduce((sum, axe) => sum + (parseFloat(axe.power) || 0), 0),
+      bestDiff: 0,
+    };
 
     const numericDiffs = this.swarm
       .map(axe => this.convertBestDiffToNumber(axe.bestDiff))
@@ -427,14 +430,15 @@ export class SwarmComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  public getActivePoolHashrate(axe, i: 0 | 1) {
+  // Returns H/s so the hashSuffix pipe can scale it correctly
+  public getActivePoolHashrate(axe: any, i: 0 | 1): number {
     const balance = this.getActiveBalance(axe, i);
-    return axe.hashRate * balance * 10000000;
+    return Number(axe.hashRate) * 1000000000 * balance / 100;
   }
 
-  public getActiveBalance(axe, i: 0 | 1) {
+  public getActiveBalance(axe: any, i: 0 | 1): number {
     const stratum = axe.stratum;
-    const connected = stratum.pools.map(p => p.connected);
+    const connected = stratum.pools.map((p: any) => p.connected);
     const balance = stratum.poolBalance;
 
     // If neither pool is connected
@@ -451,7 +455,7 @@ export class SwarmComponent implements OnInit, OnDestroy {
     return connected[i] ? 100 : 0;
   }
 
-  public isPoolConnected(axe, i: 0 | 1) {
+  public isPoolConnected(axe: any, i: 0 | 1): boolean {
     return axe.stratum.pools[i].connected;
   }
 }
