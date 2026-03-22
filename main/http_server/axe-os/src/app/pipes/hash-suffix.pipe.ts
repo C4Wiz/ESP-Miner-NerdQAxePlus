@@ -7,43 +7,35 @@ export class HashSuffixPipe implements PipeTransform {
 
   private static _this = new HashSuffixPipe();
 
-  public static transform(value: number, args?: any): string {
-    return this._this.transform(value, args);
+  public static transform(value: number): string {
+    return this._this.transform(value);
   }
 
-  public transform(value: number, args?: any): string {
-
-    const num = Number(value);
-
-    if (num == null || num <= 0 || isNaN(num)) {
-      return '0 H/s';
+  // Reusable SI formatter with K/M/G/T/P/E
+  public transform(value: number, digits: number = 2): string {
+    // Handle NaN / Infinity early
+    if (!Number.isFinite(value)) {
+      return '0';
     }
 
-    // Normalize GH/s to H/s
-    const normalized = num * 1000000000;
+    const suffixes = [' H/s', ' kH/s', ' MH/s', ' GH/s', ' TH/s', ' PH/s', ' EH/s']; // 10^0 ... 10^18
+    const negative = value < 0;
+    let abs = Math.abs(value);
+    let idx = 0;
 
-    const suffixes = [' H/s', ' Kh/s', ' Mh/s', ' Gh/s', ' Th/s', ' Ph/s', ' Eh/s'];
-
-    let power = Math.floor(Math.log10(normalized) / 3);
-    if (power < 0) {
-      power = 0;
-    }
-    if (power >= suffixes.length) {
-      power = suffixes.length - 1;
-    }
-    const scaledValue = normalized / Math.pow(1000, power);
-    const suffix = suffixes[power];
-
-    if (args?.tickmark) {
-      return scaledValue.toLocaleString(undefined, { useGrouping: false }) + suffix;
+    // Iterate up through units in 1000 steps
+    while (abs >= 1000 && idx < suffixes.length - 1) {
+      abs /= 1000;
+      idx++;
     }
 
-    if (scaledValue < 10) {
-      return scaledValue.toFixed(2) + suffix;
-    } else if (scaledValue < 100) {
-      return scaledValue.toFixed(1) + suffix;
+    // Optional: trim trailing .00 / .10 etc.
+    let str = abs.toFixed(digits);
+    if (digits > 0) {
+      // remove trailing zeros and possibly trailing dot
+      str = str.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
     }
 
-    return scaledValue.toFixed(0) + suffix;
+    return (negative ? '-' : '') + str + suffixes[idx];
   }
 }
