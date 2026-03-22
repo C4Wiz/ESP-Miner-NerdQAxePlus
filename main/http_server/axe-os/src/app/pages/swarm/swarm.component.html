@@ -51,7 +51,7 @@
     <nb-card class="text-center mb-0" style="flex: 1;">
       <nb-card-body>
         <span class="text-start">{{ 'SWARM.TOTAL_HASH_RATE' | translate }}</span>
-        <span class="text-primary fw-bold">{{ totals.hashRate | hashSuffix }}</span>
+        <span class="text-primary fw-bold">{{ (totals?.hashRate ?? 0) * 1000000000 | hashSuffix }}</span>
       </nb-card-body>
     </nb-card>
     <nb-card class="text-center mb-0" style="flex: 1;">
@@ -126,7 +126,7 @@
               </td>
 
               <!-- Hash Rate -->
-              <td [colSpan]="dp ? 2 : 1">{{ axe.hashRate | hashSuffix }}</td>
+              <td [colSpan]="dp ? 2 : 1">{{ axe.hashRate * 1000000000 | hashSuffix }}</td>
 
               <!-- Uptime -->
               <td [rowSpan]="dualPool ? 2 : 1">{{ axe.uptimeSeconds | dateAgo: {intervals: 2} }}</td>
