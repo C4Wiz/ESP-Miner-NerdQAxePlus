@@ -21,8 +21,10 @@ jobs:
   sync-upstream:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      id-token: write        # Required for OIDC/jwt tokens
+      contents: read         # Required for repository access
+      issues: write          # Required for creating/updating issues
+      pull-requests: write   # Required for creating/updating PRs
 
     steps:
     - name: Checkout your fork
