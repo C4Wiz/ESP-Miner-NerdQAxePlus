@@ -70,7 +70,11 @@
     "SHARE_TOO_SMALL": "Pourcentage pour ce pool trop faible!",
     "HIDE_CHART": "masquer",
     "SHOW_CHART": "afficher",
-    "STRATUM_NOT_CONNECTED": "Stratum non connecté pour ce pool."
+    "STRATUM_NOT_CONNECTED": "Stratum non connecté pour ce pool.",
+    "RESET_STATS": "Réinitialiser les stats de session",
+    "RESET_STATS_CONFIRM": "Réinitialiser toutes les stats de session (shares, meilleure diff, erreurs) ?",
+    "RESET_STATS_SUCCESS": "Stats de session réinitialisées.",
+    "RESET_STATS_FAILED": "Échec de la réinitialisation."
   },
   "PERFORMANCE": {
     "TITLE": "Performance",
@@ -398,7 +402,10 @@
     "MANUAL": "Manuel",
     "AUTODETECT_POLARITY": "Détection Auto de la Polarité",
     "AUTODETECT_RECOMMENDED": "Recommandé",
-    "INVERT_POLARITY": "Inverser la Polarité"
+    "INVERT_POLARITY": "Inverser la Polarité",
+    "USE_FAN1_SETTINGS": "Synchroniser avec Ventilateur 1",
+    "FAN1_CONNECTOR_HINT": "Branchez le <strong>ventilateur ASIC</strong> sur le connecteur <strong>{{connector}}</strong>.",
+    "FAN2_CONNECTOR_HINT": "Branchez le <strong>ventilateur VReg</strong> sur le connecteur <strong>{{connector}}</strong>."
   },
   "MISC": {
     "TITLE": "Paramètres Divers",
