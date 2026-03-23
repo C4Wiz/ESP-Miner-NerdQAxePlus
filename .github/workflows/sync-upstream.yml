@@ -11,7 +11,7 @@ on:
       strategy:
         description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
         required: true
-        default: 'merge'
+        default: 'rebase'
         type: choice
         options:
           - merge
