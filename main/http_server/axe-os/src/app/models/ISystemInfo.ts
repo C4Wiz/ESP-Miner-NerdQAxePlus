@@ -66,7 +66,17 @@ export interface ISystemInfo {
     manualFanSpeed: number,
     fanrpm: number,
     fanrpm2?: number,
+    fanspeed2?: number,
     fanCount?: number,
+    fans?: {
+        label?: string,
+        mode: number,
+        manualSpeed: number,
+        overheatTemp: number,
+        rpm: number,
+        speedPerc: number,
+        pid: { targetTemp: number, p: number, i: number, d: number }
+    }[],
     coreVoltageActual: number,
     lastResetReason: string,
     jobInterval: number,
@@ -114,5 +124,6 @@ export interface ISwarmInfo {
     ASICModel: eASICModel,
     deviceModel: string,
     poolDifficulty: number,
+    networkDifficulty: number,
     version: string,
 }

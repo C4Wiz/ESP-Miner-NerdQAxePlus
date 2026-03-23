@@ -87,10 +87,15 @@ class StratumManager {
     virtual void acceptedShare(int pool) = 0;
     virtual void rejectedShare(int pool) = 0;
     virtual void setPoolDifficulty(int pool, uint32_t diff) = 0;
+    virtual void setNetworkDifficulty(int pool, uint32_t nbits) {}
 
     virtual int getPoolMode() = 0;
 
   public:
+    virtual void resetSessionStats() {
+        PThreadGuard lock(m_mutex);
+        m_foundBlocks = 0;
+    }
     StratumManager(PoolMode mode);
     static void taskWrapper(void *pvParameters); ///< Wrapper function for task execution
 
@@ -158,6 +163,7 @@ class StratumManager {
     virtual int getPoolErrors() = 0;
 
     virtual uint32_t getPoolDifficulty() = 0;
+    virtual double getNetworkDifficulty() { return 0; }
 
     virtual int getCompatPingPoolIndex() = 0;
 
