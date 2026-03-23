@@ -134,15 +134,15 @@ jobs:
         fi
 
         # Check if there are differences
-if git diff --quiet origin/master HEAD; then
-  echo "No changes between base and sync branch. Skipping PR."
-  exit 0
-fi
+        if git diff --quiet origin/master HEAD; then
+        echo "No changes between base and sync branch. Skipping PR."
+         exit 0
+        fi
 
         gh pr create \
           --title "$TITLE" \
           --body "$BODY" \
           --base master \
           --head "${{ env.SYNC_BRANCH }}"
-      env:
+       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN }}
