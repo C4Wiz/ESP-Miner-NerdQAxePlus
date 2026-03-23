@@ -145,4 +145,4 @@ jobs:
           --base master \
           --head "${{ env.SYNC_BRANCH }}"
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+         GH_TOKEN: ${{ secrets.PAT_TOKEN }}
