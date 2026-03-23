@@ -11,7 +11,7 @@ on:
       strategy:
         description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
         required: true
-        default: 'merge'
+        default: 'rebase'
         type: choice
         options:
           - merge
@@ -20,11 +20,6 @@ on:
 jobs:
   sync-upstream:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write        # Required for OIDC/jwt tokens
-      contents: read         # Required for repository access
-      issues: write          # Required for creating/updating issues
-      pull-requests: write   # Required for creating/updating PRs
 
     steps:
     - name: Checkout your fork
