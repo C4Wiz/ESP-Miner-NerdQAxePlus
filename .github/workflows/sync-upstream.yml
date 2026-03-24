@@ -6,7 +6,7 @@ on:
       upstream_branch:
         description: 'Upstream branch to sync from'
         required: true
-        default: 'master'
+        default: 'develop'
         type: string
       strategy:
         description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
