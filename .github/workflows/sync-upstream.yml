@@ -8,6 +8,11 @@ on:
         required: true
         default: 'develop'
         type: string
+      target_branch:
+        description: 'Your branch to sync into'
+        required: true
+        default: 'develop'
+        type: string
       strategy:
         description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
         required: true
@@ -41,7 +46,7 @@ jobs:
     - name: Check for upstream changes
       id: check_changes
       run: |
-        UPSTREAM_COMMITS=$(git rev-list HEAD..upstream/${{ github.event.inputs.upstream_branch }} --count)
+        UPSTREAM_COMMITS=$(git rev-list origin/${{ github.event.inputs.target_branch }}..upstream/${{ github.event.inputs.upstream_branch }} --count)
         echo "UPSTREAM_COMMITS=${UPSTREAM_COMMITS}" >> $GITHUB_ENV
         echo "Upstream has ${UPSTREAM_COMMITS} new commit(s) since your last sync."
         if [ "$UPSTREAM_COMMITS" -eq "0" ]; then
@@ -60,7 +65,7 @@ jobs:
       run: |
         SYNC_BRANCH="sync/upstream-$(date +'%Y%m%d-%H%M%S')"
         echo "SYNC_BRANCH=${SYNC_BRANCH}" >> $GITHUB_ENV
-        git checkout -b "${SYNC_BRANCH}"
+        git checkout -b "${SYNC_BRANCH}" origin/${{ github.event.inputs.target_branch }}
 
     - name: Merge upstream changes
       if: env.SKIP == 'false' && github.event.inputs.strategy == 'merge'
@@ -135,7 +140,7 @@ jobs:
         gh pr create \
           --title "$TITLE" \
           --body "$BODY" \
-          --base master \
+          --base ${{ github.event.inputs.target_branch }} \
           --head "${{ env.SYNC_BRANCH }}"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN }}
