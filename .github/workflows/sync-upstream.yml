@@ -91,6 +91,18 @@ jobs:
           git commit --allow-empty -m "chore: sync upstream (rebase fallback) — conflicts need manual resolution" || true
         }
 
+    - name: Debug branch state
+      if: env.SKIP == 'false'
+      run: |
+        echo "=== Current branch ==="
+        git branch --show-current
+        echo "=== Log vs target branch ==="
+        git log origin/${{ github.event.inputs.target_branch }}..HEAD --oneline
+        echo "=== Diff stat vs target branch ==="
+        git diff --stat origin/${{ github.event.inputs.target_branch }}..HEAD
+        echo "=== Status ==="
+        git status
+
     - name: Push sync branch
       if: env.SKIP == 'false'
       run: |
