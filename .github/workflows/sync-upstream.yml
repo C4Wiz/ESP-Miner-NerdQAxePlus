@@ -77,12 +77,13 @@ jobs:
       run: |
         git rebase upstream/${{ github.event.inputs.upstream_branch }} || {
           echo "CONFLICTS=true" >> $GITHUB_ENV
-          echo "Rebase conflicts detected. Aborting rebase and falling back to a merge commit for PR review."
+          echo "Rebase conflicts detected. Aborting rebase and falling back to merge."
           git rebase --abort
-          git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || {
-            git add -A
-            git commit -m "chore: sync upstream (rebase fallback) — conflicts need manual resolution" || true
-          }
+          # Fall back to merge so we always have commits on the branch
+          git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || true
+          # Stage everything including conflict markers so the branch has content
+          git add -A
+          git commit --allow-empty -m "chore: sync upstream (rebase fallback) — conflicts need manual resolution" || true
         }
 
     - name: Push sync branch
