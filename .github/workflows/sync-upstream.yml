@@ -106,9 +106,8 @@ jobs:
     - name: Push sync branch
       if: env.SKIP == 'false'
       run: |
+        git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
         git push origin "${{ env.SYNC_BRANCH }}"
-      env:
-        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
     - name: Install GitHub CLI
       if: env.SKIP == 'false'
