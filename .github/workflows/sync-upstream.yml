@@ -6,7 +6,7 @@ on:
       upstream_branch:
         description: 'Upstream branch to sync from'
         required: true
-        default: 'develop'
+        default: 'master'
         type: string
       strategy:
         description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
@@ -20,15 +20,14 @@ on:
 jobs:
   sync-upstream:
     runs-on: ubuntu-latest
-    permissions: write-all
 
     steps:
     - name: Checkout your fork
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
+        token: ${{ secrets.PAT_TOKEN }}
+
     - name: Configure git identity
       run: |
         git config user.name "github-actions[bot]"
@@ -69,7 +68,6 @@ jobs:
         git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || {
           echo "CONFLICTS=true" >> $GITHUB_ENV
           echo "Merge conflicts detected. The PR will be opened so you can resolve them manually."
-          # Stage the conflict state so the branch can still be pushed
           git add -A
           git commit -m "chore: sync upstream — conflicts need manual resolution" || true
         }
@@ -91,6 +89,8 @@ jobs:
       if: env.SKIP == 'false'
       run: |
         git push origin "${{ env.SYNC_BRANCH }}"
+      env:
+        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
     - name: Install GitHub CLI
       if: env.SKIP == 'false'
@@ -101,8 +101,6 @@ jobs:
     - name: Open Pull Request
       if: env.SKIP == 'false'
       run: |
-        UPSTREAM_COMMITS=${{ env.UPSTREAM_COMMITS }}
-
         if [ "${{ env.CONFLICTS }}" == "true" ]; then
           TITLE="⚠️ Sync upstream — conflicts need resolution (${{ github.event.inputs.upstream_branch }})"
           BODY="## Upstream Sync ($(date +'%Y-%m-%d'))
@@ -133,16 +131,10 @@ jobs:
         **Strategy used:** \`${{ github.event.inputs.strategy }}\`"
         fi
 
-        # Check if there are differences
-        if git diff --quiet origin/master HEAD; then
-        echo "No changes between base and sync branch. Skipping PR."
-         exit 0
-        fi
-
         gh pr create \
           --title "$TITLE" \
           --body "$BODY" \
           --base master \
           --head "${{ env.SYNC_BRANCH }}"
-        env:
-         GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+      env:
+        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
