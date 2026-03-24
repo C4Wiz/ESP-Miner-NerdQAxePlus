@@ -115,6 +115,10 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y gh
 
+    - name: Wait for GitHub to register branch
+      if: env.SKIP == 'false'
+      run: sleep 5
+
     - name: Open Pull Request
       if: env.SKIP == 'false'
       run: |
@@ -149,6 +153,7 @@ jobs:
         fi
 
         gh pr create \
+          --repo ${{ github.repository }} \
           --title "$TITLE" \
           --body "$BODY" \
           --base ${{ github.event.inputs.target_branch }} \
