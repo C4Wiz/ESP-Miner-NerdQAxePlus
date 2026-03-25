@@ -228,16 +228,6 @@
 
               </div>
 
-              <!--div class="nerdos-logo-wrap nerdos-logo-wrap--single" *ngIf="!isDualPool">
-                <div class="nerdos-logo-wrap__inner" [style.--nerdos-logo-color]="nerdOsLogoColor">
-                  <div
-                    class="nerdos-logo"
-                    aria-label="01001110 01100101 01110010 01100100 00101010 01001111 01010011"
-                  ></div>
-                  <span class="nerdos-logo-tooltip">01001110 01100101 01110010 01100100 00101010 01001111 01010011</span>
-                </div>
-            </div-->
-
               <ng-template #poolHalf let-pool="pool" let-idx="idx" let-usingFallback="usingFallback">
                 <div class="pool-tile-half" dir="ltr" [class.pool-tile-half--dual]="isDualPool">
 
@@ -274,6 +264,12 @@
                         </div>
 
                         <div class="pool-tile-metricbar__rejected">
+                          {{ rejectRate(idx) | number: '1.2-2' }}
+                          %&nbsp;/&nbsp;{{ (pool.rejected ?? 0) | number: '1.0-0' }}
+                          &nbsp;{{ 'HOME.REJECTED' | translate }}
+                        </div>
+
+                        <div class="pool-tile-metricbar__rejected">
                           <span class="pool-tile-info__value">{{ (poolDiff(pool)) | number: '1.0-0' }}</span>
                           <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.DIFF' | translate }}</span>
                         </div>
@@ -286,11 +282,6 @@
                         <div class="pool-tile-metricbar__rejected">
                           <span class="pool-tile-info__value">{{ info.networkDifficulty | humanReadable }}</span>
                           <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.NETWORK_DIFF' | translate }}</span>
-                        </div>
-
-                        <div class="pool-tile-metricbar__rejected">
-                          <span class="pool-tile-info__value">{{ (poolDiff(pool)) | number: '1.0-0' }}</span>
-                          <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.DIFF' | translate }}</span>
                         </div>
                       </div>
                     </div>
@@ -466,76 +457,7 @@
             <div class="no-scroll heat-usage heat-usage--plain">
               <div class="heat-usage-box">
                 <div class="heat-bars-layout">
-                  <div class="heat-left">
-
-                    <ng-container *ngIf="hasChipTemps; else asicTempSingle">
-                      <div class="heat-asic-wrap" role="img"
-                           [class.heat-asic-wrap--has-bottom]="(info?.asicTemps?.length ?? 0) > 4"
-                           [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
-                        <div class="heat-metric-box heat-metric-box--vertical heat-asic-main"
-                             [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
-                             [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
-                             [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))">
-                          <div class="heat-metric-box__fill"
-                               [style.height.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
-                          <div class="heat-metric-box__inner">
-                            <div class="heat-metric-box__label-top">ASIC °C</div>
-                            <div class="heat-metric-box__value">{{ maxAsicTemp(info) | number: '1.1-1' }}</div>
-                          </div>
-                        </div>
-
-                        <div class="heat-chips heat-chips--right" aria-label="ASIC chip temperatures"
-                             *ngIf="(info?.asicTemps?.length ?? 0) > 0">
-                          <div class="chip-square" *ngFor="let t of (info?.asicTemps ?? []) | slice:0:4; let i = index"
-                               role="img"
-                               [class.power-bar--warn]="isAsicTempWarn(t, 10, shutdownTempC(info))"
-                               [class.power-bar--crit]="isAsicTempCrit(t, 10, shutdownTempC(info))"
-                               [class.power-bar--max]="isBarMax(t, shutdownTempC(info))"
-                               [attr.aria-label]="('ASIC ' + (i + 1)) + ': ' + (t | number: '1.1-1') + ' °C'">
-                            <div class="chip-square__fill" [style.height.%]="toPct(t, 10, shutdownTempC(info))"></div>
-                            <div class="chip-square__bglabel">A{{ i + 1 }}</div>
-                            <div class="chip-square__inner">
-                              <div class="chip-square__temp">{{ t | number: '1.1-1' }}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="heat-chips heat-chips--bottom" aria-label="ASIC chip temperatures (continued)"
-                             *ngIf="(info?.asicTemps?.length ?? 0) > 4">
-                          <div class="chip-square" *ngFor="let t of (info?.asicTemps ?? []) | slice:4; let i = index"
-                               role="img"
-                               [class.power-bar--warn]="isAsicTempWarn(t, 10, shutdownTempC(info))"
-                               [class.power-bar--crit]="isAsicTempCrit(t, 10, shutdownTempC(info))"
-                               [class.power-bar--max]="isBarMax(t, shutdownTempC(info))"
-                               [attr.aria-label]="('ASIC ' + (i + 5)) + ': ' + (t | number: '1.1-1') + ' °C'">
-                            <div class="chip-square__fill" [style.height.%]="toPct(t, 10, shutdownTempC(info))"></div>
-                            <div class="chip-square__bglabel">A{{ i + 5 }}</div>
-                            <div class="chip-square__inner">
-                              <div class="chip-square__temp">{{ t | number: '1.1-1' }}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </ng-container>
-
-                    <ng-template #asicTempSingle>
-                      <div class="heat-metric-box heat-metric-box--vertical" role="img"
-                           [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
-                           [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
-                           [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))"
-                           [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
-                        <div class="heat-metric-box__fill"
-                             [style.height.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
-                        <div class="heat-metric-box__inner">
-                          <div class="heat-metric-box__label-top">ASIC °C</div>
-                          <div class="heat-metric-box__value">{{ maxAsicTemp(info) | number: '1.1-1' }}</div>
-                        </div>
-                      </div>
-                    </ng-template>
-
-                  </div>
-
-                  <div class="heat-bars">
+                  <div class="heat-bars" style="width: 100%;">
                     @let fanRpm1 = (info.fanrpm ?? 0);
                     @let fanRpm2 = (info.fanrpm2 ?? 0);
                     @let fanC1Present = fanRpm1 > 0;
@@ -572,6 +494,17 @@
                       </div>
                     </div>
 
+                    <div class="power-bar" role="img"
+                         [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
+                         [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
+                         [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))"
+                         [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
+                      <div class="power-bar__fill"
+                           [style.width.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
+                      <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_TEMP' | translate }}</div>
+                      <div class="power-bar__value">{{ maxAsicTemp(info) | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                    </div>
+
                     <div class="power-bar" *ngIf="showFanC2" role="img"
                          [class.power-bar--max]="isBarMax(info.fanspeed2 ?? 0, 100)"
                          [attr.aria-label]="('HOME.FAN_CHANNEL' | translate:{channel: 2}) + ': ' + ((info.fanspeed2 ?? 0) | number: '1.0-0') + ' % (' + ((info.fanrpm2 ?? 0) | number: '1.0-0') + ' RPM)'">
@@ -591,18 +524,6 @@
               </div>
             </div>
           </div>
-
-          <!--div class="nerdos-logo-row nerdos-logo-row--dual" *ngIf="isDualPool">
-            <div class="nerdos-logo-wrap nerdos-logo-wrap--dual">
-              <div class="nerdos-logo-wrap__inner" [style.--nerdos-logo-color]="nerdOsLogoColor">
-                <div
-                  class="nerdos-logo"
-                  aria-label="01001110 01100101 01110010 01100100 00101010 01001111 01010011"
-                ></div>
-                <span class="nerdos-logo-tooltip">01001110 01100101 01110010 01100100 00101010 01001111 01010011</span>
-              </div>
-            </div>
-        </div-->
         </div>
       </div>
 
