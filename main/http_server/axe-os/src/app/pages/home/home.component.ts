@@ -103,8 +103,15 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   // Persisted UI state: chart collapsed (visual-only; data continues tracking).
   public isChartCollapsed: boolean = false;
   private readonly chartCollapsedKey: string = HOME_CFG.storage.keys.chartCollapsed;
-  private chartWindowMs: number = HOME_CFG.xAxis.fixedWindowMs;
-  private zoomCfg: ChartZoomCfg = {
+
+  // Chart height persistence
+    private readonly chartHeightKey = 'nerdCharts_chartHeight';
+    private readonly chartHeightDefault = 570;
+    private readonly chartHeightMin = 200;
+    private readonly chartHeightMax = 1200;
+    public chartHeightPx: number = 570;
+    private chartWindowMs: number = HOME_CFG.xAxis.fixedWindowMs;
+    private zoomCfg: ChartZoomCfg = {
     minWindowMs: HOME_CFG.xAxis.minWindowMs,
     maxWindowMs: HOME_CFG.xAxis.maxWindowMs,
     zoomStepMs: HOME_CFG.xAxis.zoomStepMs,
@@ -691,7 +698,29 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
       map(info => this.getQuickLink(info.fallbackStratumURL, info.fallbackStratumUser))
     );
   }
+  public onChartResizeDrag(event: MouseEvent): void {
+    event.preventDefault();
+    const startY = event.clientY;
+    const startH = this.chartHeightPx;
 
+    const onMove = (e: MouseEvent) => {
+      const newH = Math.min(this.chartHeightMax, Math.max(this.chartHeightMin, startH + (e.clientY - startY)));
+      this.chartHeightPx = newH;
+      this.cdr.markForCheck();
+    };
+
+    const onUp = () => {
+      this.localStorageSet(this.chartHeightKey, String(Math.round(this.chartHeightPx)));
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      this.ngZone.runOutsideAngular(() => {
+        try { (this.chart as any)?.resize?.(); } catch {}
+      });
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
   public toggleChartCollapsed(evt?: Event): void {
     this.isChartCollapsed = !this.isChartCollapsed;
 
@@ -844,6 +873,13 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
 
 ngOnInit() {
     this.chartWindowMs = clampWindowMs(HOME_CFG.xAxis.fixedWindowMs, this.zoomCfg);
+    // Restore persisted chart height
+    const storedHeight = Number(this.localStorageGet(this.chartHeightKey));
+    if (Number.isFinite(storedHeight) && storedHeight >= this.chartHeightMin && storedHeight <= this.chartHeightMax) {
+      this.chartHeightPx = storedHeight;
+    } else {
+      this.chartHeightPx = this.chartHeightDefault;
+    }
     // Chart.js plugins are global; register once.
     registerHomeChartPlugins();
     installNerdChartsDebugBootstrap(globalThis, {
