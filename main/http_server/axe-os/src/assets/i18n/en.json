@@ -111,6 +111,8 @@
     "PING": "Ping",
     "LOSS": "Loss",
     "DIFF": "Diff",
+    "STRATUM_DIFF": "Stratum diff",
+    "NETWORK_DIFF": "Network diff",
     "PRIMARY": "Primary",
     "FALLBACK": "Fallback"
   },
