@@ -274,9 +274,18 @@
                         </div>
 
                         <div class="pool-tile-metricbar__rejected">
-                          {{ rejectRate(idx) | number: '1.2-2' }}
-                          %&nbsp;/&nbsp;{{ (pool.rejected ?? 0) | number: '1.0-0' }}
-                          &nbsp;{{ 'HOME.REJECTED' | translate }}
+                          <span class="pool-tile-info__value">{{ (poolDiff(pool)) | number: '1.0-0' }}</span>
+                          <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.DIFF' | translate }}</span>
+                        </div>
+
+                        <div class="pool-tile-metricbar__rejected">
+                          <span class="pool-tile-info__value">{{ info.stratumDifficulty | number: '1.0-0' }}</span>
+                          <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.STRATUM_DIFF' | translate }}</span>
+                        </div>
+
+                        <div class="pool-tile-metricbar__rejected">
+                          <span class="pool-tile-info__value">{{ info.networkDifficulty | humanReadable }}</span>
+                          <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.NETWORK_DIFF' | translate }}</span>
                         </div>
 
                         <div class="pool-tile-metricbar__rejected">
