@@ -1222,8 +1222,9 @@ nb-card-header{
 
 /* Taller variant (used for "stretch over 4 rows" look) */
 .chart-canvas__wrap--tall{
-  /* Desktop: make the chart 150px taller */
+  /* Desktop: default height — overridden at runtime by [style.height.px] binding */
   height: 570px;
+  transition: height 0ms; /* instant resize during drag */
 }
 
 /* "Tile wrap" breakpoint: around 1200px the layout starts wrapping.
@@ -1256,6 +1257,35 @@ nb-card-header{
 @media (max-width: 576px) {
   .chart-canvas__wrap--tall{
     height: 280px;
+  }
+}
+
+.chart-resize-handle {
+  width: 100%;
+  height: 10px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+  user-select: none;
+  margin-top: -2px;
+
+  &::before {
+    content: '';
+    width: 48px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--bar-label-color, #fff);
+  }
+
+  &:hover {
+    opacity: 0.75;
+  }
+
+  &:active {
+    opacity: 1;
   }
 }
 
