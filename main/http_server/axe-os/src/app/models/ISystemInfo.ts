@@ -57,6 +57,7 @@ export interface ISystemInfo {
     fallbackStratumTLS: number,
     stratumDifficulty: number,
     poolDifficulty: number,
+    networkDifficulty: number,
     frequency: number,
     defaultFrequency: number,
     version: string,
