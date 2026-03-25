@@ -80,6 +80,7 @@ const defaultInfo: ISystemInfo = {
   lastpingrtt: 0.00,
   recentpingloss: 0.00,
   poolDifficulty: 0,
+  networkDifficulty: 0,
   stratum_keep: 0,
   vrFrequency: 25000,
   defaultTheme: "cosmic",
