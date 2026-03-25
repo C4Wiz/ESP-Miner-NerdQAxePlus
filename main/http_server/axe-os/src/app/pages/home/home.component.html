@@ -92,9 +92,10 @@
 
             <nb-card-body class="chart-card-body" [class.chart-card-body--collapsed]="isChartCollapsed">
               <div class="chart-canvas">
-                <div class="chart-canvas__wrap chart-canvas__wrap--tall">
+                <div class="chart-canvas__wrap chart-canvas__wrap--tall" [style.height.px]="chartHeightPx">
                   <canvas #myChart></canvas>
                 </div>
+                <div class="chart-resize-handle" (mousedown)="onChartResizeDrag($event)" title="Drag to resize chart"></div>
               </div>
             </nb-card-body>
           </nb-card>
