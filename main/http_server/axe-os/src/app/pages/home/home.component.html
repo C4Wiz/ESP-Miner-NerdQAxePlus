@@ -457,8 +457,8 @@
           <div class="plain-section">
             <div class="no-scroll heat-usage heat-usage--plain">
               <div class="heat-usage-box">
-                <div class="heat-bars-layout">
-                  <div class="heat-bars" style="width: 100%;">
+                <div class="heat-bars-layout" style="grid-template-columns: 1fr;">
+                    <div class="heat-bars" style="width: 100%;">
                     @let fanRpm1 = (info.fanrpm ?? 0);
                     @let fanRpm2 = (info.fanrpm2 ?? 0);
                     @let fanC1Present = fanRpm1 > 0;
