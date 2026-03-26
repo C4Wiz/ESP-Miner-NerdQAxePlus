@@ -493,14 +493,14 @@
                     </div>
 
                     <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
-                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
-                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp)"
-                         [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
-                         [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
-                      <div class="power-bar__fill"
-                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, (info.fans && info.fans.length > 1 && info.fans[1].overheatTemp > 0 ? info.fans[1].overheatTemp : BAR_LIMITS.vrTemp.max))"
-                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
-                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                        [class.power-bar--warn]="isVrTempWarn(info.vrTemp, info)"
+                        [class.power-bar--crit]="isVrTempCrit(info.vrTemp, info)"
+                        [class.power-bar--max]="isVrTempCrit(info.vrTemp, info)"
+                        [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
+                   <div class="power-bar__fill"
+                        [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, vrTempMax(info))"></div>
+                     <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
+                     <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
                       
                     <div class="power-bar" *ngIf="showFanC2" role="img"
