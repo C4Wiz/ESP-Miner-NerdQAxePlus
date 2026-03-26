@@ -459,8 +459,10 @@
                     @let fanC1Present = fanRpm1 > 0;
                     @let fanC2Present = fanRpm2 > 0;
                     @let fanCount = (info.fanCount ?? 0);
+                    @let fan2Mode = (info.fans && info.fans.length > 1 ? info.fans[1].mode : -1);
+                    @let fan2Enabled = fan2Mode !== 3;
                     @let showFanC1 = fanC1Present || !fanC2Present;
-                    @let showFanC2 = fanC2Present || fanCount >= 2;
+                    @let showFanC2 = fan2Enabled && (fanC2Present || fanCount >= 2);
 
                     <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
                          [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
