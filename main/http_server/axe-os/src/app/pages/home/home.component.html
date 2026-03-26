@@ -480,7 +480,7 @@
                          [attr.aria-label]="(showFanC2 ? ('HOME.FAN_CHANNEL' | translate:{channel: 1}) : ('HOME.FAN_SPEED' | translate)) + ': ' + (info.fanspeed | number: '1.0-0') + ' % (' + (info.fanrpm | number: '1.0-0') + ' RPM)'">
                       <div class="power-bar__fill" [style.width.%]="toPct(info.fanspeed, 0, 100)"></div>
                       <div class="power-bar__label">
-                        <ng-container *ngIf="showFanC2; else fanLabelSingle">{{ 'HOME.FAN_CHANNEL' | translate:{channel: 1} }}</ng-container>
+                        <ng-container *ngIf="showFanC2; else fanLabelSingle">{{ 'HOME.FAN_CHANNEL_1' | translate }}</ng-container>
                         <ng-template #fanLabelSingle>{{ 'HOME.FAN_SPEED' | translate }}</ng-template>
                       </div>
                       <div class="power-bar__value power-bar__value--inline">
@@ -507,7 +507,7 @@
                          [class.power-bar--max]="isBarMax(info.fanspeed2 ?? 0, 100)"
                          [attr.aria-label]="('HOME.FAN_CHANNEL' | translate:{channel: 2}) + ': ' + ((info.fanspeed2 ?? 0) | number: '1.0-0') + ' % (' + ((info.fanrpm2 ?? 0) | number: '1.0-0') + ' RPM)'">
                       <div class="power-bar__fill" [style.width.%]="toPct(info.fanspeed2 ?? 0, 0, 100)"></div>
-                      <div class="power-bar__label">{{ 'HOME.FAN_CHANNEL' | translate:{channel: 2} }}</div>
+                      <div class="power-bar__label">{{ 'HOME.FAN_CHANNEL_2' | translate }}</div>
                       <div class="power-bar__value power-bar__value--inline">
                         <span class="fan-inline">
                           <span class="power-bar__subvalue">{{ (info.fanrpm2 ?? 0) | number: '1.0-0' }}<span class="unit">&nbsp;RPM</span></span>
