@@ -498,7 +498,7 @@
                          [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
                          [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
                       <div class="power-bar__fill"
-                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max)"></div>
+                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, (info.fans && info.fans.length > 1 && info.fans[1].overheatTemp > 0 ? info.fans[1].overheatTemp : BAR_LIMITS.vrTemp.max))"
                       <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
                       <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
