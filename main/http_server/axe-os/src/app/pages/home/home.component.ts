@@ -255,6 +255,24 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
     const band = HOME_CFG.tiles.vrTempBand;
     return isAtLeast(vrTempC, band.critC);
   }
+
+  public vrTempMax(info: any): number {
+  const overheat = Number(info?.fans?.[1]?.overheatTemp);
+  return Number.isFinite(overheat) && overheat > 0 ? overheat : BAR_LIMITS.vrTemp.max;
+}
+
+public isVrTempWarn(vrTempC: any, info?: any): boolean {
+  const max = this.vrTempMax(info);
+  const warnC = max * 0.94;
+  return isBetween(vrTempC, warnC, max);
+}
+
+public isVrTempCrit(vrTempC: any, info?: any): boolean {
+  const max = this.vrTempMax(info);
+  const critC = max * 0.98;
+  return isAtLeast(vrTempC, critC);
+}
+  
   // ASIC temperature scaling + warn/crit thresholds (used by ASIC °C + A1/A2… squares)
   public shutdownTempC = shutdownTempC;
   public isAsicTempWarn = isAsicTempWarn;
