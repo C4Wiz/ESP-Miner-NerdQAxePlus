@@ -464,15 +464,15 @@
                     @let showFanC1 = fanC1Present || !fanC2Present;
                     @let showFanC2 = fan2Enabled && (fanC2Present || fanCount >= 2);
 
-                    <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
-                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
-                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp)"
-                         [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
-                         [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
+                    <div class="power-bar" role="img"
+                         [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
+                         [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
+                         [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))"
+                         [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
                       <div class="power-bar__fill"
-                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max)"></div>
-                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
-                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                           [style.width.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
+                      <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_TEMP' | translate }}</div>
+                      <div class="power-bar__value">{{ maxAsicTemp(info) | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
 
                     <div class="power-bar" *ngIf="showFanC1" role="img"
@@ -492,17 +492,17 @@
                       </div>
                     </div>
 
-                    <div class="power-bar" role="img"
-                         [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
-                         [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
-                         [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))"
-                         [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
+                    <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
+                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
+                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp)"
+                         [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
+                         [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
                       <div class="power-bar__fill"
-                           [style.width.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
-                      <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_TEMP' | translate }}</div>
-                      <div class="power-bar__value">{{ maxAsicTemp(info) | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max)"></div>
+                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
+                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
-
+                      
                     <div class="power-bar" *ngIf="showFanC2" role="img"
                          [class.power-bar--max]="isBarMax(info.fanspeed2 ?? 0, 100)"
                          [attr.aria-label]="('HOME.FAN_CHANNEL' | translate:{channel: 2}) + ': ' + ((info.fanspeed2 ?? 0) | number: '1.0-0') + ' % (' + ((info.fanrpm2 ?? 0) | number: '1.0-0') + ' RPM)'">
