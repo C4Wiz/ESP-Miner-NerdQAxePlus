@@ -259,9 +259,9 @@
                       </div>
 
                       <div class="pool-tile-metricbar__right">
-                        <div class="pool-tile-metricbar__rejected">
-                          <span class="pool-tile-metricbar__shares-value">{{ (pool.accepted ?? 0) | number: '1.0-0' }}</span>
-                          &nbsp;{{ 'HOME.SHARES' | translate }}
+                        <div class="pool-tile-metricbar__shares">
+                          <div class="pool-tile-metricbar__shares-label">{{ 'HOME.SHARES' | translate }}</div>
+                          <div class="pool-tile-metricbar__shares-value">{{ (pool.accepted ?? 0) | number: '1.0-0' }}</div>
                         </div>
 
                         <div class="pool-tile-metricbar__rejected">
@@ -273,11 +273,6 @@
                         <div class="pool-tile-metricbar__rejected">
                           <span class="pool-tile-info__value">{{ (poolDiff(pool)) | number: '1.0-0' }}</span>
                           <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.DIFF' | translate }}</span>
-                        </div>
-
-                        <div class="pool-tile-metricbar__rejected">
-                          <span class="pool-tile-info__value">{{ info.stratumDifficulty | number: '1.0-0' }}</span>
-                          <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.STRATUM_DIFF' | translate }}</span>
                         </div>
 
                         <div class="pool-tile-metricbar__rejected">
@@ -457,8 +452,8 @@
           <div class="plain-section">
             <div class="no-scroll heat-usage heat-usage--plain">
               <div class="heat-usage-box">
-                <div class="heat-bars-layout">
-                  <div class="heat-bars" style="width: 100%;">
+                <div class="heat-bars-layout" style="grid-template-columns: 1fr;">
+                    <div class="heat-bars" style="width: 100%;">
                     @let fanRpm1 = (info.fanrpm ?? 0);
                     @let fanRpm2 = (info.fanrpm2 ?? 0);
                     @let fanC1Present = fanRpm1 > 0;
@@ -469,20 +464,20 @@
                     @let showFanC1 = fanC1Present || !fanC2Present;
                     @let showFanC2 = fan2Enabled && (fanC2Present || fanCount >= 2);
 
-                    <div class="power-bar" role="img"
-                         [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
-                         [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
-                         [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))"
-                         [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
+                    <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
+                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
+                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp)"
+                         [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
+                         [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
                       <div class="power-bar__fill"
-                           [style.width.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
-                      <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_TEMP' | translate }}</div>
-                      <div class="power-bar__value">{{ maxAsicTemp(info) | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max)"></div>
+                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
+                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
 
                     <div class="power-bar" *ngIf="showFanC1" role="img"
                          [class.power-bar--max]="isBarMax(info.fanspeed, 100)"
-                         [attr.aria-label]="(showFanC2 ? ('HOME.FAN_CHANNEL_1' | translate) : ('HOME.FAN_SPEED' | translate)) + ': ' + (info.fanspeed | number: '1.0-0') + ' % (' + (info.fanrpm | number: '1.0-0') + ' RPM)'">
+                         [attr.aria-label]="(showFanC2 ? ('HOME.FAN_CHANNEL' | translate:{channel: 1}) : ('HOME.FAN_SPEED' | translate)) + ': ' + (info.fanspeed | number: '1.0-0') + ' % (' + (info.fanrpm | number: '1.0-0') + ' RPM)'">
                       <div class="power-bar__fill" [style.width.%]="toPct(info.fanspeed, 0, 100)"></div>
                       <div class="power-bar__label">
                         <ng-container *ngIf="showFanC2; else fanLabelSingle">{{ 'HOME.FAN_CHANNEL_1' | translate }}</ng-container>
@@ -497,20 +492,20 @@
                       </div>
                     </div>
 
-                    <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
-                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp)"
-                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp)"
-                         [class.power-bar--max]="isVrTempCrit(info.vrTemp)"
-                         [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
+                    <div class="power-bar" role="img"
+                         [class.power-bar--warn]="isAsicTempWarn(maxAsicTemp(info), 10, shutdownTempC(info))"
+                         [class.power-bar--crit]="isAsicTempCrit(maxAsicTemp(info), 10, shutdownTempC(info))"
+                         [class.power-bar--max]="isBarMax(maxAsicTemp(info), shutdownTempC(info))"
+                         [attr.aria-label]="('PERFORMANCE.ASIC_TEMP' | translate) + ': ' + (maxAsicTemp(info) | number: '1.1-1') + ' °C'">
                       <div class="power-bar__fill"
-                           [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, BAR_LIMITS.vrTemp.max)"></div>
-                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
-                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                           [style.width.%]="toPct(maxAsicTemp(info), 10, shutdownTempC(info))"></div>
+                      <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_TEMP' | translate }}</div>
+                      <div class="power-bar__value">{{ maxAsicTemp(info) | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
 
                     <div class="power-bar" *ngIf="showFanC2" role="img"
                          [class.power-bar--max]="isBarMax(info.fanspeed2 ?? 0, 100)"
-                         [attr.aria-label]="('HOME.FAN_CHANNEL_2' | translate) + ': ' + ((info.fanspeed2 ?? 0) | number: '1.0-0') + ' % (' + ((info.fanrpm2 ?? 0) | number: '1.0-0') + ' RPM)'">
+                         [attr.aria-label]="('HOME.FAN_CHANNEL' | translate:{channel: 2}) + ': ' + ((info.fanspeed2 ?? 0) | number: '1.0-0') + ' % (' + ((info.fanrpm2 ?? 0) | number: '1.0-0') + ' RPM)'">
                       <div class="power-bar__fill" [style.width.%]="toPct(info.fanspeed2 ?? 0, 0, 100)"></div>
                       <div class="power-bar__label">{{ 'HOME.FAN_CHANNEL_2' | translate }}</div>
                       <div class="power-bar__value power-bar__value--inline">
