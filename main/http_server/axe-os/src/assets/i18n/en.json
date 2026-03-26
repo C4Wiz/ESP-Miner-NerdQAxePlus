@@ -89,7 +89,7 @@
     "HEAT": "Heat",
     "TITLE_HEAT": "Heat",
     "ASIC_TEMP": "ASIC Temp",
-    "VR_TEMP": "Voltage Regulator",
+    "VR_TEMP": "VReg Temp",
     "ASIC_TEMP_LEGEND": "ASIC",
     "VR_TEMP_LEGEND": "VReg.",
     "FAN_SPEED": "Fan Speed",
@@ -111,7 +111,6 @@
     "PING": "Ping",
     "LOSS": "Loss",
     "DIFF": "Diff",
-    "STRATUM_DIFF": "Stratum diff",
     "NETWORK_DIFF": "Network diff",
     "PRIMARY": "Primary",
     "FALLBACK": "Fallback"
