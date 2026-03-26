@@ -246,7 +246,7 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   }
 
   /** Voltage Regulator temperature bands (yellow/red) are configured in HOME_CFG. */
-  public isVrTempWarn(vrTempC: any): boolean {
+  /**public isVrTempWarn(vrTempC: any): boolean {
     const band = HOME_CFG.tiles.vrTempBand;
     return isBetween(vrTempC, band.warnC, band.critC);
   }
@@ -254,7 +254,7 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   public isVrTempCrit(vrTempC: any): boolean {
     const band = HOME_CFG.tiles.vrTempBand;
     return isAtLeast(vrTempC, band.critC);
-  }
+  }*/
 
   public vrTempMax(info: any): number {
   const overheat = Number(info?.fans?.[1]?.overheatTemp);
