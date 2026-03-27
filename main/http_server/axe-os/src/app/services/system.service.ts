@@ -85,6 +85,16 @@ const defaultInfo: ISystemInfo = {
   vrFrequency: 25000,
   defaultTheme: "cosmic",
   shutdown: false,
+  apEnabled: 0,
+  displayTimeout: -1,
+  errorPercentage: 0,
+  expectedHashrate: 0,
+  miningPaused: false,
+  blockFound: 0,
+  showNewBlock: false,
+  blockHeight: 0,
+  blockSignals: [],
+  statsFrequency: 0,
 
   stratum: {
     poolMode: 0, // prim/fb
@@ -205,6 +215,35 @@ export class SystemService {
     return this.httpClient.get<any>(`/api/history/data?ts=${ts}`);
   }
 
+  public scanWifi(uri: string = ''): Observable<{ networks: any[] }> {
+    return this.httpClient.get<{ networks: any[] }>(`${uri}/api/system/wifi/scan`);
+  }
+
+  public getStatistics(uri: string = '', columns?: string[]): Observable<any> {
+    let params = new HttpParams();
+    if (columns?.length) params = params.set('columns', columns.join(','));
+    return this.httpClient.get(`${uri}/api/system/statistics`, { params });
+  }
+
+  public pauseMining(uri: string = '', totp?: string): Observable<any> {
+    let headers = new HttpHeaders();
+    if (totp) headers = headers.set('X-TOTP', totp);
+    return this.httpClient.post(`${uri}/api/system/pause`, null, { headers, responseType: 'text' });
+  }
+
+  public resumeMining(uri: string = '', totp?: string): Observable<any> {
+    let headers = new HttpHeaders();
+    if (totp) headers = headers.set('X-TOTP', totp);
+    return this.httpClient.post(`${uri}/api/system/resume`, null, { headers, responseType: 'text' });
+  }
+
+  public identify(uri: string = ''): Observable<any> {
+    return this.httpClient.post(`${uri}/api/system/identify`, null, { responseType: 'text' });
+  }
+
+  public dismissBlockFound(uri: string = ''): Observable<any> {
+    return this.httpClient.post(`${uri}/api/system/blockFound/dismiss`, null);
+  }
 
   // SystemService
   public restart(uri: string = '', totp?: string) {
@@ -293,11 +332,11 @@ export class SystemService {
   }
 
   // GitHub One-Click OTA
-  public performGithubOTAUpdate(url: string, keepConfig: boolean, totp?: string) {
+  public performGithubOTAUpdate(url: string, totp?: string) {
     const headers: Record<string, string> = {};
     if (totp) headers['X-TOTP'] = totp;
 
-    return this.httpClient.post('/api/system/OTA/github', { url, keep_config: keepConfig }, {
+    return this.httpClient.post('/api/system/OTA/github', { url }, {
       responseType: 'text',
       headers,
     });
