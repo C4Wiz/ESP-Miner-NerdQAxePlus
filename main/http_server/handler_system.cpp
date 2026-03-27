@@ -238,7 +238,7 @@ esp_err_t GET_system_info(httpd_req_t *req)
 
     doc["defaultTheme"]       = board->getDefaultTheme();
 
-    // Error percentage and per-chip hashrates from hashrate monitor registers
+    // Error percentage from hashrate monitor registers
     if (board->hasHashrateCounter() && board->getAsics()) {
         float measuredGhs = HASHRATE_MONITOR.getSmoothedTotalChipHashrate();
         float expectedGhs = (float) board->getAsicFrequency()
@@ -249,13 +249,7 @@ esp_err_t GET_system_info(httpd_req_t *req)
             if (errorPct < 0.0f) errorPct = 0.0f;
         }
         doc["errorPercentage"] = errorPct;
-
-        JsonObject hrMonitor = doc["hashrateMonitor"].to<JsonObject>();
-        JsonArray asics = hrMonitor["asics"].to<JsonArray>();
-        for (int i = 0; i < board->getAsicCount(); i++) {
-            JsonObject asic = asics.add<JsonObject>();
-            asic["total"] = HASHRATE_MONITOR.getChipHashrate(i);
-        }
+        doc["measuredHashrate"] = measuredGhs;
     }
     //ESP_LOGI(TAG, "allocs: %d, deallocs: %d, reallocs: %d", allocs, deallocs, reallocs);
 
