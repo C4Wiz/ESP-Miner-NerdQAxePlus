@@ -13,6 +13,8 @@
 
 #include "ping_task.h"
 
+#include "tasks/hashrate_monitor_task.h"
+
 static const char *TAG = "http_system";
 
 #define VR_FREQUENCY_ENABLED
