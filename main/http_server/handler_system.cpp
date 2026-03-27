@@ -238,25 +238,25 @@ esp_err_t GET_system_info(httpd_req_t *req)
 
     doc["defaultTheme"]       = board->getDefaultTheme();
 
-    // Error percentage: compare register-measured hashrate vs expected
-    float measuredGhs = HASHRATE_MONITOR.getSmoothedTotalChipHashrate();
-    float expectedGhs = (float) board->getAsicFrequency() 
-                  * ((float) board->getAsics()->getSmallCoreCount() / 1000.0f);
-    float errorPct = 0.0f;
-    if (expectedGhs > 0.0f && measuredGhs > 0.0f) {
-    errorPct = (1.0f - (measuredGhs / expectedGhs)) * 100.0f;
-    if (errorPct < 0.0f) errorPct = 0.0f;
-}
-doc["errorPercentage"] = errorPct;
+    // Error percentage and per-chip hashrates from hashrate monitor registers
+    if (board->hasHashrateCounter() && board->getAsics()) {
+        float measuredGhs = HASHRATE_MONITOR.getSmoothedTotalChipHashrate();
+        float expectedGhs = (float) board->getAsicFrequency()
+                          * ((float) board->getAsics()->getSmallCoreCount() / 1000.0f);
+        float errorPct = 0.0f;
+        if (expectedGhs > 0.0f && measuredGhs > 0.0f) {
+            errorPct = (1.0f - (measuredGhs / expectedGhs)) * 100.0f;
+            if (errorPct < 0.0f) errorPct = 0.0f;
+        }
+        doc["errorPercentage"] = errorPct;
 
-    {
-    JsonObject hrMonitor = doc["hashrateMonitor"].to<JsonObject>();
-    JsonArray asics = hrMonitor["asics"].to<JsonArray>();
-    for (int i = 0; i < board->getAsicCount(); i++) {
-        JsonObject asic = asics.add<JsonObject>();
-        asic["total"] = HASHRATE_MONITOR.getChipHashrate(i);
+        JsonObject hrMonitor = doc["hashrateMonitor"].to<JsonObject>();
+        JsonArray asics = hrMonitor["asics"].to<JsonArray>();
+        for (int i = 0; i < board->getAsicCount(); i++) {
+            JsonObject asic = asics.add<JsonObject>();
+            asic["total"] = HASHRATE_MONITOR.getChipHashrate(i);
+        }
     }
-}
     //ESP_LOGI(TAG, "allocs: %d, deallocs: %d, reallocs: %d", allocs, deallocs, reallocs);
 
     // Serialize the JSON document to a String and send it
