@@ -406,13 +406,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.isOneClickUpdate = true;
           this.firmwareUpdateProgress = 0;
 
-<<<<<<< HEAD
           return this.systemService.performGithubOTAUpdate(assetUrl, totp);
-=======
           // kick the backend update
           const keepConfig = this.keepConfigCtrl.value ?? true;
           return this.systemService.performGithubOTAUpdate(assetUrl, keepConfig, totp);
->>>>>>> upstream/develop
         })
       )
       .subscribe({
