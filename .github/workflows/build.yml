@@ -17,8 +17,6 @@ jobs:
           - board: NERDQAXEPLUS2
             upload_www: true
             label: NerdQAxe++
-    outputs:
-      release_exists: ${{ env.RELEASE_EXISTS }}
 
     steps:
     - name: Checkout repository
@@ -37,7 +35,6 @@ jobs:
           echo "ERROR: No GitHub release found for tag '${{ env.VERSION_TAG }}'. Please create the release before running this workflow."
           exit 1
         fi
-        echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
         echo "Release '${{ env.VERSION_TAG }}' found — proceeding with build."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,47 +104,5 @@ jobs:
       with:
         files: ${{ env.files }}
         tag_name: ${{ env.VERSION_TAG }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-  update-release-body:
-    runs-on: ubuntu-latest
-    needs: build-and-release
-    if: needs.build-and-release.outputs.release_exists == 'true'
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Get Version Tag
-      id: version_tag
-      run: |
-        git fetch --tags
-        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-        echo "${{ github.event.inputs.tag }}" > version.txt
-
-    - name: Download SHA-256 Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: ./artifacts
-
-    - name: Combine SHA-256 Sums
-      run: |
-        files="$( find ./artifacts -name "*.sha256" | xargs )"
-        cat $files | sort -k2 > sha256-summary.txt
-
-    - name: Install GitHub CLI
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y gh
-
-    - name: Append to Release Body
-      run: |
-        existing_notes="$(gh release view ${{ env.VERSION_TAG }} --json body -q '.body')"
-        new_notes="$existing_notes\n"
-        new_notes+='<!--\n'
-        new_notes+="$(cat sha256-summary.txt)\n"
-        new_notes+='-->\n'
-        gh release edit ${{ env.VERSION_TAG }} --notes "$(echo -e "$new_notes")"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
