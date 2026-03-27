@@ -402,10 +402,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     )
       .pipe(
         switchMap(({ totp }: EnsureOtpResult) => {
+          // reset UI states
           this.otaProgress = 0;
           this.isOneClickUpdate = true;
           this.firmwareUpdateProgress = 0;
-          
+
           // kick the backend update
           const keepConfig = this.keepConfigCtrl.value ?? true;
           return this.systemService.performGithubOTAUpdate(assetUrl, keepConfig, totp);
