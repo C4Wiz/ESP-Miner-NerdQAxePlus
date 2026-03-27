@@ -106,9 +106,50 @@ export interface ISystemInfo {
     history: IHistory
 
     otp: boolean,
+
+    // Fields from OpenAPI spec
+    apEnabled?: number,
+    boardVersion?: string,
+    display?: string,
+    displayTimeout?: number,
+    errorPercentage?: number,
+    expectedHashrate?: number,
+    idfVersion?: string,
+    isPSRAMAvailable?: number,
+    isUsingFallbackStratum?: number,
+    minFanSpeed?: number,
+    nominalVoltage?: number,
+    overheat_mode?: number,
+    overclockEnabled?: number,
+    poolConnectionInfo?: string,
+    resetReason?: string,
+    blockHeight?: number,
+    blockFound?: number,
+    showNewBlock?: boolean,
+    blockSignals?: string[],
+    coinbaseOutputs?: { value: number, address: string }[],
+    coinbaseValueTotalSatoshis?: number,
+    coinbaseValueUserSatoshis?: number,
+    hashrateMonitor?: {
+        asics: {
+            total: number,
+            domains: number[],
+            errorCount: number
+        }[]
+    },
+    miningPaused?: boolean,
+    scriptsig?: string,
+    statsFrequency?: number,
+    temp2?: number,
+    axeOSVersion?: string,
+    ipv4?: string,
+    ipv6?: string,
+    freeHeapSpiram?: number,
+    responseTime?: number,
+    sharesRejectedReasons?: { message: string, count: number }[],
 }
 
-// fields swam is using
+// fields swarm is using
 export interface ISwarmInfo {
     power: number,
     voltage: number,
