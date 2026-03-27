@@ -105,16 +105,15 @@ Web-UI: {{ currentWebVersion }}<br/>
 
       <hr>
 
-      <!-- Update CTA + progress -->
+       <!-- Update CTA + progress -->
       <div class="update-section">
-        <div class="mt-2">
+        <div class="d-flex align-items-center justify-content-between mt-2">
           <button nbButton [status]="updateStatus === UpdateStatus.UPDATE_AVAILABLE ? 'warning' : 'primary'"
             size="small" [nbSpinner]="isOneClickUpdate" [disabled]="isOneClickUpdate || !selectedRelease"
             (click)="directUpdateFromGithub()">
             <nb-icon icon="cloud-download-outline" pack="eva"></nb-icon>&nbsp;
             {{ 'UPDATE.INSTALL_FROM_GITHUB' | translate }}
           </button>
-          
           <nb-checkbox class="keep-config-toggle" [formControl]="keepConfigCtrl"
             [nbTooltip]="'UPDATE.KEEP_SETTINGS_TOOLTIP' | translate" nbTooltipPlacement="top">
             {{ 'UPDATE.KEEP_CONFIG' | translate }}
