@@ -13,8 +13,6 @@
 
 #include "ping_task.h"
 
-#include "tasks/hashrate_monitor_task.h"
-
 static const char *TAG = "http_system";
 
 #define VR_FREQUENCY_ENABLED
@@ -240,19 +238,6 @@ esp_err_t GET_system_info(httpd_req_t *req)
 
     doc["defaultTheme"]       = board->getDefaultTheme();
 
-    // Error percentage from hashrate monitor registers
-    if (board->hasHashrateCounter() && board->getAsics()) {
-        float measuredGhs = HASHRATE_MONITOR.getSmoothedTotalChipHashrate();
-        float expectedGhs = (float) board->getAsicFrequency()
-                          * ((float) board->getAsics()->getSmallCoreCount() / 1000.0f);
-        float errorPct = 0.0f;
-        if (expectedGhs > 0.0f && measuredGhs > 0.0f) {
-            errorPct = (1.0f - (measuredGhs / expectedGhs)) * 100.0f;
-            if (errorPct < 0.0f) errorPct = 0.0f;
-        }
-        doc["errorPercentage"] = errorPct;
-        doc["measuredHashrate"] = measuredGhs;
-    }
     //ESP_LOGI(TAG, "allocs: %d, deallocs: %d, reallocs: %d", allocs, deallocs, reallocs);
 
     // Serialize the JSON document to a String and send it
