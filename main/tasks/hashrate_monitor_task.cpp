@@ -25,9 +25,11 @@ bool HashrateMonitor::start(Board *board, Asic *asic)
     m_asicCount = board->getAsicCount();
 
     m_chipHashrate = new float[m_asicCount]();
-
+    
     m_prevResponse = new int64_t[m_asicCount]();
     m_prevCounter = new uint32_t[m_asicCount]();
+    m_prevErrorResponse = new int64_t[m_asicCount]();
+    m_prevErrorCounter = new uint32_t[m_asicCount]();
 
 
     xTaskCreatePSRAM(&HashrateMonitor::taskWrapper, "hr_monitor", 4096, (void *) this, 10, NULL);
