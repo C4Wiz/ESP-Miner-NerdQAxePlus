@@ -69,10 +69,6 @@ void ASIC_result_task(void *pvParameters)
                     HASHRATE_MONITOR.onRegisterReply(asic_result.asic_nr, asic_result.data);
                     break;
                 }
-                case 0x4c: {
-                    HASHRATE_MONITOR.onErrorRegisterReply(asic_result.asic_nr, asic_result.data);
-                    break;
-                }
                 default: {
                     // NOP
                     break;
