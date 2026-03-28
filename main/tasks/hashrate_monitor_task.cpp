@@ -107,6 +107,8 @@ void HashrateMonitor::taskLoop()
 
         // read the counters
         m_asic->readCounter(REG_NONCE_TOTAL_CNT);
+        // error counter
+        m_asic->readCounter(0x4C);
 
         // responses normally take 20-30ms, so this is safe
         vTaskDelay(pdMS_TO_TICKS(500));
