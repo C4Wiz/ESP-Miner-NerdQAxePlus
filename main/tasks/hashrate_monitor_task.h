@@ -87,6 +87,11 @@ class HashrateMonitor {
     float getChipHashrate(int nr);
     float getTotalChipHashrate();
 
+    // Hashrate Error 
+    int64_t *m_prevErrorResponse = nullptr;
+    uint32_t *m_prevErrorCounter = nullptr;
+    float m_errorHashrate = 0.0f;
+
   public:
     HashrateMonitor();
 
@@ -104,5 +109,10 @@ class HashrateMonitor {
 
     float getHashrate() {
       return m_hashrate;
+    }
+
+    // Hashrate Error
+    float getErrorHashrate() {
+       return m_errorHashrate;
     }
 };
