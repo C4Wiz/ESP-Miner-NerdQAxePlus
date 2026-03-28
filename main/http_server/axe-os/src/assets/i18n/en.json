@@ -38,6 +38,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate reported by the ASICs.",
     "HASH_RATE_CHART": "Nerd* Chart",
     "HASHRATE_ESTIMATED": "Hash rate estimated by found shares.",
+    "ERROR_RATE": "Error rate",
     "SHARES": "Shares",
     "POWER": "Power Usage",
     "BEST_DIFFICULTY": "Best Difficulty",
