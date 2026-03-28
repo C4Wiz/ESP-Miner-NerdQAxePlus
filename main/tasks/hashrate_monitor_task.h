@@ -102,6 +102,7 @@ class HashrateMonitor {
     // Called from RX dispatcher for each register reply.
     // 'counterNow' is the 32-bit counter (host-endian).
     void onRegisterReply(uint8_t asic_idx, uint32_t counterNow);
+    void onErrorRegisterReply(uint8_t asic_idx, uint32_t counterNow);
 
     float getSmoothedTotalChipHashrate() {
       return m_smoothedHashrate;
