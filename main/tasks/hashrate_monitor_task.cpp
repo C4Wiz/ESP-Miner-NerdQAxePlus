@@ -25,11 +25,9 @@ bool HashrateMonitor::start(Board *board, Asic *asic)
     m_asicCount = board->getAsicCount();
 
     m_chipHashrate = new float[m_asicCount]();
-    
+
     m_prevResponse = new int64_t[m_asicCount]();
     m_prevCounter = new uint32_t[m_asicCount]();
-    m_prevErrorResponse = new int64_t[m_asicCount]();
-    m_prevErrorCounter = new uint32_t[m_asicCount]();
 
 
     xTaskCreatePSRAM(&HashrateMonitor::taskWrapper, "hr_monitor", 4096, (void *) this, 10, NULL);
@@ -107,8 +105,6 @@ void HashrateMonitor::taskLoop()
 
         // read the counters
         m_asic->readCounter(REG_NONCE_TOTAL_CNT);
-        // error counter
-        m_asic->readCounter(0x4C);
 
         // responses normally take 20-30ms, so this is safe
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -153,32 +149,4 @@ void HashrateMonitor::onRegisterReply(uint8_t asic_idx, uint32_t counterNow)
 
     m_prevCounter[asic_idx] = counterNow;
     m_prevResponse[asic_idx] = now;
-}
-
-void HashrateMonitor::onErrorRegisterReply(uint8_t asic_idx, uint32_t counterNow)
-{
-    if (asic_idx >= m_asicCount) {
-        ESP_LOGE(HR_TAG, "error reply for invalid asic %d", (int) asic_idx);
-        return;
-    }
-
-    int64_t now = esp_timer_get_time();
-
-    if (!m_prevErrorResponse[asic_idx]) {
-        m_prevErrorResponse[asic_idx] = now;
-        m_prevErrorCounter[asic_idx] = counterNow;
-        return;
-    }
-
-    int64_t timeDelta = now - m_prevErrorResponse[asic_idx];
-    uint32_t counterDelta = counterNow - m_prevErrorCounter[asic_idx];
-
-    double chip_ghs = (double) counterDelta * (double) 0x100000000uLL / (double) timeDelta / 1000.0;
-
-    pthread_mutex_lock(&m_mutex);
-    m_errorHashrate += (float) chip_ghs;
-    pthread_mutex_unlock(&m_mutex);
-
-    m_prevErrorCounter[asic_idx] = counterNow;
-    m_prevErrorResponse[asic_idx] = now;
 }
