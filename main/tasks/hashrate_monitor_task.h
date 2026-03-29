@@ -54,6 +54,10 @@ class HashrateMonitor {
     Median<5> m_median;
     int64_t *m_prevResponse = nullptr;
     uint32_t *m_prevCounter = nullptr;
+    // Error counter tracking
+    int64_t *m_prevErrorResponse = nullptr;
+    uint32_t *m_prevErrorCounter = nullptr;
+    float m_errorHashrate = 0.0f;
     // Task plumbing
     static void taskWrapper(void *pv);
     void taskLoop();
@@ -73,10 +77,14 @@ class HashrateMonitor {
     // Called from RX dispatcher for each register reply.
     // 'counterNow' is the 32-bit counter (host-endian).
     void onRegisterReply(uint8_t asic_idx, uint32_t counterNow);
+    void onErrorRegisterReply(uint8_t asic_idx, uint32_t counterNow);
     float getSmoothedTotalChipHashrate() {
       return m_smoothedHashrate;
     }
     float getHashrate() {
       return m_hashrate;
+    }
+    float getErrorHashrate() {
+      return m_errorHashrate;
     }
 };
