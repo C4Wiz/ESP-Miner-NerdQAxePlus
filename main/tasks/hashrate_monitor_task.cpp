@@ -7,6 +7,7 @@
 
 static const char *HR_TAG = "hashrate_monitor";
 static constexpr uint8_t REG_NONCE_TOTAL_CNT = 0x90;
+static constexpr uint8_t REG_ERROR_CNT = 0x4C;
 
 HashrateMonitor::HashrateMonitor()
 {}
@@ -28,7 +29,8 @@ bool HashrateMonitor::start(Board *board, Asic *asic)
 
     m_prevResponse = new int64_t[m_asicCount]();
     m_prevCounter = new uint32_t[m_asicCount]();
-
+    m_prevErrorResponse = new int64_t[m_asicCount]();
+    m_prevErrorCounter = new uint32_t[m_asicCount]();
 
     xTaskCreatePSRAM(&HashrateMonitor::taskWrapper, "hr_monitor", 4096, (void *) this, 10, NULL);
     ESP_LOGI(HR_TAG, "started (period=%lums)", m_period_ms);
@@ -103,8 +105,14 @@ void HashrateMonitor::taskLoop()
             continue;
         }
 
-        // read the counters
+        // reset error accumulator each cycle before reading
+        pthread_mutex_lock(&m_mutex);
+        m_errorHashrate = 0.0f;
+        pthread_mutex_unlock(&m_mutex);
+
+        // read total nonce counter and error counter
         m_asic->readCounter(REG_NONCE_TOTAL_CNT);
+        m_asic->readCounter(REG_ERROR_CNT);
 
         // responses normally take 20-30ms, so this is safe
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -149,4 +157,32 @@ void HashrateMonitor::onRegisterReply(uint8_t asic_idx, uint32_t counterNow)
 
     m_prevCounter[asic_idx] = counterNow;
     m_prevResponse[asic_idx] = now;
+}
+
+void HashrateMonitor::onErrorRegisterReply(uint8_t asic_idx, uint32_t counterNow)
+{
+    if (asic_idx >= m_asicCount) {
+        ESP_LOGE(HR_TAG, "error reply for invalid asic %d", (int) asic_idx);
+        return;
+    }
+
+    int64_t now = esp_timer_get_time();
+
+    if (!m_prevErrorResponse[asic_idx]) {
+        m_prevErrorResponse[asic_idx] = now;
+        m_prevErrorCounter[asic_idx] = counterNow;
+        return;
+    }
+
+    int64_t timeDelta = now - m_prevErrorResponse[asic_idx];
+    uint32_t counterDelta = counterNow - m_prevErrorCounter[asic_idx];
+
+    double chip_ghs = (double) counterDelta * (double) 0x100000000uLL / (double) timeDelta / 1000.0;
+
+    pthread_mutex_lock(&m_mutex);
+    m_errorHashrate += (float) chip_ghs;
+    pthread_mutex_unlock(&m_mutex);
+
+    m_prevErrorCounter[asic_idx] = counterNow;
+    m_prevErrorResponse[asic_idx] = now;
 }
