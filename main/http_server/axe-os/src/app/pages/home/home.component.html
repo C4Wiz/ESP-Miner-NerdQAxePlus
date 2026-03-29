@@ -141,7 +141,7 @@
                     </div>
                   </ng-container>
 
-                  <div class="pool-summary-square__expected" *ngIf="info.errorPercentage !== undefined">
+                  <div class="pool-summary-square__expected" *ngIf="info.errorPercentage !== undefined" style="flex-basis: 100%; margin-top: 2px;">
                     <span class="pool-summary-square__expected-value">{{ info.errorPercentage | number: '1.2-2' }}%</span>
                     <span class="pool-summary-square__expected-label">{{ 'HOME.ERROR_RATE' | translate }}</span>
                   </div>
