@@ -141,17 +141,20 @@
                     </div>
                   </ng-container>
 
-                  <div class="pool-summary-square__expected" *ngIf="info.errorPercentage !== undefined">
-                    <span class="pool-summary-square__expected-value">{{ info.errorPercentage | number: '1.2-2' }}%</span>
-                    <span class="pool-summary-square__expected-label">{{ 'HOME.ERROR_RATE' | translate }}</span>
-                  </div>
-
                   <div class="pool-summary-square__uptime"
                        *ngIf="info.uptimeSeconds !== undefined && info.uptimeSeconds !== null">
                     <div class="pool-summary-square__uptime-value">{{ formatUptime(info.uptimeSeconds) }}</div>
                     <div class="pool-summary-square__uptime-label">{{ 'SYSTEM.UPTIME' | translate }}</div>
                   </div>
                 </div>
+
+                <div class="pool-summary-square__row2" *ngIf="info.errorPercentage !== undefined" style="margin-top: -6px;">
+                  <div class="pool-summary-square__expected">
+                    <span class="pool-summary-square__expected-value">{{ info.errorPercentage | number: '1.2-2' }}%</span>
+                    <span class="pool-summary-square__expected-label">{{ 'HOME.ERROR_RATE' | translate }}</span>
+                  </div>
+                </div>
+
               </div>
 
               <div class="pool-summary-square__bottom">
