@@ -112,7 +112,11 @@ jobs:
 
     - name: Download existing releases.json from R2
       run: |
-        curl -s -o releases.json "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json" || echo '{"updated_at":"","releases":[]}' > releases.json
+        HTTP_STATUS=$(curl -s -o releases.json -w "%{http_code}" "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json")
+        if [ "$HTTP_STATUS" != "200" ] || ! jq empty releases.json 2>/dev/null; then
+          echo "No valid releases.json found, starting fresh."
+          echo '{"updated_at":"","releases":[]}' > releases.json
+        fi
 
     - name: Update releases.json
       run: |
