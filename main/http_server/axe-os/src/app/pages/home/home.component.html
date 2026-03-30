@@ -147,6 +147,14 @@
                     <div class="pool-summary-square__uptime-label">{{ 'SYSTEM.UPTIME' | translate }}</div>
                   </div>
                 </div>
+
+                <div class="pool-summary-square__row2" *ngIf="info.errorPercentage !== undefined" style="margin-top: -6px;">
+                  <div class="pool-summary-square__expected">
+                    <span class="pool-summary-square__expected-value">{{ info.errorPercentage | number: '1.2-2' }}%</span>
+                    <span class="pool-summary-square__expected-label">{{ 'HOME.ERROR_RATE' | translate }}</span>
+                  </div>
+                </div>
+
               </div>
 
               <div class="pool-summary-square__bottom">
@@ -502,7 +510,7 @@
                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
-                      
+
                     <div class="power-bar" *ngIf="showFanC2" role="img"
                          [class.power-bar--max]="isBarMax(info.fanspeed2 ?? 0, 100)"
                          [attr.aria-label]="('HOME.FAN_CHANNEL' | translate:{channel: 2}) + ': ' + ((info.fanspeed2 ?? 0) | number: '1.0-0') + ' % (' + ((info.fanrpm2 ?? 0) | number: '1.0-0') + ' RPM)'">

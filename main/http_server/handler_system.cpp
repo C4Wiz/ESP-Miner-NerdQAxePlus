@@ -12,6 +12,7 @@
 #include "http_utils.h"
 
 #include "ping_task.h"
+#include "tasks/hashrate_monitor_task.h"
 
 static const char *TAG = "http_system";
 
@@ -237,6 +238,18 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["runningPartition"]   = esp_ota_get_running_partition()->label;
 
     doc["defaultTheme"]       = board->getDefaultTheme();
+
+    // Error percentage from hashrate monitor registers (upstream method: error_hashrate / current_hashrate * 100)
+    if (board->hasHashrateCounter()) {
+        float measuredGhs = HASHRATE_MONITOR.getSmoothedTotalChipHashrate();
+        float errorGhs    = HASHRATE_MONITOR.getErrorHashrate();
+        float errorPct    = 0.0f;
+        if (measuredGhs > 0.0f) {
+            errorPct = (errorGhs / measuredGhs) * 100.0f;
+            if (errorPct > 100.0f) errorPct = 100.0f;
+        }
+        doc["errorPercentage"] = errorPct;
+    }
 
     //ESP_LOGI(TAG, "allocs: %d, deallocs: %d, reallocs: %d", allocs, deallocs, reallocs);
 

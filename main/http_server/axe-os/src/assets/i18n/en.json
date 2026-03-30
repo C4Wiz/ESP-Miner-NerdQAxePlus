@@ -66,6 +66,7 @@
     "HASHRATE_10M": " (10 min)",
     "HASHRATE_1H": " (1 hour)",
     "HASHRATE_1D": " (1 day)",
+    "ERROR_RATE": "Error rate",
     "CHART_SPAN": "Span",
     "FAN_CHANNEL": "Fan C{{channel}}",
     "FAN_CHANNEL_1": "ASIC Fan",

@@ -106,6 +106,8 @@ export interface ISystemInfo {
     history: IHistory
 
     otp: boolean,
+
+    errorPercentage?: number,
 }
 
 // fields swarm is using
