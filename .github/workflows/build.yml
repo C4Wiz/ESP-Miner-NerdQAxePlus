@@ -106,3 +106,32 @@ jobs:
         tag_name: ${{ env.VERSION_TAG }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Download existing releases.json from R2
+      run: |
+        curl -s -o releases.json "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json" || echo '{"updated_at":"","releases":[]}' > releases.json
+
+    - name: Update releases.json
+      run: |
+        BINARY_NAME="esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin"
+        DOWNLOAD_URL="https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/releases/download/${{ env.VERSION_TAG }}/${BINARY_NAME}"
+        SHA256=$(awk '{print $1}' esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.sha256)
+        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        jq --arg version "${{ env.VERSION_TAG }}" \
+           --arg name "${{ env.VERSION_TAG }}" \
+           --arg asset_name "${BINARY_NAME}" \
+           --arg url "${DOWNLOAD_URL}" \
+           --arg sha256 "${SHA256}" \
+           --arg now "${NOW}" \
+           '.updated_at = $now | .releases = [{"version": $version, "name": $name, "sha256": $sha256, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] + .releases' \
+           releases.json > releases_updated.json && mv releases_updated.json releases.json
+
+    - name: Upload releases.json to R2
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CF_API_TOKEN }}
+        command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
