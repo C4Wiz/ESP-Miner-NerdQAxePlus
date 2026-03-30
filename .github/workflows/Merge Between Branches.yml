@@ -11,6 +11,7 @@ on:
         options:
           - master
           - develop
+          - testing
       target_branch:
         description: 'Branch to merge INTO'
         required: true
@@ -19,6 +20,7 @@ on:
         options:
           - develop
           - master
+          - testing
 
 jobs:
   merge-branches:
