@@ -125,8 +125,13 @@ jobs:
         SHA256=$(awk '{print $1}' esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.sha256)
         NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-        # Check if this is a pre-release via GitHub API
         IS_PRERELEASE=$(curl -s "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ env.VERSION_TAG }}" | jq '.prerelease')
+
+        echo "BINARY_NAME: ${BINARY_NAME}"
+        echo "SHA256: ${SHA256}"
+        echo "IS_PRERELEASE: ${IS_PRERELEASE}"
+        echo "Current releases.json:"
+        cat releases.json
 
         jq --arg version "${{ env.VERSION_TAG }}" \
            --arg name "${{ env.VERSION_TAG }}" \
@@ -139,3 +144,6 @@ jobs:
             .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] + 
             (.releases | map(select(.version != $version)))' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
+
+        echo "Updated releases.json:"
+        cat releases.json
