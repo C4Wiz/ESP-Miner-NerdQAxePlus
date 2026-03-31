@@ -125,11 +125,14 @@ jobs:
         SHA256=$(awk '{print $1}' esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.sha256)
         NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-        IS_PRERELEASE=$(curl -s "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ env.VERSION_TAG }}" | jq '.prerelease')
+        RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ env.VERSION_TAG }}")
+        IS_PRERELEASE=$(echo "$RELEASE_INFO" | jq '.prerelease')
+        PUBLISHED_AT=$(echo "$RELEASE_INFO" | jq -r '.published_at')
 
         echo "BINARY_NAME: ${BINARY_NAME}"
         echo "SHA256: ${SHA256}"
         echo "IS_PRERELEASE: ${IS_PRERELEASE}"
+        echo "PUBLISHED_AT: ${PUBLISHED_AT}"
         echo "Current releases.json:"
         cat releases.json
 
@@ -142,7 +145,7 @@ jobs:
            --arg published_at "${PUBLISHED_AT}" \
            --argjson prerelease "${IS_PRERELEASE}" \
            '.updated_at = $now |
-            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] + 
+            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
             (.releases | map(select(.version != $version)))' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
