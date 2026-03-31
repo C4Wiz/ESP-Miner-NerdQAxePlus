@@ -392,7 +392,7 @@
     "UPDATE_FAILED": "Update failed",
     "DEVICE_RESTARTED": "Device restarted",
     "RESTART_FAILED": "Failed to restart device",
-    "UPDATE_CHECK_FAILED": "Failed to fetch releases from GitHub."
+    "UPDATE_CHECK_FAILED": "Failed to fetch releases from Cloudfare."
   },
   "WIFI": {
     "TITLE": "WiFi Settings",
