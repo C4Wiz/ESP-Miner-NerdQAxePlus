@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 interface GithubAsset {
   id: number;
@@ -36,39 +36,65 @@ export enum UpdateStatus {
   UNKNOWN = 'unknown'
 }
 
+interface R2ReleasesJson {
+  updated_at: string;
+  releases: R2Release[];
+}
+
+interface R2Release {
+  version: string;
+  name: string;
+  sha256: string;
+  prerelease: boolean;
+  published_at: string;
+  assets: {
+    name: string;
+    browser_download_url: string;
+  }[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class GithubUpdateService {
 
-  private readonly baseReleasesUrl =
-    'https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases';
+  private readonly r2ReleasesUrl =
+    'https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json';
 
   constructor(
     private httpClient: HttpClient
   ) { }
 
   /**
-   * Fetch up to 10 releases of the selected type using exactly 2 API calls:
-   *  1. GET /releases?per_page=50&page=1
-   *  2. GET /releases/latest
+   * Fetch releases from R2 instead of GitHub API.
+   * Returns up to 10 releases of the selected type.
    */
   public getReleases(includePrereleases = false): Observable<GithubRelease[]> {
-    const isStable = (r: GithubRelease) => !r.prerelease && !r.tag_name.includes('-rc');
-    const isPre    = (r: GithubRelease) =>  r.prerelease ||  r.tag_name.includes('-rc');
-    const matchesType = includePrereleases ? isPre : isStable;
+    return this.httpClient.get<R2ReleasesJson>(this.r2ReleasesUrl).pipe(
+      map(data => {
+        const filtered = includePrereleases
+          ? data.releases.filter(r => r.prerelease)
+          : data.releases.filter(r => !r.prerelease);
 
-    return this.httpClient.get<GithubRelease[]>(`${this.baseReleasesUrl}?per_page=50&page=1`).pipe(
-      map(releases => releases.filter(matchesType).slice(0, 10)),
-      switchMap(releases =>
-        this.httpClient.get<GithubRelease>(`${this.baseReleasesUrl}/latest`).pipe(
-          map(latest => releases.map(r => ({
-            ...r,
-            body: r.body || '',
-            isLatest: !includePrereleases && r.id === latest.id
-          })))
-        )
-      )
+        const sliced = filtered.slice(0, 10);
+
+        // Mark the first entry as latest
+        return sliced.map((r, index) => ({
+          id: 0,
+          tag_name: r.version,
+          name: r.name,
+          prerelease: r.prerelease,
+          body: '',
+          published_at: r.published_at || '',
+          isLatest: index === 0,
+          assets: r.assets.map(a => ({
+            id: 0,
+            name: a.name,
+            browser_download_url: a.browser_download_url,
+            size: 0
+          }))
+        }));
+      })
     );
   }
 
@@ -128,7 +154,7 @@ export class GithubUpdateService {
   }
 
   /**
-   * Download firmware directly from GitHub.
+   * Download firmware directly from URL.
    */
   public downloadFirmware(url: string): Observable<any> {
     return this.httpClient.get(url, {
@@ -140,8 +166,6 @@ export class GithubUpdateService {
 
   /**
    * Convert release body markdown to HTML.
-   * Handles: headers, bold/italic, links (including (url) placeholder),
-   * bullet/numbered lists, code blocks, horizontal rules, paragraphs.
    */
   public getChangelog(release: GithubRelease): string {
     if (!release.body) {
@@ -149,48 +173,35 @@ export class GithubUpdateService {
     }
 
     let html = release.body
-      // Escape HTML entities first
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      // Code blocks (before inline code)
       .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-      // Inline code
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // Headers
       .replace(/^### (.+)$/gm, '<h4>$1</h4>')
       .replace(/^## (.+)$/gm, '<h3>$1</h3>')
       .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-      // Bold and italic
       .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Links where href is literally the word 'url' — use display text as href
       .replace(/\[([^\]]+)\]\(url\)/g, '<a href="$1" target="_blank">$1</a>')
-      // Links with real URLs
       .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      // Horizontal rules — any line of 3+ dashes
       .replace(/^-{3,}$/gm, '<hr>')
-      // Bullet lists
       .replace(/((?:^[ \t]*[-*+] .+\n?)+)/gm, (match) => {
         const items = match.trim().split('\n').map(line =>
           `<li>${line.replace(/^[ \t]*[-*+] /, '').trim()}</li>`
         ).join('');
         return `<ul>${items}</ul>`;
       })
-      // Numbered lists
       .replace(/((?:^[ \t]*\d+\. .+\n?)+)/gm, (match) => {
         const items = match.trim().split('\n').map(line =>
           `<li>${line.replace(/^[ \t]*\d+\. /, '').trim()}</li>`
         ).join('');
         return `<ol>${items}</ol>`;
       })
-      // Strip newlines around hr tags to prevent extra spacing
       .replace(/(<hr>)\n*/g, '$1')
       .replace(/\n*(<hr>)/g, '$1')
-      // Paragraph breaks
       .replace(/\n{2,}/g, '</p><p>')
-      // Single newlines become <br>
       .replace(/([^>])\n([^<])/g, '$1<br>$2');
 
     return `<div>${html}</div>`;
