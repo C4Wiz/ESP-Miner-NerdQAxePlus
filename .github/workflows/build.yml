@@ -136,6 +136,8 @@ jobs:
         echo "Current releases.json:"
         cat releases.json
 
+        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""')
+
         jq --arg version "${{ env.VERSION_TAG }}" \
            --arg name "${{ env.VERSION_TAG }}" \
            --arg asset_name "${BINARY_NAME}" \
@@ -143,9 +145,10 @@ jobs:
            --arg sha256 "${SHA256}" \
            --arg now "${NOW}" \
            --arg published_at "${PUBLISHED_AT}" \
+           --arg body "${BODY}" \
            --argjson prerelease "${IS_PRERELEASE}" \
            '.updated_at = $now |
-            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
+            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
             (.releases | map(select(.version != $version)))' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
