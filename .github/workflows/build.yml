@@ -125,7 +125,7 @@ jobs:
         SHA256=$(awk '{print $1}' esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.sha256)
         NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-        RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \ "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ env.VERSION_TAG }}")
+        RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ env.VERSION_TAG }}")
         IS_PRERELEASE=$(echo "$RELEASE_INFO" | jq '.prerelease')
         PUBLISHED_AT=$(echo "$RELEASE_INFO" | jq -r '.published_at')
 
