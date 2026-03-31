@@ -47,6 +47,7 @@ interface R2Release {
   sha256: string;
   prerelease: boolean;
   published_at: string;
+  body?: string;
   assets: {
     name: string;
     browser_download_url: string;
@@ -84,7 +85,7 @@ export class GithubUpdateService {
           tag_name: r.version,
           name: r.name,
           prerelease: r.prerelease,
-          body: undefined as any,
+          body: r.body || undefined as any,
           published_at: r.published_at || '',
           isLatest: index === 0,
           assets: r.assets.map(a => ({
