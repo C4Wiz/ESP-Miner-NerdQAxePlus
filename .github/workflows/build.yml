@@ -17,8 +17,6 @@ jobs:
           - board: NERDQAXEPLUS2
             upload_www: true
             label: NerdQAxe++
-    outputs:
-      release_exists: ${{ env.RELEASE_EXISTS }}
 
     steps:
     - name: Checkout repository
@@ -31,18 +29,12 @@ jobs:
         echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
         echo "${{ github.event.inputs.tag }}" > version.txt
 
-    - name: Install GitHub CLI
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y gh
-
     - name: Verify release exists
       run: |
         if ! gh release view "${{ env.VERSION_TAG }}" >/dev/null 2>&1; then
           echo "ERROR: No GitHub release found for tag '${{ env.VERSION_TAG }}'. Please create the release before running this workflow."
           exit 1
         fi
-        echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
         echo "Release '${{ env.VERSION_TAG }}' found — proceeding with build."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -115,44 +107,53 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Install jq
+      run: sudo apt-get install -y jq
 
-  update-release-body:
-    runs-on: ubuntu-latest
-    needs: build-and-release
-    if: needs.build-and-release.outputs.release_exists == 'true'
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Get Version Tag
-      id: version_tag
+    - name: Download existing releases.json from R2
       run: |
-        git fetch --tags
-        echo "VERSION_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-        echo "${{ github.event.inputs.tag }}" > version.txt
+        HTTP_STATUS=$(curl -s -o releases.json -w "%{http_code}" "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json")
+        if [ "$HTTP_STATUS" != "200" ] || ! jq empty releases.json 2>/dev/null; then
+          echo "No valid releases.json found, starting fresh."
+          echo '{"updated_at":"","releases":[]}' > releases.json
+        fi
 
-    - name: Download SHA-256 Artifacts
-      uses: actions/download-artifact@v4
+    - name: Update releases.json
+      run: |
+        BINARY_NAME="esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin"
+        DOWNLOAD_URL="https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/releases/download/${{ env.VERSION_TAG }}/${BINARY_NAME}"
+        SHA256=$(awk '{print $1}' esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.sha256)
+        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ env.VERSION_TAG }}")
+        IS_PRERELEASE=$(echo "$RELEASE_INFO" | jq '.prerelease')
+        PUBLISHED_AT=$(echo "$RELEASE_INFO" | jq -r '.published_at')
+
+        echo "BINARY_NAME: ${BINARY_NAME}"
+        echo "SHA256: ${SHA256}"
+        echo "IS_PRERELEASE: ${IS_PRERELEASE}"
+        echo "PUBLISHED_AT: ${PUBLISHED_AT}"
+        echo "Current releases.json:"
+        cat releases.json
+
+        jq --arg version "${{ env.VERSION_TAG }}" \
+           --arg name "${{ env.VERSION_TAG }}" \
+           --arg asset_name "${BINARY_NAME}" \
+           --arg url "${DOWNLOAD_URL}" \
+           --arg sha256 "${SHA256}" \
+           --arg now "${NOW}" \
+           --arg published_at "${PUBLISHED_AT}" \
+           --argjson prerelease "${IS_PRERELEASE}" \
+           '.updated_at = $now |
+            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
+            (.releases | map(select(.version != $version)))' \
+           releases.json > releases_updated.json && mv releases_updated.json releases.json
+
+        echo "Updated releases.json:"
+        cat releases.json
+
+    - name: Upload releases.json to R2
+      uses: cloudflare/wrangler-action@v3
       with:
-        path: ./artifacts
-
-    - name: Combine SHA-256 Sums
-      run: |
-        files="$( find ./artifacts -name "*.sha256" | xargs )"
-        cat $files | sort -k2 > sha256-summary.txt
-
-    - name: Install GitHub CLI
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y gh
-
-    - name: Append to Release Body
-      run: |
-        existing_notes="$(gh release view ${{ env.VERSION_TAG }} --json body -q '.body')"
-        new_notes="$existing_notes\n"
-        new_notes+='<!--\n'
-        new_notes+="$(cat sha256-summary.txt)\n"
-        new_notes+='-->\n'
-        gh release edit ${{ env.VERSION_TAG }} --notes "$(echo -e "$new_notes")"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        apiToken: ${{ secrets.CF_API_TOKEN }}
+        command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
