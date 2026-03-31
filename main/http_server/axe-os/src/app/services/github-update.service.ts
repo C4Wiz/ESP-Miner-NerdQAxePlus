@@ -84,7 +84,7 @@ export class GithubUpdateService {
           tag_name: r.version,
           name: r.name,
           prerelease: r.prerelease,
-          body: '',
+          body: undefined as any,
           published_at: r.published_at || '',
           isLatest: index === 0,
           assets: r.assets.map(a => ({
