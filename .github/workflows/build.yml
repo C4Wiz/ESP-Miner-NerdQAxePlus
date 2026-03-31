@@ -147,9 +147,9 @@ jobs:
 
         echo "Updated releases.json:"
         cat releases.json
-        
-        - name: Upload releases.json to R2
-          uses: cloudflare/wrangler-action@v3
-          with:
-            apiToken: ${{ secrets.CF_API_TOKEN }}
-            command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
+
+    - name: Upload releases.json to R2
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CF_API_TOKEN }}
+        command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
