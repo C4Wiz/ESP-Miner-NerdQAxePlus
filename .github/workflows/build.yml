@@ -139,9 +139,16 @@ jobs:
            --arg url "${DOWNLOAD_URL}" \
            --arg sha256 "${SHA256}" \
            --arg now "${NOW}" \
+<<<<<<< HEAD
            --argjson prerelease "${IS_PRERELEASE}" \
            '.updated_at = $now |
             .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] + 
+=======
+           --arg published_at "${PUBLISHED_AT}" \
+           --argjson prerelease "${IS_PRERELEASE}" \
+           '.updated_at = $now |
+            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] + 
+>>>>>>> origin/develop
             (.releases | map(select(.version != $version)))' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
