@@ -110,12 +110,15 @@ void HashrateMonitor::taskLoop()
         m_errorHashrate = 0.0f;
         pthread_mutex_unlock(&m_mutex);
 
-        // read total nonce counter and error counter
+        // read total nonce counter - wait for all chip responses before sending error counter read
         m_asic->readCounter(REG_NONCE_TOTAL_CNT);
+        vTaskDelay(pdMS_TO_TICKS(200));
+
+        // read error counter
         m_asic->readCounter(REG_ERROR_CNT);
 
-        // responses normally take 20-30ms, so this is safe
-        vTaskDelay(pdMS_TO_TICKS(500));
+        // wait for error counter responses
+        vTaskDelay(pdMS_TO_TICKS(300));
 
         publishTotalIfComplete();
 
