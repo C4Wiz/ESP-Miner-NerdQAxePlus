@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, Subject } from 'rxjs';
@@ -41,6 +41,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public isFirmwareUploading = false;
   public isOneClickUpdate = false;
   public isCheckingForUpdates = false;
+  public isLoadingChangelog = false;
 
   private updateStatusSub?: Subscription;
   private sawRebooting = false;
@@ -74,6 +75,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private refreshTrigger$ = new Subject<void>();
   public lastChecked: Date | null = null;
 
+  private readonly githubApiBase =
+    'https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags';
+
   constructor(
     private systemService: SystemService,
     private toastrService: NbToastrService,
@@ -81,6 +85,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private githubUpdateService: GithubUpdateService,
     private translate: TranslateService,
     private otpAuth: OtpAuthService,
+    private httpClient: HttpClient,
   ) {
     this.info$ = this.systemService.getInfo().pipe(
       shareReplay({ refCount: true, bufferSize: 1 })
@@ -92,13 +97,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .subscribe(info => {
         this.currentVersion = info.version;
         this.currentWebVersion = this.getAppVersion();
-        //this.deviceModel = "NerdQAxe++";
         this.deviceModel = info.deviceModel;
         this.ASICModel = info.ASICModel;
         this.otpEnabled = !!info.otp;
 
-        // Replace 'γ' with 'Gamma' if present and remove spaces
-        // Keep special characters like + as GitHub releases use them
         this.normalizedModel = this.normalizeModel(this.deviceModel);
         this.expectedFileName = `esp-miner-${this.normalizedModel}.bin`;
 
@@ -131,7 +133,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           catchError(() => {
             this.isCheckingForUpdates = false;
             this.toastrService.danger(
-              this.translate.instant('TOAST.UPDATE_CHECK_FAILED') || 'Failed to fetch releases from GitHub.',
+              this.translate.instant('TOAST.UPDATE_CHECK_FAILED') || 'Failed to fetch releases.',
               this.translate.instant('TOAST.ERROR')
             );
             return of([]);
@@ -140,6 +142,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }),
       tap(list => {
         this.selectedRelease = list[0] ?? null;
+        this.showChangelog = false;
+        this.changelog = '';
         this.updateSelectedReleaseDeps();
       }),
       shareReplay({ refCount: true, bufferSize: 1 })
@@ -168,8 +172,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Manually trigger a fresh fetch of releases from GitHub.
-   * This is the only way releases$ emits — no auto-fetch on page load.
+   * Manually trigger a fresh fetch of releases from R2.
    */
   public checkForUpdates() {
     this.refreshTrigger$.next();
@@ -335,10 +338,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
       return;
     }
     this.expectedFactoryFilename = this.buildFactoryNameFor(this.selectedRelease);
-
-    if (this.showChangelog) {
-      this.changelog = this.githubUpdateService.getChangelog(this.selectedRelease);
-    }
   }
 
   public getStatusBadgeColor(): string {
@@ -363,12 +362,41 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return r.isLatest ? `${r.tag_name} (latest)` : r.tag_name;
   }
 
+  /**
+   * Toggle changelog visibility. On first expand, lazily fetch the release
+   * body from GitHub API — only one call, only when the user asks for it.
+   */
   public toggleChangelog() {
     this.showChangelog = !this.showChangelog;
 
-    if (this.showChangelog && this.selectedRelease) {
+    if (!this.showChangelog || !this.selectedRelease) return;
+
+    // If we already have the body cached on the release object, use it
+    if (this.selectedRelease.body) {
       this.changelog = this.githubUpdateService.getChangelog(this.selectedRelease);
+      return;
     }
+
+    // Lazily fetch from GitHub API — only hits the API on first expand per release
+    this.isLoadingChangelog = true;
+    this.changelog = '';
+
+    this.httpClient
+      .get<any>(`${this.githubApiBase}/${this.selectedRelease.tag_name}`)
+      .pipe(
+        take(1),
+        catchError(() => of(null))
+      )
+      .subscribe(release => {
+        this.isLoadingChangelog = false;
+        if (release?.body) {
+          // Cache the body on the release object so subsequent toggles don't re-fetch
+          this.selectedRelease!.body = release.body;
+          this.changelog = this.githubUpdateService.getChangelog(this.selectedRelease!);
+        } else {
+          this.changelog = 'No changelog available.';
+        }
+      });
   }
 
   public directUpdateFromGithub() {
@@ -402,12 +430,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     )
       .pipe(
         switchMap(({ totp }: EnsureOtpResult) => {
-          // reset UI states
           this.otaProgress = 0;
           this.isOneClickUpdate = true;
           this.firmwareUpdateProgress = 0;
 
-          // kick the backend update
           const keepConfig = this.keepConfigCtrl.value ?? true;
           return this.systemService.performGithubOTAUpdate(assetUrl, keepConfig, totp);
         })
@@ -481,6 +507,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       const sel = list.find(r => r.id === id);
       if (sel) {
         this.selectedRelease = sel;
+        this.showChangelog = false;
+        this.changelog = '';
         this.updateSelectedReleaseDeps();
       }
     });
