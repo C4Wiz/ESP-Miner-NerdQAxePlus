@@ -100,26 +100,50 @@ export class GithubUpdateService {
   }
 
   /**
-   * Compare two semantic versions.
+   * Compare two version strings.
    * Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal.
-   * Strips leading 'v' and any suffix like -OC, -wip-OC, -rc1 etc.
+   * Strips leading 'v' and suffixes like -OC, -wip-OC.
+   * Supports release format (1.0.37.1) and pre-release format (1.0.37_dev6).
+   * Dev versions sort below their corresponding release (1.0.37_dev6 < 1.0.37.1).
    */
   public compareVersions(v1: string, v2: string): number {
-    const cleanV1 = v1.replace(/^v/, '').split('-')[0];
-    const cleanV2 = v2.replace(/^v/, '').split('-')[0];
+    // Strip leading 'v' and trailing suffixes like -OC, -wip-OC, -rc1
+    const clean = (v: string) => v.replace(/^v/, '').replace(/-OC$/i, '').replace(/-wip.*$/i, '');
 
-    const parts1 = cleanV1.split('.').map(p => parseInt(p) || 0);
-    const parts2 = cleanV2.split('.').map(p => parseInt(p) || 0);
+    const c1 = clean(v1);
+    const c2 = clean(v2);
 
-    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-      const p1 = parts1[i] || 0;
-      const p2 = parts2[i] || 0;
-      if (p1 > p2) return 1;
-      if (p1 < p2) return -1;
+    // Detect dev versions: contain underscore e.g. 1.0.37_dev6
+    const DEV_RE = /^(\d+\.\d+\.\d+)_dev(\d+)$/;
+    const m1 = c1.match(DEV_RE);
+    const m2 = c2.match(DEV_RE);
+
+    // If both are dev versions of the same base, compare dev number
+    if (m1 && m2 && m1[1] === m2[1]) {
+        return Math.sign(parseInt(m1[2]) - parseInt(m2[2]));
     }
 
+    // Dev version is always older than its corresponding release
+    // e.g. 1.0.37_dev6 < 1.0.37.1
+    const base1 = m1 ? m1[1] : c1;
+    const base2 = m2 ? m2[1] : c2;
+
+    const parts1 = base1.split('.').map(p => parseInt(p) || 0);
+    const parts2 = base2.split('.').map(p => parseInt(p) || 0);
+
+    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+        const p1 = parts1[i] || 0;
+        const p2 = parts2[i] || 0;
+        if (p1 > p2) return 1;
+        if (p1 < p2) return -1;
+    }
+
+    // Same base: dev version is older than release
+    if (m1 && !m2) return -1;
+    if (!m1 && m2) return 1;
+
     return 0;
-  }
+}
 
   /**
    * Compare current version with latest release.
