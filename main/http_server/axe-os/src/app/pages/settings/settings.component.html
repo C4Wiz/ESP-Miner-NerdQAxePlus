@@ -100,7 +100,12 @@ Web-UI: {{ currentWebVersion }}<br/>
           <nb-icon [icon]="showChangelog ? 'chevron-up-outline' : 'chevron-down-outline'" pack="eva"></nb-icon>
           {{ showChangelog ? ('UPDATE.HIDE_CHANGELOG' | translate) : ('UPDATE.SHOW_CHANGELOG' | translate) }}
         </button>
-        <div *ngIf="showChangelog" class="changelog-content" [innerHTML]="changelog"></div>
+        <div *ngIf="showChangelog" class="changelog-content">
+          <div *ngIf="isLoadingChangelog" class="changelog-loading">
+            <nb-spinner size="small"></nb-spinner>&nbsp;Loading changelog...
+          </div>
+          <div *ngIf="!isLoadingChangelog" [innerHTML]="changelog"></div>
+        </div>
       </div>
 
       <hr>
