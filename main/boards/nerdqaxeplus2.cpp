@@ -13,8 +13,8 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_ifault = (float) (m_imax + 5);
 
     m_asicJobIntervalMs = 500;
-    m_asicFrequencies = {500, 515, 525, 550, 575, 590, 600, 615, 625, 650, 675, 700, 715, 725, 750, 775, 800, 815, 825, 850}; // Added 615-850 to frequency dropdown
-    m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210, 1220, 1230, 1240, 1250, 1260, 1270, 1280, 1290, 1300, 1310, 1320, 1330, 1340, 1350, 1360, 1370, 1380, 1390, 1400}; // added 1210-1400 to voltage dropdown
+    m_asicFrequencies = {500, 515, 525, 550, 575, 590, 600};
+    m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200};
     m_defaultAsicFrequency = m_asicFrequency = 600; // default frequency
     m_defaultAsicVoltageMillis = m_asicVoltageMillis = 1150; // default voltage
     m_absMaxAsicFrequency = 850; // max overclock now 850
