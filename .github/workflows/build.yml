@@ -40,6 +40,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
     - name: Get Version Tag
       id: version_tag
@@ -203,6 +205,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
     - name: Get Version Tag
       id: version_tag
