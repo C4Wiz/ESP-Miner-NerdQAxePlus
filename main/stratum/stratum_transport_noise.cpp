@@ -38,6 +38,8 @@ bool NoiseStratumTransport::connect(const char *host, const char *ip, uint16_t p
         return false;
     }
 
+#if 0
+    // TODO doesn't compile with esp-idf 5.3
     // Set socket options for SV2 (longer recv timeout for mining)
     int sock = esp_transport_get_socket(m_t);
     if (sock >= 0) {
@@ -46,6 +48,7 @@ bool NoiseStratumTransport::connect(const char *host, const char *ip, uint16_t p
         setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &snd_timeout, sizeof(snd_timeout));
         setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &rcv_timeout, sizeof(rcv_timeout));
     }
+#endif
 
     // Create Noise context
     m_noise_ctx = sv2_noise_create();
