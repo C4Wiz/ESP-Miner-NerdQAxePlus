@@ -38,7 +38,6 @@ export class EditComponent implements OnInit {
 
   public defaultFrequency: number = 0;
   public defaultCoreVoltage: number = 0;
-  public defaultVrFrequency: number = 0;
   public fanCount: number = 1;
   public fanLabels: string[] = ['Fan 1', 'Fan 2'];
 
@@ -66,6 +65,8 @@ export class EditComponent implements OnInit {
     'stratumDifficulty',
     'stratum_keep',
     'poolMode',
+    'stratumProtocol',
+    'fallbackStratumProtocol',
   ]);
 
   @Input() uri = '';
@@ -109,8 +110,6 @@ export class EditComponent implements OnInit {
         // Store raw options (can be empty if the endpoint returns nothing)
         this.asicFrequencyValues = asic?.frequencyOptions ?? [];
         this.asicVoltageValues = asic?.voltageOptions ?? [];
-
-        this.defaultVrFrequency = info.defaultVrFrequency ?? undefined;
 
         this.fanCount = info.fans?.length ?? info.fanCount ?? 1;
         this.fanLabels = info.fans?.map((f, i) => f.label || `Fan ${i + 1}`) ?? ['Fan 1', 'Fan 2'];
@@ -187,6 +186,13 @@ export class EditComponent implements OnInit {
           jobInterval: [info.jobInterval, [Validators.required]],
           stratumDifficulty: [info.stratumDifficulty, [Validators.required, Validators.min(1)]],
 
+          stratumProtocol: [info.stratumProtocol ?? 0, [Validators.required]],   // 0 = V1, 1 = V2
+          fallbackStratumProtocol: [info.fallbackStratumProtocol ?? 0],
+          sv2AuthorityPubkey: [info.sv2AuthorityPubkey ?? ''],
+          fallbackSv2AuthorityPubkey: [info.fallbackSv2AuthorityPubkey ?? ''],
+          sv2ChannelType: [info.sv2ChannelType ?? 0],                              // 0 = Extended, 1 = Standard
+          fallbackSv2ChannelType: [info.fallbackSv2ChannelType ?? 0],
+
           poolMode: [info.stratum?.poolMode ?? 0, [Validators.required]],        // 0 = Failover, 1 = Dual
           poolBalance: [info.stratum?.poolBalance ?? 50, [                  // Anteil PRIMARY in %
             Validators.required,
@@ -222,12 +228,6 @@ export class EditComponent implements OnInit {
             Validators.max(90),
             Validators.required
           ]],
-          vrFrequency: [info.vrFrequency, [
-            Validators.min(1000),
-            Validators.max(100000),
-            Validators.pattern(/^\d+$/),   // only ints
-            Validators.required,
-          ]],
           otpEnabled: [info.otp],
 
           fan1Mode: [fan1cfg?.mode ?? 3, [Validators.required]],
@@ -251,6 +251,16 @@ export class EditComponent implements OnInit {
 
         this.updatePIDFieldStates();
         this.updateFan1FieldStates();
+
+        // Dual pool: sync fallback protocol to primary (mixed V1/V2 not supported)
+        const syncFallbackProtocol = () => {
+          if (this.form.controls['poolMode'].value === 1) {
+            this.form.controls['fallbackStratumProtocol'].setValue(
+              this.form.controls['stratumProtocol'].value, { emitEvent: false });
+          }
+        };
+        this.form.controls['poolMode'].valueChanges.subscribe(() => syncFallbackProtocol());
+        this.form.controls['stratumProtocol'].valueChanges.subscribe(() => syncFallbackProtocol());
       });
   }
 
@@ -340,6 +350,7 @@ export class EditComponent implements OnInit {
     if (form.fallbackStratumPassword === '*****') delete form.fallbackStratumPassword;
 
     form.stratum_keep = form.stratum_keep ? 1 : 0;
+
 
     // fans[]-Array for the new per channel api
     form.fans = [
@@ -534,14 +545,6 @@ export class EditComponent implements OnInit {
     this.runSaveWithOptionalOtp();
   }
 
-  get wrapAroundTime(): number {
-    const freq = this.form.get('vrFrequency')?.value;
-    if (!freq || freq <= 0) {
-      return 0;
-    }
-    const wrap = 65536 / freq; // seconds
-    return wrap;
-  }
 
   private runSaveWithOptionalOtp(): void {
     this.otpAuth.ensureOtp$(
@@ -565,13 +568,17 @@ export class EditComponent implements OnInit {
   }
 
   public poolTabHeader(i: 0 | 1) {
+    const protoKey = i === 0 ? 'stratumProtocol' : 'fallbackStratumProtocol';
+    const proto = this.form?.get(protoKey)?.value;
+    const protoLabel = proto === 1 ? ' (SV2)' : ' (SV1)';
+
     if (this.form?.get("poolMode")?.value == 0) {
       if (i == 0) {
-        return this.translate.instant('SETTINGS.PRIMARY_STRATUM_POOL');
+        return this.translate.instant('SETTINGS.PRIMARY_STRATUM_POOL') + protoLabel;
       }
-      return this.translate.instant('SETTINGS.FALLBACK_STRATUM_POOL');
+      return this.translate.instant('SETTINGS.FALLBACK_STRATUM_POOL') + protoLabel;
     }
-    return `Pool ${i + 1}`;
+    return `Pool ${i + 1}` + protoLabel;
   }
 
   public swapPools(): void {
