@@ -21,6 +21,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
     - name: Get Version Tag
       id: version_tag
@@ -152,8 +154,20 @@ jobs:
             (.releases | map(select(.version != $version)))' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
+<<<<<<< HEAD
         echo "Updated releases.json:"
         cat releases.json
+=======
+  update-release-body:
+    runs-on: ubuntu-latest
+    needs: build-and-release
+    if: needs.build-and-release.outputs.release_exists == 'true'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+>>>>>>> upstream/develop
 
     - name: Upload releases.json to R2
       uses: cloudflare/wrangler-action@v3
