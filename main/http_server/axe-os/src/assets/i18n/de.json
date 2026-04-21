@@ -148,7 +148,6 @@
     "STRATUM_HOST_HINT": "‘stratum+tcp://’ oder Port nicht eintragen.",
     "DEFAULT": "Standard",
     "TIME_FORMAT": "Zeitformat",
-<<<<<<< HEAD
     "TIME_FORMAT_24H": "24‑Stunden‑Format",
     "TIME_FORMAT_12H": "12‑Stunden‑Format (AM/PM)",
     "POOL_MODE": "Pool‑Modus",
@@ -157,7 +156,6 @@
     "POOL_BALANCE": "Pool‑Balance",
     "POOL_BALANCE_HINT": "Verteilt Jobs zwischen primärem und sekundärem Pool, z. B. 70/30.",
     "STRATUM": "Stratum‑Einstellungen",
-=======
     "TIME_FORMAT_24H": "24-Stunden-Format",
     "TIME_FORMAT_12H": "12-Stunden-Format (AM/PM)",
     "STRATUM_PROTOCOL": "Stratum-Protokoll",
@@ -174,7 +172,6 @@
     "POOL_BALANCE": "Pool-Balance",
     "POOL_BALANCE_HINT": "Verteilt Jobs zwischen Primary und Secondary Pool, z. B. 70/30.",
     "STRATUM": "Stratum Einstellungen",
->>>>>>> upstream/develop
     "SWAP_POOLS": "Pools tauschen"
   },
   "SYSTEM": {
