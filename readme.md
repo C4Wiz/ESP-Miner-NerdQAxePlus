@@ -187,4 +187,3 @@ pip install --upgrade bitaxetool
 
 The NerdQaxe+ firmware supports Influx and the repository provides an installation with Grafana dashboard that can be started with a few bash commands: https://github.com/shufps/ESP-Miner-NerdQAxePlus/tree/master/monitoring
 
-

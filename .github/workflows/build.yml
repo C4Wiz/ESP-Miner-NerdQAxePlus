@@ -160,3 +160,9 @@ jobs:
       with:
         apiToken: ${{ secrets.CF_API_TOKEN }}
         command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
+
+    - name: Upload binary to R2
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CF_API_TOKEN }}
+        command: r2 object put nerdqaxe-firmware/${{ env.VERSION_TAG }}/esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin --file esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin --content-type application/octet-stream
