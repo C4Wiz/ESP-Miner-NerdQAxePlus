@@ -46,8 +46,8 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_ifault = (float) (m_imax - 5);
 
     m_numFans = 2;
-    m_fanLabels[0] = "M2"; // ASIC/CPU fan connector
-    m_fanLabels[1] = "M1"; // VReg fan connector
+    m_fanLabels[0] = "M1"; // now channel 0 = M1 (has PWM)
+    m_fanLabels[1] = "M2"; // now channel 1 = M2 (tach only)
 
     m_maxPin = 70.0;
     m_minPin = 30.0;
