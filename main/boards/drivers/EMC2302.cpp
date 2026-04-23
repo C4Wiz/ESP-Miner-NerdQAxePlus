@@ -27,8 +27,8 @@ esp_err_t EMC2302_get_fan_speed(int channel, uint16_t *dst)
     esp_err_t err;
     uint8_t tach_lsb, tach_msb;
 
-    // 0: fan1, 1: fan2
-    uint8_t base = !channel ? EMC2302_FAN1 : EMC2302_FAN2;
+    // 0: fan2, 1: fan1
+    uint8_t base = !channel ? EMC2302_FAN2 : EMC2302_FAN1;
 
     // report only first fan
     // use channel 2 that is closed to the CPU cooler
