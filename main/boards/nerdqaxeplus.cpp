@@ -46,8 +46,8 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_ifault = (float) (m_imax - 5);
 
     m_numFans = 2;
-    m_fanLabels[0] = "M1"; // now channel 0 = M1 (has PWM)
-    m_fanLabels[1] = "M2"; // now channel 1 = M2 (tach only)
+    m_fanLabels[0] = "M1"; // (ASIC) now channel 0 = M1 (has PWM)
+    m_fanLabels[1] = "M2"; // (Vreg) now channel 1 = M2 (tach only)
 
     m_maxPin = 70.0;
     m_minPin = 30.0;
@@ -241,11 +241,11 @@ bool NerdQaxePlus::setVoltage(float core_voltage)
 }
 
 void NerdQaxePlus::setFanSpeedCh(int channel, float perc) {
-    EMC2302_set_fan_speed(channel, perc);
+    EMC2302_set_fan_speed(!channel ? 1 : 0, perc);
 }
 
 void NerdQaxePlus::getFanSpeedCh(int channel, uint16_t* rpm) {
-    EMC2302_get_fan_speed(channel, rpm);
+    EMC2302_get_fan_speed(!channel ? 1 : 0, rpm);
 }
 
 void NerdQaxePlus::setFanPolarity(bool invert) {
