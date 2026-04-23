@@ -467,8 +467,8 @@
                     <div class="heat-bars" style="width: 100%;">
                     @let fanRpm1 = (info.fanrpm ?? 0);
                     @let fanRpm2 = (info.fanrpm2 ?? 0);
-                    @let fanC1Present = fanRpm1 > 0;
-                    @let fanC2Present = fanRpm2 > 0;
+                    @let fanC1Present = fanRpm1 > 0 || (info.fanspeed ?? 0) > 0;
+                    @let fanC2Present = fanRpm2 > 0 || (info.fanspeed ?? 0) > 0;
                     @let fanCount = (info.fanCount ?? 0);
                     @let fan2Mode = (info.fans && info.fans.length > 1 ? info.fans[1].mode : -1);
                     @let fan2Enabled = fan2Mode !== 3;
