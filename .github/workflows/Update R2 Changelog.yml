@@ -2,11 +2,6 @@ name: Update Release Changelog in R2
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag to update changelog for (e.g. v1.0.37.1-OC)'
-        required: true
-        type: string
 
 jobs:
   update-changelog:
@@ -22,23 +17,30 @@ jobs:
           echo "No valid releases.json found."
           exit 1
         fi
+        echo "Current releases.json:"
+        cat releases.json
 
-    - name: Fetch release body from GitHub
+    - name: Update all release bodies from GitHub
       run: |
-        RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ github.event.inputs.tag }}")
+        VERSIONS=$(jq -r '.releases[].version' releases.json)
+        cp releases.json releases_updated.json
 
-        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
+        for VERSION in $VERSIONS; do
+          echo "Fetching release body for $VERSION..."
+          RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${VERSION}")
 
-        echo "TAG: ${{ github.event.inputs.tag }}"
-        echo "BODY length: ${#BODY}"
+          BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
-        # Update only the body field of the matching release
-        jq --arg version "${{ github.event.inputs.tag }}" \
-           --arg body "${BODY}" \
-           '.releases = (.releases | map(if .version == $version then .body = $body else . end))' \
-           releases.json > releases_updated.json && mv releases_updated.json releases.json
+          echo "Updating body for $VERSION (length: ${#BODY})"
 
+          jq --arg version "$VERSION" \
+             --arg body "$BODY" \
+             '.releases = (.releases | map(if .version == $version then .body = $body else . end))' \
+             releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
+        done
+
+        mv releases_updated.json releases.json
         echo "Updated releases.json:"
         cat releases.json
 
