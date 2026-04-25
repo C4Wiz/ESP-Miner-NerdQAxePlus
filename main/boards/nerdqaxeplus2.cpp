@@ -17,7 +17,7 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_asicVoltages = {1150, 1160, 1170, 1180, 1190, 1200, 1205, 1210, 1215, 1220, 1225, 1230, 1235, 1240, 1245, 1250, 1255, 1260, 1265, 1270, 1275, 1280, 1285, 1290, 1295, 1300, 1305, 1310, 1315, 1320, 1325, 1330, 1335, 1340, 1345, 1350, 1355, 1360, 1365, 1370, 1375, 1380, 1385, 1390, 1395, 1400};
     m_defaultAsicFrequency = m_asicFrequency = 600; // default frequency
     m_defaultAsicVoltageMillis = m_asicVoltageMillis = 1150; // default voltage
-    m_absMaxAsicFrequency = 950; // max overclock 950
+    m_absMaxAsicFrequency = 1000; // max overclock 1000
     m_absMaxAsicVoltageMillis = 1400;
     m_initVoltageMillis = 1200;
     
