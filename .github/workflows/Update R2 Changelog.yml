@@ -1,0 +1,49 @@
+name: Update Release Changelog in R2
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to update changelog for (e.g. v1.0.37.1-OC)'
+        required: true
+        type: string
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Download existing releases.json from R2
+      run: |
+        HTTP_STATUS=$(curl -s -o releases.json -w "%{http_code}" "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json")
+        if [ "$HTTP_STATUS" != "200" ] || ! jq empty releases.json 2>/dev/null; then
+          echo "No valid releases.json found."
+          exit 1
+        fi
+
+    - name: Fetch release body from GitHub
+      run: |
+        RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ github.event.inputs.tag }}")
+
+        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
+
+        echo "TAG: ${{ github.event.inputs.tag }}"
+        echo "BODY length: ${#BODY}"
+
+        # Update only the body field of the matching release
+        jq --arg version "${{ github.event.inputs.tag }}" \
+           --arg body "${BODY}" \
+           '.releases = (.releases | map(if .version == $version then .body = $body else . end))' \
+           releases.json > releases_updated.json && mv releases_updated.json releases.json
+
+        echo "Updated releases.json:"
+        cat releases.json
+
+    - name: Upload releases.json to R2
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CF_API_TOKEN }}
+        command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
