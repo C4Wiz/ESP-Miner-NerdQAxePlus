@@ -28,7 +28,7 @@ jobs:
         RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${{ github.event.inputs.tag }}")
 
-        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""')
+        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
         echo "TAG: ${{ github.event.inputs.tag }}"
         echo "BODY length: ${#BODY}"
