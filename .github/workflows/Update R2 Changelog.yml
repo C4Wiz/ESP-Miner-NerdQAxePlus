@@ -26,12 +26,22 @@ jobs:
         cp releases.json releases_updated.json
 
         for VERSION in $VERSIONS; do
-          echo "Fetching release body for $VERSION..."
-          RELEASE_INFO=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          echo "Fetching release info for $VERSION..."
+          RELEASE_INFO=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${VERSION}")
 
-          BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
+          HTTP_CODE=$(echo "$RELEASE_INFO" | tail -n1)
+          RELEASE_JSON=$(echo "$RELEASE_INFO" | sed '$d')
 
+          if [ "$HTTP_CODE" == "404" ]; then
+            echo "Release $VERSION not found on GitHub — removing from releases.json"
+            jq --arg version "$VERSION" \
+               '.releases = (.releases | map(select(.version != $version)))' \
+               releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
+            continue
+          fi
+
+          BODY=$(echo "$RELEASE_JSON" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
           echo "Updating body for $VERSION (length: ${#BODY})"
 
           jq --arg version "$VERSION" \
