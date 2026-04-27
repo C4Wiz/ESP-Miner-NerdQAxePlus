@@ -26,11 +26,14 @@ jobs:
         declare -A LANGUAGES=(
           ["de"]="German"
           ["fr"]="French"
+          ["ja"]="Japanese"
           ["ro"]="Romanian"
           ["ru"]="Russian"
           ["sk"]="Slovak"
+          ["sv"]="Swedish"
           ["es"]="Spanish"
           ["tr"]="Turkish"
+          ["zh"]="Chinese"
         )
 
         for CODE in "${!LANGUAGES[@]}"; do
