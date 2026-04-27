@@ -54,7 +54,7 @@ jobs:
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
             -d "$(jq -n \
-              --arg model "claude-sonnet-4-20250514" \
+              --arg model "claude-sonnet-4-5" \
               --arg prompt "$PROMPT" \
               '{
                 model: $model,
