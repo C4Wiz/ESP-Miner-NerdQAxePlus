@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'main/http_server/axe-os/src/assets/i18n/en.json'
+      - 'main/http_server/axe-os/src/app/@i18n/models/language.model.ts'
 
 jobs:
   translate:
@@ -16,6 +17,15 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get install -y jq curl
 
+    - name: Parse supported languages from language.model.ts
+      run: |
+        MODEL_FILE="main/http_server/axe-os/src/app/@i18n/models/language.model.ts"
+
+        # Extract language codes from the type definition, exclude 'en'
+        LANG_CODES=$(grep -oP "'[a-z]{2}'" "$MODEL_FILE" | tr -d "'" | grep -v '^en$' | tr '\n' ' ')
+        echo "Detected language codes: $LANG_CODES"
+        echo "LANG_CODES=$LANG_CODES" >> $GITHUB_ENV
+
     - name: Translate to all languages
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -23,23 +33,24 @@ jobs:
         EN_FILE="main/http_server/axe-os/src/assets/i18n/en.json"
         EN_CONTENT=$(cat "$EN_FILE")
 
-        declare -A LANGUAGES=(
-          ["de"]="German"
-          ["fr"]="French"
-          ["ja"]="Japanese"
-          ["ro"]="Romanian"
-          ["ru"]="Russian"
-          ["sk"]="Slovak"
-          ["sv"]="Swedish"
-          ["es"]="Spanish"
-          ["tr"]="Turkish"
-          ["zh"]="Chinese"
-        )
+        for CODE in ${{ env.LANG_CODES }}; do
 
-        for CODE in "${!LANGUAGES[@]}"; do
-          LANG="${LANGUAGES[$CODE]}"
+          # Map known codes to full names; fallback to the code itself for unknown codes
+          case "$CODE" in
+            de) LANG="German" ;;
+            fr) LANG="French" ;;
+            es) LANG="Spanish" ;;
+            ja) LANG="Japanese" ;;
+            ro) LANG="Romanian" ;;
+            ru) LANG="Russian" ;;
+            sk) LANG="Slovak" ;;
+            sv) LANG="Swedish" ;;
+            tr) LANG="Turkish" ;;
+            zh) LANG="Chinese (Simplified)" ;;
+            *)  LANG="$CODE" ;;
+          esac
+
           TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
-
           echo "Translating to $LANG ($CODE)..."
 
           # Build existing file content for context if it exists
