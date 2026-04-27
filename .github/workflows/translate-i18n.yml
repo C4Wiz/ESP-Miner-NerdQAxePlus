@@ -37,16 +37,6 @@ jobs:
 
           # Map known codes to full names; fallback to the code itself for unknown codes
           case "$CODE" in
-            de) LANG="German" ;;
-            fr) LANG="French" ;;
-            es) LANG="Spanish" ;;
-            ja) LANG="Japanese" ;;
-            ro) LANG="Romanian" ;;
-            ru) LANG="Russian" ;;
-            sk) LANG="Slovak" ;;
-            sv) LANG="Swedish" ;;
-            tr) LANG="Turkish" ;;
-            zh) LANG="Chinese (Simplified)" ;;
             *)  LANG="$CODE" ;;
           esac
 
