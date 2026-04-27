@@ -66,7 +66,7 @@ jobs:
               }'
             )")
 
-          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text' | sed 's/^```json\s*//;s/^```\s*//;s/```\s*$//')
+          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text' | sed 's/^```json\s*//;s/^```\s*//;s/```\s*$//' | python3 -c "import sys; text=sys.stdin.read(); text=text.replace('\u201c','\"').replace('\u201d','\"'); print(text, end='')")
 
           if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
             echo "ERROR: Failed to translate to $LANG"
