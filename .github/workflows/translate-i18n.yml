@@ -57,7 +57,7 @@ jobs:
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
             -d "$(jq -n \
-              --arg model "claude-sonnet-4-20250514" \
+              --arg model "claude-sonnet-4-5" \
               --arg prompt "$PROMPT" \
               '{
                 model: $model,
@@ -66,7 +66,7 @@ jobs:
               }'
             )")
 
-          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text')
+          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text' | sed 's/^```json\s*//;s/^```\s*//;s/```\s*$//')
 
           if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
             echo "ERROR: Failed to translate to $LANG"
