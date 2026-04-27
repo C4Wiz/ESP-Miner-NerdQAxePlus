@@ -1,0 +1,103 @@
+name: Translate i18n Files
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'main/http_server/axe-os/src/assets/i18n/en.json'
+      - 'main/http_server/axe-os/src/app/@i18n/models/language.model.ts'
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: sudo apt-get install -y jq curl
+
+    - name: Parse supported languages from language.model.ts
+      run: |
+        MODEL_FILE="main/http_server/axe-os/src/app/@i18n/models/language.model.ts"
+
+        # Extract language codes from the type definition, exclude 'en'
+        LANG_CODES=$(grep -oP "'[a-z]{2}'" "$MODEL_FILE" | tr -d "'" | grep -v '^en$' | tr '\n' ' ')
+        echo "Detected language codes: $LANG_CODES"
+        echo "LANG_CODES=$LANG_CODES" >> $GITHUB_ENV
+
+    - name: Translate to all languages
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        EN_FILE="main/http_server/axe-os/src/assets/i18n/en.json"
+        EN_CONTENT=$(cat "$EN_FILE")
+
+        for CODE in ${{ env.LANG_CODES }}; do
+
+          # Map known codes to full names; fallback to the code itself for unknown codes
+          case "$CODE" in
+            *)  LANG="$CODE" ;;
+          esac
+
+          TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
+          echo "Translating to $LANG ($CODE)..."
+
+          # Build existing file content for context if it exists
+          EXISTING_PROMPT=""
+          if [ -f "$TARGET_FILE" ]; then
+            EXISTING=$(cat "$TARGET_FILE")
+            EXISTING_PROMPT="Here is the existing $LANG translation file for reference (keep any existing translations that are still valid, only add or update missing/changed keys):\n\`\`\`json\n${EXISTING}\n\`\`\`\n\n"
+          fi
+
+          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
+
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "$(jq -n \
+              --arg model "claude-sonnet-4-20250514" \
+              --arg prompt "$PROMPT" \
+              '{
+                model: $model,
+                max_tokens: 16000,
+                messages: [{role: "user", content: $prompt}]
+              }'
+            )")
+
+          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text')
+
+          if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
+            echo "ERROR: Failed to translate to $LANG"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          # Validate it's valid JSON before writing
+          if echo "$TRANSLATED" | jq empty 2>/dev/null; then
+            echo "$TRANSLATED" > "$TARGET_FILE"
+            echo "✓ Written $TARGET_FILE"
+          else
+            echo "ERROR: Invalid JSON returned for $LANG"
+            echo "$TRANSLATED"
+            exit 1
+          fi
+
+          # Small delay to avoid rate limiting
+          sleep 2
+        done
+
+    - name: Commit and push translations
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add main/http_server/axe-os/src/assets/i18n/*.json
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: update i18n translations [skip ci]"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
