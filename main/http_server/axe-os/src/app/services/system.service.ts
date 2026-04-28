@@ -88,6 +88,7 @@ const defaultInfo: ISystemInfo = {
   poolDifficulty: 0,
   networkDifficulty: 0,
   stratum_keep: 0,
+  vrFrequency: 25000,
   defaultTheme: "cosmic",
   shutdown: false,
 
