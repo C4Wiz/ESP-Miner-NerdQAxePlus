@@ -21,6 +21,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
     - name: Get Version Tag
       id: version_tag
@@ -136,7 +138,7 @@ jobs:
         echo "Current releases.json:"
         cat releases.json
 
-        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""')
+        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
         jq --arg version "${{ env.VERSION_TAG }}" \
            --arg name "${{ env.VERSION_TAG }}" \

@@ -81,7 +81,7 @@ export class GithubUpdateService {
 
         // Mark the first entry as latest
         return sliced.map((r, index) => ({
-          id: 0,
+          id: index,  // ← unique per release
           tag_name: r.version,
           name: r.name,
           prerelease: r.prerelease,
