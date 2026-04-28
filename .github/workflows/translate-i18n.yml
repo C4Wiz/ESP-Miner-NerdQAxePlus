@@ -14,14 +14,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: sudo apt-get install -y jq curl
-
     - name: Parse supported languages from language.model.ts
       run: |
         MODEL_FILE="main/http_server/axe-os/src/app/@i18n/models/language.model.ts"
-
-        # Extract language codes from the type definition, exclude 'en'
         LANG_CODES=$(grep -oP "'[a-z]{2}'" "$MODEL_FILE" | tr -d "'" | grep -v '^en$' | tr '\n' ' ')
         echo "Detected language codes: $LANG_CODES"
         echo "LANG_CODES=$LANG_CODES" >> $GITHUB_ENV
@@ -35,7 +30,6 @@ jobs:
 
         for CODE in ${{ env.LANG_CODES }}; do
 
-          # Map known codes to full names; fallback to the code itself for unknown codes
           case "$CODE" in
             *)  LANG="$CODE" ;;
           esac
@@ -43,14 +37,13 @@ jobs:
           TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
           echo "Translating to $LANG ($CODE)..."
 
-          # Build existing file content for context if it exists
           EXISTING_PROMPT=""
           if [ -f "$TARGET_FILE" ]; then
             EXISTING=$(cat "$TARGET_FILE")
             EXISTING_PROMPT="Here is the existing $LANG translation file for reference (keep any existing translations that are still valid, only add or update missing/changed keys):\n\`\`\`json\n${EXISTING}\n\`\`\`\n\n"
           fi
 
-          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
+          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
 
           RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
             -H "x-api-key: ${ANTHROPIC_API_KEY}" \
@@ -59,16 +52,22 @@ jobs:
             -d "$(jq -n \
               --arg model "claude-sonnet-4-5" \
               --arg prompt "$PROMPT" \
-              '{
-                model: $model,
-                max_tokens: 16000,
-                messages: [{role: "user", content: $prompt}]
-              }'
+              '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}'
             )")
 
-          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text' | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' | python3 -c "import sys; text = sys.stdin.read(); text = text.replace('\u201c', '\\\\\"').replace('\u201d', '\\\\\"').replace('\u2018', \"\\\\'\").replace('\u2019', \"\\\\'\"); print(text, end='')")
+          echo "$RESPONSE" | jq -r '.content[0].text' \
+            | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' \
+            > /tmp/raw_translated.txt
 
-          # Validate it's valid JSON before writing
+          python3 .github/scripts/fix_quotes.py > /tmp/translated_${CODE}.json
+          TRANSLATED=$(cat /tmp/translated_${CODE}.json)
+
+          if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
+            echo "ERROR: Failed to translate to $LANG"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
           if echo "$TRANSLATED" | jq empty 2>/dev/null; then
             echo "$TRANSLATED" > "$TARGET_FILE"
             echo "✓ Written $TARGET_FILE"
@@ -78,7 +77,6 @@ jobs:
             exit 1
           fi
 
-          # Small delay to avoid rate limiting
           sleep 2
         done
 
