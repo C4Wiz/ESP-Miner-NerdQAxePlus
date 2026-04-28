@@ -46,8 +46,8 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_ifault = (float) (m_imax - 5);
 
     m_numFans = 2;
-    m_fanLabels[0] = "M2"; // ASIC/CPU fan connector
-    m_fanLabels[1] = "M1"; // VReg fan connector
+    m_fanLabels[0] = "M1"; // (ASIC) now channel 0 = M1 (has PWM)
+    m_fanLabels[1] = "M2"; // (Vreg) now channel 1 = M2 (tach only)
 
     m_maxPin = 70.0;
     m_minPin = 30.0;
@@ -77,7 +77,7 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
 
     m_asics = new BM1368();
     m_hasHashCounter = true;
-    m_vrFrequency = m_defaultVrFrequency = m_asics->getDefaultVrFrequency();
+
 
     m_tps = new TPS53647();
 }
@@ -170,7 +170,7 @@ bool NerdQaxePlus::initAsics()
     vTaskDelay(pdMS_TO_TICKS(250));
 
     SERIAL_clear_buffer();
-    m_chipsDetected = m_asics->init(m_asicFrequency, m_asicCount, m_asicMaxDifficulty, m_vrFrequency);
+    m_chipsDetected = m_asics->init(m_asicFrequency, m_asicCount, m_asicMaxDifficulty);
     if (!m_chipsDetected) {
         ESP_LOGE(TAG, "error initializing asics!");
         return false;
@@ -241,11 +241,11 @@ bool NerdQaxePlus::setVoltage(float core_voltage)
 }
 
 void NerdQaxePlus::setFanSpeedCh(int channel, float perc) {
-    EMC2302_set_fan_speed(channel, perc);
+    EMC2302_set_fan_speed(!channel ? 1 : 0, perc);
 }
 
 void NerdQaxePlus::getFanSpeedCh(int channel, uint16_t* rpm) {
-    EMC2302_get_fan_speed(channel, rpm);
+    EMC2302_get_fan_speed(!channel ? 1 : 0, rpm);
 }
 
 void NerdQaxePlus::setFanPolarity(bool invert) {

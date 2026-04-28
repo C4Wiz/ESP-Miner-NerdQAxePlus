@@ -16,8 +16,6 @@
 
 static const char *TAG = "http_system";
 
-#define VR_FREQUENCY_ENABLED
-
 uint64_t getDuplicateHWNonces();
 
 /* Simple handler for getting system handler */
@@ -209,6 +207,18 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["fallbackStratumUser"] = fallbackStratumUser;
     doc["fallbackStratumEnonceSubscribe"] = Config::isStratumFallbackEnonceSubscribe();
     doc["fallbackStratumTLS"] = Config::isStratumFallbackTLS();
+    doc["stratumProtocol"]    = Config::getStratumProtocol();
+    doc["fallbackStratumProtocol"] = Config::getFallbackStratumProtocol();
+    {
+        char *sv2_auth = Config::getSV2AuthorityPubkey();
+        doc["sv2AuthorityPubkey"] = sv2_auth ? sv2_auth : "";
+        safe_free(sv2_auth);
+        char *fb_sv2_auth = Config::getFallbackSV2AuthorityPubkey();
+        doc["fallbackSv2AuthorityPubkey"] = fb_sv2_auth ? fb_sv2_auth : "";
+        safe_free(fb_sv2_auth);
+    }
+    doc["sv2ChannelType"]     = Config::getSV2ChannelType();
+    doc["fallbackSv2ChannelType"] = Config::getFallbackSV2ChannelType();
     doc["voltage"]            = POWER_MANAGEMENT_MODULE.getVoltage();
     doc["frequency"]          = board->getAsicFrequency();
     doc["defaultFrequency"]   = board->getDefaultAsicFrequency();
@@ -221,10 +231,6 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["invertfanpolarity"]  = board->isInvertFanPolarityEnabled() ? 1 : 0;
     doc["autofanspeed"]       = Config::getTempControlMode();
     doc["stratum_keep"]       = Config::isStratumKeepaliveEnabled() ? 1 : 0;
-#ifdef VR_FREQUENCY_ENABLED
-    doc["vrFrequency"]        = board->getVrFrequency();
-    doc["defaultVrFrequency"] = board->getDefaultVrFrequency();
-#endif
     doc["otp"]                = Config::isOTPEnabled(); // flag if otp is enabled
 
     // system screen
@@ -365,12 +371,6 @@ esp_err_t PATCH_update_settings(httpd_req_t *req)
     if (doc["pidD"].is<float>()) {
         Config::setPidD((uint16_t) (doc["pidD"].as<float>() * 100.0f));
     }
-#ifdef VR_FREQUENCY_ENABLED
-    if (doc["vrFrequency"].is<uint32_t>()) {
-        Config::setVrFrequency(doc["vrFrequency"].as<uint32_t>());
-    }
-#endif
-
     // Per-channel fan settings: fans[0] maps to ch0 NVS keys, fans[1] to ch1 NVS keys
     if (doc["fans"].is<JsonArray>()) {
         JsonArray fans = doc["fans"].as<JsonArray>();
