@@ -66,13 +66,7 @@ jobs:
               }'
             )")
 
-          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text' | sed 's/^```json\s*//;s/^```\s*//;s/```\s*$//' | python3 -c "import sys; text=sys.stdin.read(); text=text.replace('\u201c','\"').replace('\u201d','\"'); print(text, end='')")
-
-          if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
-            echo "ERROR: Failed to translate to $LANG"
-            echo "Response: $RESPONSE"
-            exit 1
-          fi
+          TRANSLATED=$(echo "$RESPONSE" | jq -r '.content[0].text' | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' | python3 -c "import sys; text = sys.stdin.read(); text = text.replace('\u201c', '\\\\\"').replace('\u201d', '\\\\\"').replace('\u2018', \"\\\\'\").replace('\u2019', \"\\\\'\"); print(text, end='')")
 
           # Validate it's valid JSON before writing
           if echo "$TRANSLATED" | jq empty 2>/dev/null; then
