@@ -254,7 +254,6 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   public isVrTempCrit(vrTempC: any): boolean {
     const band = HOME_CFG.tiles.vrTempBand;
     return isAtLeast(vrTempC, band.critC);
-<<<<<<< HEAD
   }*/
 
   public vrTempMax(info: any): number {
@@ -273,8 +272,7 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
   const critC = max * 0.98;
   return isAtLeast(vrTempC, critC);
 }
-  
-=======
+
   }
 
   private readonly lowRpmHintThresholdPct: number = 35;
@@ -366,7 +364,6 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     this.hoverTooltipY = y;
   }
 
->>>>>>> upstream/develop
   // ASIC temperature scaling + warn/crit thresholds (used by ASIC °C + A1/A2… squares)
   public shutdownTempC = shutdownTempC;
   public isAsicTempWarn = isAsicTempWarn;

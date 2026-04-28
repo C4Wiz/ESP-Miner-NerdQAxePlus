@@ -68,15 +68,12 @@
     "HASHRATE_1D": " (1 day)",
     "ERROR_RATE": "Error rate",
     "CHART_SPAN": "Span",
-<<<<<<< HEAD
     "FAN_CHANNEL_1": "ASIC Fan",
     "FAN_CHANNEL_2": "VReg Fan",
-=======
     "FAN_CHANNEL": "Fan C{{channel}}",
     "FAN_ASICS_LABEL": "ASIC",
     "FAN_VR_LABEL": "Voltage Regulator",
     "FAN_LOW_RPM_HINT": "At a low setting, the fan does not display the exact RPM. However, it operates according to the percentage of capacity displayed.",
->>>>>>> upstream/develop
     "SHARE_TOO_SMALL": "Share for this pool too small!",
     "HIDE_CHART": "Hide",
     "SHOW_CHART": "Show",

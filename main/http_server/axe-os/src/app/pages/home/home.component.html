@@ -463,7 +463,6 @@
           <div class="plain-section">
             <div class="no-scroll heat-usage heat-usage--plain">
               <div class="heat-usage-box">
-<<<<<<< HEAD
                 <div class="heat-bars-layout" style="grid-template-columns: 1fr;">
                     <div class="heat-bars" style="width: 100%;">
                     @let fanRpm1 = (info.fanrpm ?? 0);
@@ -495,7 +494,6 @@
                         <ng-container *ngIf="showFanC2; else fanLabelSingle">{{ 'HOME.FAN_CHANNEL_1' | translate }}</ng-container>
                         <ng-template #fanLabelSingle>{{ 'HOME.FAN_SPEED' | translate }}</ng-template>
                       </div>
-=======
                 <div class="heat-bars-layout">
                   <!-- Left group: ASIC temp square + optional ASIC chip temp squares (qx multi-bars) -->
                   <div class="heat-left">
@@ -604,7 +602,6 @@
                             aria-hidden="true">
                         <span>{{ 'HOME.FAN_LOW_RPM_HINT' | translate }}</span>
                       </span>
->>>>>>> upstream/develop
                       <div class="power-bar__value power-bar__value--inline">
                         <span class="fan-inline">
                           <ng-container *ngIf="shouldShowFanRpm(primaryFanPercent, primaryFanRpm)">
@@ -616,7 +613,6 @@
                       </div>
                     </div>
 
-<<<<<<< HEAD
                     <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp, info)"
                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp, info)"
@@ -628,10 +624,8 @@
                      <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
                     </div>
 
-=======
                     <!-- Fan bar (channel 2, only if present) -->
                     @let fanC2LowRpm = shouldShowLowRpmHint(info.fanspeed2 ?? 0, info.fanrpm2 ?? 0);
->>>>>>> upstream/develop
                     <div class="power-bar" *ngIf="showFanC2" role="img"
                          [class.power-bar--interactive]="fanC2LowRpm"
                          [class.power-bar--max]="isBarMax(info.fanspeed2 ?? 0, 100)"
@@ -640,9 +634,7 @@
                          (mouseleave)="hideHoverTooltip('fan-c2')"
                          [attr.aria-label]="getFanAriaLabel(2, info.fanspeed2 ?? 0, info.fanrpm2 ?? 0)">
                       <div class="power-bar__fill" [style.width.%]="toPct(info.fanspeed2 ?? 0, 0, 100)"></div>
-<<<<<<< HEAD
                       <div class="power-bar__label">{{ 'HOME.FAN_CHANNEL_2' | translate }}</div>
-=======
                       <div class="power-bar__label">{{ 'HOME.FAN_VR_LABEL' | translate }}</div>
                       <span class="power-bar-tooltip"
                             *ngIf="fanC2LowRpm"
@@ -652,7 +644,6 @@
                             aria-hidden="true">
                         <span>{{ 'HOME.FAN_LOW_RPM_HINT' | translate }}</span>
                       </span>
->>>>>>> upstream/develop
                       <div class="power-bar__value power-bar__value--inline">
                         <span class="fan-inline">
                           <ng-container *ngIf="shouldShowFanRpm(info.fanspeed2 ?? 0, info.fanrpm2 ?? 0)">
