@@ -69,11 +69,20 @@
     "ERROR_RATE": "Fehlerrate",
     "CHART_SPAN": "Zeitspanne",
     "FAN_CHANNEL": "Lüfter C{{channel}}",
+<<<<<<< HEAD
     "FAN_CHANNEL_1": "ASIC-Lüfter",
     "FAN_CHANNEL_2": "VReg‑Lüfter",
     "SHARE_TOO_SMALL": "Share für diesen Pool zu klein!",
     "HIDE_CHART": "Ausblenden",
     "SHOW_CHART": "Einblenden",
+=======
+    "FAN_ASICS_LABEL": "ASIC",
+    "FAN_VR_LABEL": "Spannungsregler",
+    "FAN_LOW_RPM_HINT": "Bei einer niedrigen Einstellung zeigt der Lüfter keine exakte RPM an. Er arbeitet jedoch entsprechend des angezeigten prozentualen Leistungswerts.",
+    "SHARE_TOO_SMALL": "Anteil für diesen Pool zu klein!",
+    "HIDE_CHART": "ausblenden",
+    "SHOW_CHART": "einblenden",
+>>>>>>> upstream/develop
     "STRATUM_NOT_CONNECTED": "Stratum für diesen Pool nicht verbunden.",
     "RESET_STATS": "Sitzungs‑Statistiken zurücksetzen",
     "RESET_STATS_CONFIRM": "Alle Sitzungs‑Statistiken zurücksetzen (Shares, beste Diff, Fehler)?",
@@ -94,7 +103,13 @@
     "ASIC_TEMP": "ASIC‑Temp",
     "VR_TEMP": "VReg‑Temp",
     "ASIC_TEMP_LEGEND": "ASIC",
-    "VR_TEMP_LEGEND": "VReg.",
+    "VR_TEMP_LEGEND": "Spannungsregler",
+    "VR_TEMP_EXT": "VRT ext",
+    "VR_TEMP_INT": "VRT int",
+    "VR_TEMP_TOOLTIP_LINE1": "Hier siehst du die internen und externen Temperaturen des Spannungsreglers.",
+    "VR_TEMP_TOOLTIP_LINE2": "Intern bedeutet: direkt am Sensor gemessen.",
+    "VR_TEMP_TOOLTIP_LINE3": "Extern bedeutet: die Temperatur auf der Leiterplatte rund um den Regler.",
+    "VR_TEMP_TOOLTIP_LINE4": "Die externe Temperatur ist meist wichtiger, weil sie auch andere Komponenten beeinflusst.",
     "FAN_SPEED": "Lüftergeschwindigkeit",
     "FAN_RPM": "Lüfter‑U/min",
     "ASIC_FREQUENCY": "ASIC‑Frequenz",
@@ -423,15 +438,31 @@
     "STRATUM_TLS": "Verschlüsselte Verbindung (TLS)"
   },
   "FAN": {
+<<<<<<< HEAD
     "TITLE": "Lüfter‑Controller",
     "CONTROLLER": "Lüfter‑Controller",
+=======
+    "TITLE": "Lüftersteuerung",
+    "PRIMARY_CONTROLLER": "ASICs",
+    "SECONDARY_CONTROLLER": "Spannungsregler",
+    "CONTROLLER": "Lüftersteuerung",
+>>>>>>> upstream/develop
     "MANUAL": "Manuell",
     "AUTODETECT_POLARITY": "Lüfter‑Polarität autodetektieren",
     "AUTODETECT_RECOMMENDED": "Empfohlen",
+<<<<<<< HEAD
     "INVERT_POLARITY": "Lüfter‑Polarität invertieren",
     "USE_FAN1_SETTINGS": "Mit Lüfter 1 synchronisieren",
     "FAN1_CONNECTOR_HINT": "Verbinden Sie den <strong>ASIC‑Lüfter</strong> mit Anschluss <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Verbinden Sie den <strong>VReg‑Lüfter</strong> mit Anschluss <strong>{{connector}}</strong>."
+=======
+    "INVERT_POLARITY": "Polarität umkehren",
+    "USE_FAN1_SETTINGS": "Gekoppelt",
+    "FAN_SETTINGS_PORTS_HINT": "<strong>Hinweis:</strong> Wenn du den Modus wechselst, prüfe vorher an welche Lüfterports die einzelnen Lüfter angeschlossen sind.",
+    "FAN1_CONNECTOR_HINT": "Schließe den <strong>ASIC-Lüfter</strong> an Anschluss <strong>{{connector}}</strong> an.",
+    "FAN2_CONNECTOR_HINT": "Schließe den <strong>Spannungsregler-Lüfter</strong> an Anschluss <strong>{{connector}}</strong> an.",
+    "FAN_LINKED_HINT": "Der sekundäre Kanal folgt immer dem primären Ausgang. Im PID-Modus verwendet der Regler die höhere der ASICs- und VReg-Temperaturen."
+>>>>>>> upstream/develop
   },
   "MISC": {
     "TITLE": "Sonstige Einstellungen",

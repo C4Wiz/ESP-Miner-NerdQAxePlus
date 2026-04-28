@@ -68,8 +68,15 @@
     "HASHRATE_1D": " (1 day)",
     "ERROR_RATE": "Error rate",
     "CHART_SPAN": "Span",
+<<<<<<< HEAD
     "FAN_CHANNEL_1": "ASIC Fan",
     "FAN_CHANNEL_2": "VReg Fan",
+=======
+    "FAN_CHANNEL": "Fan C{{channel}}",
+    "FAN_ASICS_LABEL": "ASIC",
+    "FAN_VR_LABEL": "Voltage Regulator",
+    "FAN_LOW_RPM_HINT": "At a low setting, the fan does not display the exact RPM. However, it operates according to the percentage of capacity displayed.",
+>>>>>>> upstream/develop
     "SHARE_TOO_SMALL": "Share for this pool too small!",
     "HIDE_CHART": "Hide",
     "SHOW_CHART": "Show",
@@ -93,7 +100,13 @@
     "ASIC_TEMP": "ASIC Temp",
     "VR_TEMP": "VReg Temp",
     "ASIC_TEMP_LEGEND": "ASIC",
-    "VR_TEMP_LEGEND": "VReg.",
+    "VR_TEMP_LEGEND": "Voltage Regulator",
+    "VR_TEMP_EXT": "VRT ext",
+    "VR_TEMP_INT": "VRT int",
+    "VR_TEMP_TOOLTIP_LINE1": "Here you can see the internal and external temperatures of the voltage regulator.",
+    "VR_TEMP_TOOLTIP_LINE2": "Internal means: measured directly at the sensor.",
+    "VR_TEMP_TOOLTIP_LINE3": "External means: the temperature on the PCB around the regulator.",
+    "VR_TEMP_TOOLTIP_LINE4": "The external temperature is usually more important because it also affects other components.",
     "FAN_SPEED": "Fan Speed",
     "FAN_RPM": "Fan RPM",
     "ASIC_FREQUENCY": "ASIC Frequency",
@@ -415,14 +428,18 @@
   },
   "FAN": {
     "TITLE": "Fan Controller",
+    "PRIMARY_CONTROLLER": "ASICs",
+    "SECONDARY_CONTROLLER": "Voltage Regulator",
     "CONTROLLER": "Fan Controller",
     "MANUAL": "Manual",
     "AUTODETECT_POLARITY": "Autodetect Fan Polarity",
     "AUTODETECT_RECOMMENDED": "Recommended",
     "INVERT_POLARITY": "Invert Fan Polarity",
-    "USE_FAN1_SETTINGS": "Sync with Fan 1",
+    "USE_FAN1_SETTINGS": "Linked",
+    "FAN_SETTINGS_PORTS_HINT": "<strong>Note:</strong> When switching away from Linked mode, check which fan ports each fan is connected to before saving.",
     "FAN1_CONNECTOR_HINT": "Connect the <strong>ASIC fan</strong> to connector <strong>{{connector}}</strong>.",
-    "FAN2_CONNECTOR_HINT": "Connect the <strong>VReg fan</strong> to connector <strong>{{connector}}</strong>."
+    "FAN2_CONNECTOR_HINT": "Connect the <strong>Voltage Regulator fan</strong> to connector <strong>{{connector}}</strong>.",
+    "FAN_LINKED_HINT": "The secondary channel always matches the primary output. In PID mode, the controller uses the highest of ASICs and VReg temperatures."
   },
   "MISC": {
     "TITLE": "Misc Settings",

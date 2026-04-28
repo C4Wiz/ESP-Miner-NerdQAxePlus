@@ -69,11 +69,20 @@
     "ERROR_RATE": "Tasa de error",
     "CHART_SPAN": "Intervalo",
     "FAN_CHANNEL": "Ventilador C{{channel}}",
+<<<<<<< HEAD
     "FAN_CHANNEL_1": "Ventilador ASIC",
     "FAN_CHANNEL_2": "Ventilador VReg",
     "SHARE_TOO_SMALL": "¡Share para este pool demasiado pequeño!",
     "HIDE_CHART": "Ocultar",
     "SHOW_CHART": "Mostrar",
+=======
+    "FAN_ASICS_LABEL": "ASIC",
+    "FAN_VR_LABEL": "Regulador de voltaje",
+    "FAN_LOW_RPM_HINT": "Con un ajuste bajo, el ventilador no muestra las RPM exactas. Sin embargo, funciona de acuerdo con el porcentaje de capacidad mostrado.",
+    "SHARE_TOO_SMALL": "Porcentaje para este pool demasiado bajo!",
+    "HIDE_CHART": "ocultar",
+    "SHOW_CHART": "mostrar",
+>>>>>>> upstream/develop
     "STRATUM_NOT_CONNECTED": "Stratum no conectado para este pool.",
     "RESET_STATS": "Restablecer estadísticas de sesión",
     "RESET_STATS_CONFIRM": "¿Restablecer todas las estadísticas de sesión (shares, mejor diff, errores)?",
@@ -94,9 +103,21 @@
     "ASIC_TEMP": "Temp ASIC",
     "VR_TEMP": "Temp VReg",
     "ASIC_TEMP_LEGEND": "ASIC",
+<<<<<<< HEAD
     "VR_TEMP_LEGEND": "VReg.",
     "FAN_SPEED": "Velocidad del ventilador",
     "FAN_RPM": "RPM del ventilador",
+=======
+    "VR_TEMP_LEGEND": "Regulador de voltaje",
+    "VR_TEMP_EXT": "VRT ext",
+    "VR_TEMP_INT": "VRT int",
+    "VR_TEMP_TOOLTIP_LINE1": "Aqui puedes ver las temperaturas internas y externas del regulador de voltaje.",
+    "VR_TEMP_TOOLTIP_LINE2": "Interna significa: medida directamente en el sensor.",
+    "VR_TEMP_TOOLTIP_LINE3": "Externa significa: la temperatura en la PCB alrededor del regulador.",
+    "VR_TEMP_TOOLTIP_LINE4": "La temperatura externa suele ser mas importante porque tambien afecta a otros componentes.",
+    "FAN_SPEED": "Velocidad Ventilador",
+    "FAN_RPM": "RPM Ventilador",
+>>>>>>> upstream/develop
     "ASIC_FREQUENCY": "Frecuencia ASIC",
     "HOST": "Host",
     "PORT": "Puerto",
@@ -408,14 +429,25 @@
   },
   "FAN": {
     "TITLE": "Controlador de Ventilador",
+    "PRIMARY_CONTROLLER": "ASICs",
+    "SECONDARY_CONTROLLER": "Regulador de voltaje",
     "CONTROLLER": "Controlador de Ventilador",
     "MANUAL": "Manual",
     "AUTODETECT_POLARITY": "Autodetectar polaridad del ventilador",
     "AUTODETECT_RECOMMENDED": "Recomendado",
+<<<<<<< HEAD
     "INVERT_POLARITY": "Invertir polaridad del ventilador",
     "USE_FAN1_SETTINGS": "Sincronizar con Ventilador 1",
     "FAN1_CONNECTOR_HINT": "Conecte el <strong>ventilador ASIC</strong> al conector <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Conecte el <strong>ventilador VReg</strong> al conector <strong>{{connector}}</strong>."
+=======
+    "INVERT_POLARITY": "Invertir Polaridad",
+    "USE_FAN1_SETTINGS": "Vinculado",
+    "FAN_SETTINGS_PORTS_HINT": "<strong>Nota:</strong> Al cambiar de modo vinculado, comprueba a qué puertos de ventilador están conectados los ventiladores antes de guardar.",
+    "FAN1_CONNECTOR_HINT": "Conecta el <strong>ventilador ASIC</strong> al conector <strong>{{connector}}</strong>.",
+    "FAN2_CONNECTOR_HINT": "Conecta el <strong>ventilador del regulador de voltaje</strong> al conector <strong>{{connector}}</strong>.",
+    "FAN_LINKED_HINT": "El canal secundario siempre sigue la salida del primario. En modo PID, el controlador utiliza la temperatura más alta entre ASICs y VReg."
+>>>>>>> upstream/develop
   },
   "MISC": {
     "TITLE": "Configuración Miscelánea",
