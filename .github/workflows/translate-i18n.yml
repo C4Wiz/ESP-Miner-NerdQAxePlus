@@ -81,6 +81,18 @@ jobs:
           sleep 2
         done
 
+    - name: Update language selector
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: python3 .github/scripts/update_language_selector.py
+
+    - name: Commit and push translations
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add main/http_server/axe-os/src/assets/i18n/*.json
+        git add main/http_server/axe-os/src/app/@i18n/container/language-selector/language-selector.component.html
+        
     - name: Commit and push translations
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
