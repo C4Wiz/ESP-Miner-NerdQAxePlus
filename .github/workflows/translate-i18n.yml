@@ -2,10 +2,6 @@ name: Translate i18n Files
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'main/http_server/axe-os/src/assets/i18n/en.json'
-      - 'main/http_server/axe-os/src/app/@i18n/models/language.model.ts'
 
 jobs:
   translate:
@@ -92,12 +88,6 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add main/http_server/axe-os/src/assets/i18n/*.json
         git add main/http_server/axe-os/src/app/@i18n/container/language-selector/language-selector.component.html
-        
-    - name: Commit and push translations
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add main/http_server/axe-os/src/assets/i18n/*.json
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
