@@ -92,7 +92,7 @@
     "INPUT_CURRENT": "Eingangs-Ampere",
     "INPUT_VOLTAGE": "Eingangsspannung",
     "ASIC_VOLTAGE": "ASIC-Spannung",
-    "ASIC_VOLTAGE_MEASURED": "Gemessene ASIC-Spannung",
+    "ASIC_VOLTAGE_MEASURED": "ASIC-Spannung",
     "HEAT": "Wärme",
     "TITLE_HEAT": "Wärme",
     "ASIC_TEMP": "ASIC-Temp",

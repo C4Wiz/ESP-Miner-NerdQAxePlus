@@ -430,7 +430,7 @@
     "SECONDARY_CONTROLLER": "Regulátor napätia",
     "CONTROLLER": "Ovládač ventilátora",
     "MANUAL": "Manuálne",
-    "AUTODETECT_POLARITY": "Automaticky detekovať polaritu ventilátora",
+    "AUTODETECT_POLARITY": "Automaticky detegovať polaritu ventilátora",
     "AUTODETECT_RECOMMENDED": "Odporúčané",
     "INVERT_POLARITY": "Invertovať polaritu ventilátora",
     "USE_FAN1_SETTINGS": "Prepojené",
