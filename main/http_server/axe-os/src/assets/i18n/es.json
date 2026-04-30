@@ -1,3 +1,4 @@
+
 {
   "COMMON": {
     "LOADING": "Cargando...",
@@ -43,7 +44,7 @@
     "BEST_DIFFICULTY": "Mejor Dificultad",
     "ALL_TIME_BEST": "mejor de todos los tiempos",
     "TEMPERATURE": "Temperatura",
-    "FAN_SPEED": "Ventilador",
+    "FAN_SPEED": "Ventilador(es) del Sistema",
     "UPTIME": "Tiempo de actividad",
     "EXPECTED": "esperado",
     "ACCEPTED": "Aceptado",
@@ -62,27 +63,21 @@
     "IDLE": "Inactivo",
     "PRIMARY_POOL": "Pool principal",
     "FALLBACK_POOL": "Pool de respaldo",
-    "HASHRATE_1M": "Hashrate  (1 min)",
-    "HASHRATE_10M": " (10 min)",
-    "HASHRATE_1H": " (1 hour)",
-    "HASHRATE_1D": " (1 day)",
+    "HASHRATE_1M": "Hashrate  (1 min)",
+    "HASHRATE_10M": " (10 min)",
+    "HASHRATE_1H": " (1 hora)",
+    "HASHRATE_1D": " (1 día)",
     "ERROR_RATE": "Tasa de error",
     "CHART_SPAN": "Intervalo",
-    "FAN_CHANNEL": "Ventilador C{{channel}}",
-<<<<<<< HEAD
     "FAN_CHANNEL_1": "Ventilador ASIC",
     "FAN_CHANNEL_2": "Ventilador VReg",
-    "SHARE_TOO_SMALL": "¡Share para este pool demasiado pequeño!",
-    "HIDE_CHART": "Ocultar",
-    "SHOW_CHART": "Mostrar",
-=======
+    "FAN_CHANNEL": "Ventilador C{{channel}}",
     "FAN_ASICS_LABEL": "ASIC",
     "FAN_VR_LABEL": "Regulador de voltaje",
     "FAN_LOW_RPM_HINT": "Con un ajuste bajo, el ventilador no muestra las RPM exactas. Sin embargo, funciona de acuerdo con el porcentaje de capacidad mostrado.",
-    "SHARE_TOO_SMALL": "Porcentaje para este pool demasiado bajo!",
-    "HIDE_CHART": "ocultar",
-    "SHOW_CHART": "mostrar",
->>>>>>> upstream/develop
+    "SHARE_TOO_SMALL": "¡Share para este pool demasiado pequeño!",
+    "HIDE_CHART": "Ocultar",
+    "SHOW_CHART": "Mostrar",
     "STRATUM_NOT_CONNECTED": "Stratum no conectado para este pool.",
     "RESET_STATS": "Restablecer estadísticas de sesión",
     "RESET_STATS_CONFIRM": "¿Restablecer todas las estadísticas de sesión (shares, mejor diff, errores)?",
@@ -103,21 +98,15 @@
     "ASIC_TEMP": "Temp ASIC",
     "VR_TEMP": "Temp VReg",
     "ASIC_TEMP_LEGEND": "ASIC",
-<<<<<<< HEAD
-    "VR_TEMP_LEGEND": "VReg.",
-    "FAN_SPEED": "Velocidad del ventilador",
-    "FAN_RPM": "RPM del ventilador",
-=======
     "VR_TEMP_LEGEND": "Regulador de voltaje",
     "VR_TEMP_EXT": "VRT ext",
     "VR_TEMP_INT": "VRT int",
-    "VR_TEMP_TOOLTIP_LINE1": "Aqui puedes ver las temperaturas internas y externas del regulador de voltaje.",
+    "VR_TEMP_TOOLTIP_LINE1": "Aquí puedes ver las temperaturas internas y externas del regulador de voltaje.",
     "VR_TEMP_TOOLTIP_LINE2": "Interna significa: medida directamente en el sensor.",
     "VR_TEMP_TOOLTIP_LINE3": "Externa significa: la temperatura en la PCB alrededor del regulador.",
-    "VR_TEMP_TOOLTIP_LINE4": "La temperatura externa suele ser mas importante porque tambien afecta a otros componentes.",
-    "FAN_SPEED": "Velocidad Ventilador",
-    "FAN_RPM": "RPM Ventilador",
->>>>>>> upstream/develop
+    "VR_TEMP_TOOLTIP_LINE4": "La temperatura externa suele ser más importante porque también afecta a otros componentes.",
+    "FAN_SPEED": "Velocidad del ventilador",
+    "FAN_RPM": "RPM del ventilador",
     "ASIC_FREQUENCY": "Frecuencia ASIC",
     "HOST": "Host",
     "PORT": "Puerto",
@@ -171,6 +160,14 @@
     "TIME_FORMAT": "Formato de hora",
     "TIME_FORMAT_24H": "Formato 24h",
     "TIME_FORMAT_12H": "Formato 12h (AM/PM)",
+    "STRATUM_PROTOCOL": "Protocolo Stratum",
+    "STRATUM_V1": "Stratum V1",
+    "STRATUM_V2": "Stratum V2",
+    "SV2_AUTHORITY_PUBKEY": "Clave Pública de Autoridad SV2",
+    "SV2_AUTHORITY_PUBKEY_HINT": "Clave codificada en Base58 opcional para verificación de certificado del servidor.",
+    "SV2_CHANNEL_TYPE": "Tipo de Canal SV2",
+    "SV2_CHANNEL_EXTENDED": "Canal Extendido",
+    "SV2_CHANNEL_STANDARD": "Canal Estándar (experimental)",
     "POOL_MODE": "Modo de Pool",
     "POOL_MODE_FAILOVER": "Conmutación por falla (Principal/Respaldo)",
     "POOL_MODE_DUAL": "Pool Dual",
@@ -235,7 +232,7 @@
     "RESET_BROWNOUT": "Reinicio por caída de tensión",
     "RESET_SDIO": "Reinicio SDIO",
     "RESET_NOT_SPECIFIED": "No especificado",
-    "ABOUT_NERDQX": " proyecto fue desarrollado por un equipo internacional de entusiastas y lanzado como hardware abierto. NerdQX pertenece a la iniciativa <strong>“ORIGINAL”</strong>, que permite a los usuarios saber si su NerdQX es original, más sobre esto",
+    "ABOUT_NERDQX": " proyecto fue desarrollado por un equipo internacional de entusiastas y lanzado como hardware abierto. NerdQX pertenece a la iniciativa <strong>&ldquo;ORIGINAL&rdquo;</strong>, que permite a los usuarios saber si su NerdQX es original, más sobre esto",
     "ABOUT_NERDQX_ORIGINAL": " <u>aquí</u>",
     "SHUTDOWN": "Apagar",
     "SHUTDOWN_SUCCESS": "El sistema se está apagando",
@@ -296,7 +293,7 @@
     "TITLE": "Configuración de alertas",
     "DISCORD_WEBHOOK": "URL del webhook de Discord",
     "TEMPERATURE_ALERT": "Alerta de temperatura",
-    "HASHRATE_ALERT": "Alerta de hash rate",
+    "HASHRATE_ALERT": "Alerta de hashrate",
     "OFFLINE_ALERT": "Alerta offline",
     "THRESHOLD": "Umbral",
     "ENABLED": "Habilitado",
@@ -435,19 +432,12 @@
     "MANUAL": "Manual",
     "AUTODETECT_POLARITY": "Autodetectar polaridad del ventilador",
     "AUTODETECT_RECOMMENDED": "Recomendado",
-<<<<<<< HEAD
     "INVERT_POLARITY": "Invertir polaridad del ventilador",
-    "USE_FAN1_SETTINGS": "Sincronizar con Ventilador 1",
-    "FAN1_CONNECTOR_HINT": "Conecte el <strong>ventilador ASIC</strong> al conector <strong>{{connector}}</strong>.",
-    "FAN2_CONNECTOR_HINT": "Conecte el <strong>ventilador VReg</strong> al conector <strong>{{connector}}</strong>."
-=======
-    "INVERT_POLARITY": "Invertir Polaridad",
     "USE_FAN1_SETTINGS": "Vinculado",
     "FAN_SETTINGS_PORTS_HINT": "<strong>Nota:</strong> Al cambiar de modo vinculado, comprueba a qué puertos de ventilador están conectados los ventiladores antes de guardar.",
-    "FAN1_CONNECTOR_HINT": "Conecta el <strong>ventilador ASIC</strong> al conector <strong>{{connector}}</strong>.",
-    "FAN2_CONNECTOR_HINT": "Conecta el <strong>ventilador del regulador de voltaje</strong> al conector <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "El canal secundario siempre sigue la salida del primario. En modo PID, el controlador utiliza la temperatura más alta entre ASICs y VReg."
->>>>>>> upstream/develop
+    "FAN1_CONNECTOR_HINT": "Conecte el <strong>ventilador ASIC</strong> al conector <strong>{{connector}}</strong>.",
+    "FAN2_CONNECTOR_HINT": "Conecte el <strong>ventilador del Regulador de voltaje</strong> al conector <strong>{{connector}}</strong>.",
+    "FAN_LINKED_HINT": "El canal secundario siempre coincide con la salida primaria. En modo PID, el controlador utiliza la temperatura más alta entre ASICs y VReg."
   },
   "MISC": {
     "TITLE": "Configuración Miscelánea",
@@ -575,7 +565,7 @@
     "FORGET_THIS_DEVICE": "Olvidar este navegador",
     "FORGET_THIS_DEVICE_HELP": "Termina la confianza de 24h para este navegador. El token de sesión local se elimina — la próxima acción protegida requerirá nuevamente el código de 6 dígitos.",
     "THIS_DEVICE_FORGOTTEN": "Este navegador ha sido olvidado.",
-    "NO_TRUSTED_DEVICE_HELP": "No hay sesión confiada en este navegador. Las acciones protegidas solicitarán un código de 6 dígitos hasta que elija “Recordar este navegador”.",
+    "NO_TRUSTED_DEVICE_HELP": "No hay sesión confiada en este navegador. Las acciones protegidas solicitarán un código de 6 dígitos hasta que elija &ldquo;Recordar este navegador&rdquo;.",
     "NOT_TRUSTED": "No confiado"
   }
 }
