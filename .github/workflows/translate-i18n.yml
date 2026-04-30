@@ -43,9 +43,10 @@ jobs:
             EXISTING_PROMPT="Here is the existing $LANG translation file for reference (keep any existing translations that are still valid, only add or update missing/changed keys):\n\`\`\`json\n${EXISTING}\n\`\`\`\n\n"
           fi
 
-          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
+          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
 
-          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+          # Save API response directly to file to avoid shell mangling UTF-8
+          curl -s https://api.anthropic.com/v1/messages \
             -H "x-api-key: ${ANTHROPIC_API_KEY}" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
@@ -53,9 +54,9 @@ jobs:
               --arg model "claude-sonnet-4-5" \
               --arg prompt "$PROMPT" \
               '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}'
-            )")
+            )" > /tmp/api_response.json
 
-          echo "$RESPONSE" | jq -r '.content[0].text' \
+          jq -r '.content[0].text' /tmp/api_response.json \
             | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' \
             > /tmp/raw_translated.txt
 
@@ -64,7 +65,7 @@ jobs:
 
           if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
             echo "ERROR: Failed to translate to $LANG"
-            echo "Response: $RESPONSE"
+            cat /tmp/api_response.json
             exit 1
           fi
 
