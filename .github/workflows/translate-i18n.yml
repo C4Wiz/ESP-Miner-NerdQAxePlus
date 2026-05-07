@@ -29,6 +29,18 @@ jobs:
           LANG="$CODE"
 
           TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
+          echo "Checking $CODE..."
+
+          # Skip if target file exists and has all keys from en.json
+          if [ -f "$TARGET_FILE" ]; then
+            EN_KEYS=$(jq '[paths(scalars)] | sort' "$EN_FILE")
+            TARGET_KEYS=$(jq '[paths(scalars)] | sort' "$TARGET_FILE")
+            if [ "$EN_KEYS" = "$TARGET_KEYS" ]; then
+              echo "✓ $CODE already up to date — skipping"
+              continue
+            fi
+          fi
+
           echo "Translating to $LANG ($CODE)..."
 
           EXISTING_PROMPT=""
