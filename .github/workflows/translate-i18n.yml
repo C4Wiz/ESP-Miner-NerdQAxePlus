@@ -26,9 +26,7 @@ jobs:
 
         for CODE in ${{ env.LANG_CODES }}; do
 
-          case "$CODE" in
-            *)  LANG="$CODE" ;;
-          esac
+          LANG="$CODE"
 
           TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
           echo "Translating to $LANG ($CODE)..."
@@ -39,17 +37,21 @@ jobs:
             EXISTING_PROMPT="Here is the existing $LANG translation file for reference (keep any existing translations that are still valid, only add or update missing/changed keys):\n\`\`\`json\n${EXISTING}\n\`\`\`\n\n"
           fi
 
-          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
+          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to the language with ISO 639-1 code '${LANG}'. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
+
+          # Write payload to file to avoid shell argument size limits
+          jq -n \
+            --arg model "claude-sonnet-4-5" \
+            --arg prompt "$PROMPT" \
+            '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}' \
+            > /tmp/request.json
 
           curl -s https://api.anthropic.com/v1/messages \
             -H "x-api-key: ${ANTHROPIC_API_KEY}" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$(jq -n \
-              --arg model "claude-sonnet-4-5" \
-              --arg prompt "$PROMPT" \
-              '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}'
-            )" > /tmp/api_response.json
+            --data @/tmp/request.json \
+            > /tmp/api_response.json
 
           jq -r '.content[0].text' /tmp/api_response.json \
             | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' \
