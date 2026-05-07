@@ -14,7 +14,7 @@ The web interface uses **Angular i18n** with **ngx-translate** to manage multi-l
 - 🇫🇷 **French (fr)**
 - 🇮🇹 **Italian (it)**
 - 🇯🇵 **Japanese (ja)**
-- 🌐 **pl (pl)**
+- 🇵🇱 **Polish (pl)**
 - 🇷🇴 **Romanian (ro)**
 - 🇷🇺 **Russian (ru)**
 - 🇸🇰 **Slovak (sk)**
@@ -32,7 +32,7 @@ src/assets/i18n/
 ├── fr.json    # French
 ├── it.json    # Italian
 ├── ja.json    # Japanese
-├── pl.json    # pl
+├── pl.json    # Polish
 ├── ro.json    # Romanian
 ├── ru.json    # Russian
 ├── sk.json    # Slovak
