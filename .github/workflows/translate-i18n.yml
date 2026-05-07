@@ -41,7 +41,6 @@ jobs:
 
           PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
 
-          # Save API response directly to file to avoid shell mangling UTF-8
           curl -s https://api.anthropic.com/v1/messages \
             -H "x-api-key: ${ANTHROPIC_API_KEY}" \
             -H "anthropic-version: 2023-06-01" \
@@ -77,13 +76,13 @@ jobs:
           sleep 2
         done
 
+    - name: Update app.component.ts language list
+      run: python3 .github/scripts/update_app_component.py
+
     - name: Update language selector
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: python3 .github/scripts/update_language_selector.py
-
-    - name: Update app.component.ts language list
-      run: python3 .github/scripts/update_app_component.py
 
     - name: Update INTERNATIONALIZATION.md
       run: python3 .github/scripts/update_internationalization_md.py
