@@ -7,6 +7,7 @@ LANG_META = {
     'fr': ('fr', 'Français',  'French'),
     'it': ('it', 'Italiano',  'Italian'),
     'ja': ('jp', '日本語',    'Japanese'),
+    'pl': ('pl', 'Polski',    'Polish'),
     'pt': ('pt', 'Português', 'Portuguese'),
     'ro': ('ro', 'Română',    'Romanian'),
     'ru': ('ru', 'Русский',   'Russian'),
@@ -18,9 +19,9 @@ LANG_META = {
 
 FLAG_EMOJI = {
     'us': '🇺🇸', 'de': '🇩🇪', 'es': '🇪🇸', 'fr': '🇫🇷',
-    'it': '🇮🇹', 'jp': '🇯🇵', 'pt': '🇵🇹', 'ro': '🇷🇴',
-    'ru': '🇷🇺', 'sk': '🇸🇰', 'se': '🇸🇪', 'tr': '🇹🇷',
-    'cn': '🇨🇳',
+    'it': '🇮🇹', 'jp': '🇯🇵', 'pl': '🇵🇱', 'pt': '🇵🇹',
+    'ro': '🇷🇴', 'ru': '🇷🇺', 'sk': '🇸🇰', 'se': '🇸🇪',
+    'tr': '🇹🇷', 'cn': '🇨🇳',
 }
 
 with open('main/http_server/axe-os/src/app/@i18n/models/language.model.ts', encoding='utf-8') as f:
