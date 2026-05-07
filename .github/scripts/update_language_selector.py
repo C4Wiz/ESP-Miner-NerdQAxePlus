@@ -3,21 +3,16 @@ import os
 import json
 import urllib.request
 
-# Read language.model.ts to get the list of supported languages
 with open('main/http_server/axe-os/src/app/@i18n/models/language.model.ts', encoding='utf-8') as f:
     model = f.read()
 
-# Extract language codes from the type definition
 codes = re.findall(r"'([a-z]{2})'", model)
-
-# Always put 'en' first, then sort the rest
 if 'en' in codes:
     codes.remove('en')
 codes = ['en'] + sorted(codes)
 
 print(f'Detected language codes: {codes}')
 
-# Ask Claude to return native language names and flag icon codes for each code
 api_key = os.environ['ANTHROPIC_API_KEY']
 prompt = (
     f'Return a JSON object mapping each of these ISO 639-1 language codes to an object with two fields: '
@@ -55,7 +50,6 @@ raw = re.sub(r'```\s*$', '', raw)
 lang_data = json.loads(raw)
 print(f'Language data: {lang_data}')
 
-# Build the nb-option entries
 options = []
 for code in codes:
     info = lang_data.get(code, {'label': code, 'flag': code})
@@ -70,7 +64,7 @@ for code in codes:
 
 options_html = '\n'.join(options)
 
-content = f"""<div class="language-selector">
+new_content = f"""<div class="language-selector">
   <nb-select
     [placeholder]="'LANGUAGE.SELECTOR' | translate"
     [selected]="currentLanguage$ | async"
@@ -83,7 +77,18 @@ content = f"""<div class="language-selector">
 """
 
 output_path = 'main/http_server/axe-os/src/app/@i18n/container/language-selector/language-selector.component.html'
+
+# Check if update is needed
+try:
+    with open(output_path, encoding='utf-8') as f:
+        existing = f.read()
+    if existing == new_content:
+        print('✓ language-selector.component.html already up to date — skipping')
+        exit(0)
+except FileNotFoundError:
+    pass
+
 with open(output_path, 'w', encoding='utf-8') as f:
-    f.write(content)
+    f.write(new_content)
 
 print(f'✓ Updated {output_path}')
