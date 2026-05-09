@@ -58,8 +58,8 @@
           <td>{{ info.version }}</td>
         </tr>
         <tr>
-          <td><b>{{ 'SYSTEM.WEBVERSION' | translate }}:</b></td>
-          <td>{{ info.webversion }}</td>
+          <td><b>{{ 'UPDATE.CURRENT_WEB_VERSION' | translate }}:</b></td>
+          <td>{{ currentWebVersion }}</td>
         </tr>
         <!-- Collaboration trigger: only for NerdQX -->
         <tr *ngIf="info.deviceModel === 'NerdQX'">
