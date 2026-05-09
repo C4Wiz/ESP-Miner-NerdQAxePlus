@@ -327,7 +327,8 @@
   "UPDATE": {
     "TITLE": "Updates",
     "VERSION_INFO": "Version Information",
-    "CURRENT_VERSION": "Current Version",
+    "CURRENT_VERSION": "Firmware Version",
+    "CURRENT_WEB_VERSION": "Web UI Version"
     "LATEST_RELEASE": "Latest Release",
     "PUBLISHED": "Published",
     "CHECK": "Check",
