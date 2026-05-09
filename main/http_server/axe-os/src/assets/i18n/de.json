@@ -182,6 +182,7 @@
     "MODEL": "Modell",
     "DEVICE_MODEL": "Gerätemodell",
     "FIRMWARE_VERSION": "Firmware-Version",
+    "WEB_VERSION": "Web-UI-Version",
     "MAC_ADDRESS": "MAC-Adresse",
     "IP_ADDRESS": "IP-Adresse",
     "FREE_HEAP": "Freier Heap",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Updates",
     "VERSION_INFO": "Versionsinformationen",
-    "CURRENT_VERSION": "Aktuelle Version",
+    "CURRENT_VERSION": "Firmware-Version",
+    "CURRENT_WEB_VERSION": "Web-UI-Version",
     "LATEST_RELEASE": "Neueste Version",
     "PUBLISHED": "Veröffentlicht",
     "CHECK": "Prüfen",

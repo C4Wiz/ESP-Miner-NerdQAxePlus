@@ -182,6 +182,7 @@
     "MODEL": "モデル",
     "DEVICE_MODEL": "デバイスモデル",
     "FIRMWARE_VERSION": "ファームウェアバージョン",
+    "WEB_VERSION": "Web UIバージョン",
     "MAC_ADDRESS": "MACアドレス",
     "IP_ADDRESS": "IPアドレス",
     "FREE_HEAP": "空きヒープ",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "更新",
     "VERSION_INFO": "バージョン情報",
-    "CURRENT_VERSION": "現在のバージョン",
+    "CURRENT_VERSION": "ファームウェアバージョン",
+    "CURRENT_WEB_VERSION": "Web UIバージョン",
     "LATEST_RELEASE": "最新リリース",
     "PUBLISHED": "公開日",
     "CHECK": "確認",

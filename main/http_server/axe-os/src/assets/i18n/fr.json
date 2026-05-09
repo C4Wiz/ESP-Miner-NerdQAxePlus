@@ -182,6 +182,7 @@
     "MODEL": "Modèle",
     "DEVICE_MODEL": "Modèle de l'appareil",
     "FIRMWARE_VERSION": "Version du firmware",
+    "WEB_VERSION": "Version de l'interface web",
     "MAC_ADDRESS": "Adresse MAC",
     "IP_ADDRESS": "Adresse IP",
     "FREE_HEAP": "Tas libre",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Mises à jour",
     "VERSION_INFO": "Informations sur la version",
-    "CURRENT_VERSION": "Version actuelle",
+    "CURRENT_VERSION": "Version du firmware",
+    "CURRENT_WEB_VERSION": "Version de l'interface web",
     "LATEST_RELEASE": "Dernière version",
     "PUBLISHED": "Publié",
     "CHECK": "Vérifier",

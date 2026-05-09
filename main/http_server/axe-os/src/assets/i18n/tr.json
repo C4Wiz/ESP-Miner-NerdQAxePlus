@@ -182,6 +182,7 @@
     "MODEL": "Model",
     "DEVICE_MODEL": "Cihaz Modeli",
     "FIRMWARE_VERSION": "Firmware Sürümü",
+    "WEB_VERSION": "Web Arayüzü Sürümü",
     "MAC_ADDRESS": "MAC Adresi",
     "IP_ADDRESS": "IP Adresi",
     "FREE_HEAP": "Boş Heap",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Güncellemeler",
     "VERSION_INFO": "Sürüm Bilgisi",
-    "CURRENT_VERSION": "Mevcut Sürüm",
+    "CURRENT_VERSION": "Firmware Sürümü",
+    "CURRENT_WEB_VERSION": "Web Arayüzü Sürümü",
     "LATEST_RELEASE": "En Son Sürüm",
     "PUBLISHED": "Yayınlandı",
     "CHECK": "Kontrol Et",

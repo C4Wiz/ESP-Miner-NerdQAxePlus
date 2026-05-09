@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Загрузка...",
@@ -182,6 +181,7 @@
     "MODEL": "Модель",
     "DEVICE_MODEL": "Модель устройства",
     "FIRMWARE_VERSION": "Версия прошивки",
+    "WEB_VERSION": "Версия веб-интерфейса",
     "MAC_ADDRESS": "MAC-адрес",
     "IP_ADDRESS": "IP-адрес",
     "FREE_HEAP": "Свободная куча",
@@ -328,7 +328,8 @@
   "UPDATE": {
     "TITLE": "Обновления",
     "VERSION_INFO": "Информация о версии",
-    "CURRENT_VERSION": "Текущая версия",
+    "CURRENT_VERSION": "Версия прошивки",
+    "CURRENT_WEB_VERSION": "Версия веб-интерфейса",
     "LATEST_RELEASE": "Последний релиз",
     "PUBLISHED": "Опубликовано",
     "CHECK": "Проверить",
