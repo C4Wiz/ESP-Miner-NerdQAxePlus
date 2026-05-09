@@ -22,7 +22,25 @@ jobs:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
         EN_FILE="main/http_server/axe-os/src/assets/i18n/en.json"
+        HASH_FILE="main/http_server/axe-os/src/assets/i18n/.en_hash"
         EN_CONTENT=$(cat "$EN_FILE")
+
+        # Compute current hash of en.json
+        CURRENT_HASH=$(md5sum "$EN_FILE" | cut -d' ' -f1)
+        echo "Current en.json hash: $CURRENT_HASH"
+
+        # Load stored hash if it exists
+        STORED_HASH=""
+        if [ -f "$HASH_FILE" ]; then
+          STORED_HASH=$(cat "$HASH_FILE")
+          echo "Stored en.json hash: $STORED_HASH"
+        fi
+
+        EN_CHANGED=false
+        if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
+          echo "en.json has changed — all languages will be retranslated"
+          EN_CHANGED=true
+        fi
 
         for CODE in ${{ env.LANG_CODES }}; do
 
@@ -31,8 +49,8 @@ jobs:
           TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
           echo "Checking $CODE..."
 
-          # Skip if target file exists and has all keys from en.json
-          if [ -f "$TARGET_FILE" ]; then
+          # Skip if target file exists, en.json unchanged, and all keys present
+          if [ -f "$TARGET_FILE" ] && [ "$EN_CHANGED" = "false" ]; then
             EN_KEYS=$(jq '[paths(scalars)] | sort' "$EN_FILE")
             TARGET_KEYS=$(jq '[paths(scalars)] | sort' "$TARGET_FILE")
             if [ "$EN_KEYS" = "$TARGET_KEYS" ]; then
@@ -90,6 +108,10 @@ jobs:
           sleep 2
         done
 
+        # Store current hash so next run can detect changes
+        echo "$CURRENT_HASH" > "$HASH_FILE"
+        echo "✓ Updated $HASH_FILE"
+
     - name: Update app.component.ts language list
       run: python3 .github/scripts/update_app_component.py
 
@@ -106,6 +128,7 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add main/http_server/axe-os/src/assets/i18n/*.json
+        git add main/http_server/axe-os/src/assets/i18n/.en_hash
         git add main/http_server/axe-os/src/app/@i18n/container/language-selector/language-selector.component.html
         git add main/http_server/axe-os/src/app/app.component.ts
         git add main/http_server/axe-os/INTERNATIONALIZATION.md
