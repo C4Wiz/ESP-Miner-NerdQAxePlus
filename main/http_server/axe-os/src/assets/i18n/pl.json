@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Uwaga:</strong> Podczas przełączania z trybu połączonego sprawdź, do których portów podłączony jest każdy wentylator przed zapisaniem.",
     "FAN1_CONNECTOR_HINT": "Podłącz <strong>wentylator ASIC</strong> do złącza <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Podłącz <strong>wentylator regulatora napięcia</strong> do złącza <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "Kanał pomocniczy zawsze dopasowuje się do głównego wyjścia. W trybie PID sterownik używa wyższej z temperatur ASIC i VReg."
+    "FAN_LINKED_HINT": "Wentylator VReg dopasowuje się do wyjścia wentylatora ASIC. W trybie PID sterownik używa wyższej z temperatur ASIC i VReg."
   },
   "MISC": {
     "TITLE": "Różne ustawienia",
@@ -540,10 +540,10 @@
     "ENABLE_OTP": "Włącz OTP",
     "DISABLE_OTP": "Wyłącz OTP",
     "START_ENROLLMENT": "Rozpocznij rejestrację",
-    "ENROLLMENT_ACTIVE": "Rejestracja jest aktywna — QR jest wyświetlany na urządzeniu",
+    "ENROLLMENT_ACTIVE": "Rejestracja jest aktywna — kod QR jest wyświetlany na urządzeniu",
     "ENTER_CODE": "Wprowadź 6-cyfrowy kod",
     "DISABLE_LABEL": "Wyłącz OTP (wymaga bieżącego kodu)",
-    "QR_SHOWN": "QR wyświetlany na urządzeniu. Zeskanuj go, a następnie wprowadź kod.",
+    "QR_SHOWN": "Kod QR wyświetlany na urządzeniu. Zeskanuj go, a następnie wprowadź kod.",
     "ENABLED": "OTP włączony",
     "DISABLED": "OTP wyłączony",
     "ENROLL_FAIL": "Rejestracja nie powiodła się",
