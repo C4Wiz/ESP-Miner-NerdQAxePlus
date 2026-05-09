@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Poznámka:</strong> Pri prepínaní z prepojovaného režimu skontrolujte, ku ktorým portom ventilátora je každý ventilátor pripojený pred uložením.",
     "FAN1_CONNECTOR_HINT": "Pripojte <strong>ASIC ventilátor</strong> ku konektoru <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Pripojte <strong>ventilátor regulátora napätia</strong> ku konektoru <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "Sekundárny kanál vždy zodpovedá primárnemu výstupu. V režime PID ovládač používa najvyššiu z teplôt ASICs a VReg."
+    "FAN_LINKED_HINT": "Ventilátor VReg vždy zodpovedá výstupu ventilátora ASIC. V režime PID ovládač používa vyššiu z teplôt ASIC a VReg."
   },
   "MISC": {
     "TITLE": "Rôzne nastavenia",

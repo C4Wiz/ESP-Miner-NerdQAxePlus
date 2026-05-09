@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Notă:</strong> Când treci de la modul Conectat, verifică la ce porturi este conectat fiecare ventilator înainte de a salva.",
     "FAN1_CONNECTOR_HINT": "Conectează <strong>ventilatorul ASIC</strong> la conectorul <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Conectează <strong>ventilatorul Regulatorului de tensiune</strong> la conectorul <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "Canalul secundar se potrivește întotdeauna cu ieșirea primară. În modul PID, controller-ul folosește cea mai ridicată temperatură dintre ASIC-uri și VReg."
+    "FAN_LINKED_HINT": "Ventilatorul VReg urmează ieșirea ventilatorului ASIC. În modul PID, controller-ul folosește cea mai ridicată temperatură dintre ASIC și VReg."
   },
   "MISC": {
     "TITLE": "Setări diverse",

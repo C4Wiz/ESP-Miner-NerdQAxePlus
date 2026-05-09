@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Hinweis:</strong> Wenn du den Modus wechselst, prüfe vorher an welche Lüfterports die einzelnen Lüfter angeschlossen sind.",
     "FAN1_CONNECTOR_HINT": "Schließe den <strong>ASIC-Lüfter</strong> an Anschluss <strong>{{connector}}</strong> an.",
     "FAN2_CONNECTOR_HINT": "Schließe den <strong>Spannungsregler-Lüfter</strong> an Anschluss <strong>{{connector}}</strong> an.",
-    "FAN_LINKED_HINT": "Der sekundäre Kanal folgt immer dem primären Ausgang. Im PID-Modus verwendet der Regler die höhere der ASICs- und VReg-Temperaturen."
+    "FAN_LINKED_HINT": "Der VReg-Lüfter folgt dem ASIC-Lüfter-Ausgang. Im PID-Modus verwendet der Regler die höhere der ASIC- und VReg-Temperaturen."
   },
   "MISC": {
     "TITLE": "Sonstige Einstellungen",
@@ -448,7 +448,7 @@
   },
   "WARNINGS": {
     "UNSAFE_SETTINGS": "⚠️ Warnung: Unsichere Einstellungen speichern ⚠️",
-    "WARRANTY_VOID": "Erhebt die Garantie",
+    "WARRANTY_VOID": "Hebt die Garantie auf",
     "HARDWARE_DAMAGE": "Kann permanente Hardwareschäden verursachen",
     "SYSTEM_INSTABILITY": "Kann zu Systeminstabilität und Abstürzen führen",
     "REDUCED_LIFESPAN": "Verkürzt die Lebensdauer des Geräts",
@@ -563,7 +563,7 @@
     "SESSION_STATUS": "Sitzungsstatus",
     "THIS_DEVICE_TRUSTED": "Dieser Browser ist vertrauenswürdig (24 h)",
     "FORGET_THIS_DEVICE": "Diesen Browser vergessen",
-    "FORGET_THIS_DEVICE_HELP": "Entfernt das 24-Stunden-Vertrauen für diesen Browser. Das lokale Sitzungs-Token wird gelöscht — die nächste geschützte Aktion erfordert erneut einen 6-stelligen Code.",
+    "FORGET_THIS_DEVICE_HELP": "Beendet das 24-Stunden-Vertrauen für diesen Browser. Das lokale Sitzungs-Token wird entfernt — die nächste geschützte Aktion erfordert erneut einen 6-stelligen Code.",
     "THIS_DEVICE_FORGOTTEN": "Dieser Browser wurde vergessen.",
     "NO_TRUSTED_DEVICE_HELP": "Keine vertrauenswürdige Sitzung in diesem Browser. Geschützte Aktionen verlangen einen 6-stelligen Code, bis Sie &ldquo;Diesen Browser merken&rdquo; auswählen.",
     "NOT_TRUSTED": "Nicht vertrauenswürdig"

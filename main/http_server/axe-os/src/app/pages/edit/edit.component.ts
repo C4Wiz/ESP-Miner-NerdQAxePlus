@@ -261,15 +261,6 @@ export class EditComponent implements OnInit {
         this.updatePIDFieldStates();
         this.updateFan1FieldStates();
 
-        // Dual pool: sync fallback protocol to primary (mixed V1/V2 not supported)
-        const syncFallbackProtocol = () => {
-          if (this.form.controls['poolMode'].value === 1) {
-            this.form.controls['fallbackStratumProtocol'].setValue(
-              this.form.controls['stratumProtocol'].value, { emitEvent: false });
-          }
-        };
-        this.form.controls['poolMode'].valueChanges.subscribe(() => syncFallbackProtocol());
-        this.form.controls['stratumProtocol'].valueChanges.subscribe(() => syncFallbackProtocol());
       });
   }
 
@@ -311,7 +302,8 @@ export class EditComponent implements OnInit {
     const disable = (ctrl: string) => this.form.controls[ctrl]?.disable({ emitEvent: false });
 
     if (mode === 3) {
-      // LINKED — disable fan1-controls (overheatTemp stays enabled for shutdown protection)
+      // LINKED — disable fan1-controls; overheatTemp stays enabled (VReg shutdown threshold)
+      enable('fan1OverheatTemp');
       disable('fan1ManualSpeed');
       disable('fan1PidTargetTemp');
       disable('fan1PidP');

@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>注意:</strong>从联动模式切换前,请检查每个风扇连接到哪个风扇接口后再保存。",
     "FAN1_CONNECTOR_HINT": "将<strong>ASIC风扇</strong>连接到<strong>{{connector}}</strong>接口。",
     "FAN2_CONNECTOR_HINT": "将<strong>电压调节器风扇</strong>连接到<strong>{{connector}}</strong>接口。",
-    "FAN_LINKED_HINT": "次级通道始终与主输出匹配。在PID模式下,控制器使用ASIC和VReg温度中的最高值。"
+    "FAN_LINKED_HINT": "VReg风扇跟随ASIC风扇输出。在PID模式下,控制器使用ASIC和VReg温度中的最高值。"
   },
   "MISC": {
     "TITLE": "其他设置",

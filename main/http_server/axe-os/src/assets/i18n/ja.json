@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>注意:</strong> リンクモードから切り替える際は、保存前に各ファンがどのファンポートに接続されているかを確認してください。",
     "FAN1_CONNECTOR_HINT": "<strong>ASICファン</strong>をコネクタ <strong>{{connector}}</strong> に接続してください。",
     "FAN2_CONNECTOR_HINT": "<strong>電圧レギュレータファン</strong>をコネクタ <strong>{{connector}}</strong> に接続してください。",
-    "FAN_LINKED_HINT": "セカンダリチャネルは常にプライマリ出力に一致します。PIDモードでは、コントローラーはASICとVReg温度の高い方を使用します。"
+    "FAN_LINKED_HINT": "VRegファンはASICファン出力に従います。PIDモードでは、コントローラーはASICとVReg温度の高い方を使用します。"
   },
   "MISC": {
     "TITLE": "その他の設定",

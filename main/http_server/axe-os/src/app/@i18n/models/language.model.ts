@@ -1,1 +1,1 @@
-export type Language = 'zh' | 'fr' | 'en' | 'de' | 'es' | 'ja' | 'ro' | 'ru' | 'sk' | 'sv' | 'tr';
+export type Language = 'zh' | 'fr' | 'en' | 'de' | 'es' | 'ja' | 'ro' | 'ru' | 'sk' | 'sv' | 'tr' | 'pl' | 'it';

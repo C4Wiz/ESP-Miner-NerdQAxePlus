@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Obs:</strong> När du byter från länkat läge, kontrollera vilka fläktportar varje fläkt är ansluten till innan du sparar.",
     "FAN1_CONNECTOR_HINT": "Anslut <strong>ASIC-fläkten</strong> till kontakt <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Anslut <strong>spänningsregulatorfläkten</strong> till kontakt <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "Den sekundära kanalen matchar alltid den primära utgången. I PID-läge använder styrenheten den högsta temperaturen av ASICs och VReg."
+    "FAN_LINKED_HINT": "VReg-fläkten följer ASIC-fläktens utgång. I PID-läge använder styrenheten den högsta temperaturen av ASIC och VReg."
   },
   "MISC": {
     "TITLE": "Diverse inställningar",

@@ -22,15 +22,43 @@ jobs:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
         EN_FILE="main/http_server/axe-os/src/assets/i18n/en.json"
+        HASH_FILE="main/http_server/axe-os/src/assets/i18n/.en_hash"
         EN_CONTENT=$(cat "$EN_FILE")
+
+        # Compute current hash of en.json
+        CURRENT_HASH=$(md5sum "$EN_FILE" | cut -d' ' -f1)
+        echo "Current en.json hash: $CURRENT_HASH"
+
+        # Load stored hash if it exists
+        STORED_HASH=""
+        if [ -f "$HASH_FILE" ]; then
+          STORED_HASH=$(cat "$HASH_FILE")
+          echo "Stored en.json hash: $STORED_HASH"
+        fi
+
+        EN_CHANGED=false
+        if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
+          echo "en.json has changed — all languages will be retranslated"
+          EN_CHANGED=true
+        fi
 
         for CODE in ${{ env.LANG_CODES }}; do
 
-          case "$CODE" in
-            *)  LANG="$CODE" ;;
-          esac
+          LANG="$CODE"
 
           TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
+          echo "Checking $CODE..."
+
+          # Skip if target file exists, en.json unchanged, and all keys present
+          if [ -f "$TARGET_FILE" ] && [ "$EN_CHANGED" = "false" ]; then
+            EN_KEYS=$(jq '[paths(scalars)] | sort' "$EN_FILE")
+            TARGET_KEYS=$(jq '[paths(scalars)] | sort' "$TARGET_FILE")
+            if [ "$EN_KEYS" = "$TARGET_KEYS" ]; then
+              echo "✓ $CODE already up to date — skipping"
+              continue
+            fi
+          fi
+
           echo "Translating to $LANG ($CODE)..."
 
           EXISTING_PROMPT=""
@@ -39,18 +67,21 @@ jobs:
             EXISTING_PROMPT="Here is the existing $LANG translation file for reference (keep any existing translations that are still valid, only add or update missing/changed keys):\n\`\`\`json\n${EXISTING}\n\`\`\`\n\n"
           fi
 
-          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to ${LANG}. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
+          PROMPT="${EXISTING_PROMPT}Translate the following JSON i18n file from English to the language with ISO 639-1 code '${LANG}'. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nEnglish source:\n${EN_CONTENT}"
 
-          # Save API response directly to file to avoid shell mangling UTF-8
+          # Write payload to file to avoid shell argument size limits
+          jq -n \
+            --arg model "claude-sonnet-4-5" \
+            --arg prompt "$PROMPT" \
+            '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}' \
+            > /tmp/request.json
+
           curl -s https://api.anthropic.com/v1/messages \
             -H "x-api-key: ${ANTHROPIC_API_KEY}" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$(jq -n \
-              --arg model "claude-sonnet-4-5" \
-              --arg prompt "$PROMPT" \
-              '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}'
-            )" > /tmp/api_response.json
+            --data @/tmp/request.json \
+            > /tmp/api_response.json
 
           jq -r '.content[0].text' /tmp/api_response.json \
             | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' \
@@ -77,21 +108,35 @@ jobs:
           sleep 2
         done
 
+        # Store current hash so next run can detect changes
+        echo "$CURRENT_HASH" > "$HASH_FILE"
+        echo "✓ Updated $HASH_FILE"
+
+    - name: Update app.component.ts language list
+      run: python3 .github/scripts/update_app_component.py
+
     - name: Update language selector
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: python3 .github/scripts/update_language_selector.py
+
+    - name: Update INTERNATIONALIZATION.md
+      run: python3 .github/scripts/update_internationalization_md.py
 
     - name: Commit and push translations
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add main/http_server/axe-os/src/assets/i18n/*.json
+        git add main/http_server/axe-os/src/assets/i18n/.en_hash
         git add main/http_server/axe-os/src/app/@i18n/container/language-selector/language-selector.component.html
+        git add main/http_server/axe-os/src/app/app.component.ts
+        git add main/http_server/axe-os/INTERNATIONALIZATION.md
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
           git commit -m "chore: update i18n translations [skip ci]"
+          git pull --rebase
           git push
         fi
       env:

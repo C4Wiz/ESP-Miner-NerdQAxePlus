@@ -437,7 +437,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Not:</strong> Bağlantılı moddan çıkarken, kaydetmeden önce her fanın hangi fan portlarına bağlı olduğunu kontrol edin.",
     "FAN1_CONNECTOR_HINT": "<strong>ASIC fanını</strong> <strong>{{connector}}</strong> konektörüne bağlayın.",
     "FAN2_CONNECTOR_HINT": "<strong>Voltaj Regülatörü fanını</strong> <strong>{{connector}}</strong> konektörüne bağlayın.",
-    "FAN_LINKED_HINT": "İkincil kanal her zaman birincil çıkışla eşleşir. PID modunda, kontrolcü ASIC'ler ve VReg sıcaklıklarının en yükseğini kullanır."
+    "FAN_LINKED_HINT": "VReg fanı ASIC fanı çıkışını takip eder. PID modunda, kontrolcü ASIC ve VReg sıcaklıklarının en yükseğini kullanır."
   },
   "MISC": {
     "TITLE": "Çeşitli Ayarlar",
