@@ -57,6 +57,10 @@
           <td><b>{{ 'SYSTEM.VERSION' | translate }}:</b></td>
           <td>{{ info.version }}</td>
         </tr>
+        <tr>
+          <td><b>{{ 'SYSTEM.WEBVERSION' | translate }}:</b></td>
+          <td>{{ info.webversion }}</td>
+        </tr>
         <!-- Collaboration trigger: only for NerdQX -->
         <tr *ngIf="info.deviceModel === 'NerdQX'">
           <td></td>
