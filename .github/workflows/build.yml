@@ -21,6 +21,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
     - name: Get Version Tag
       id: version_tag
@@ -136,6 +138,11 @@ jobs:
         echo "Current releases.json:"
         cat releases.json
 
+<<<<<<< HEAD
+=======
+        BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
+
+>>>>>>> origin/testing
         jq --arg version "${{ env.VERSION_TAG }}" \
            --arg name "${{ env.VERSION_TAG }}" \
            --arg asset_name "${BINARY_NAME}" \
@@ -143,9 +150,16 @@ jobs:
            --arg sha256 "${SHA256}" \
            --arg now "${NOW}" \
            --arg published_at "${PUBLISHED_AT}" \
+<<<<<<< HEAD
            --argjson prerelease "${IS_PRERELEASE}" \
            '.updated_at = $now |
             .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
+=======
+           --arg body "${BODY}" \
+           --argjson prerelease "${IS_PRERELEASE}" \
+           '.updated_at = $now |
+            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
+>>>>>>> origin/testing
             (.releases | map(select(.version != $version)))' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
@@ -157,3 +171,12 @@ jobs:
       with:
         apiToken: ${{ secrets.CF_API_TOKEN }}
         command: r2 object put nerdqaxe-firmware/releases.json --file releases.json --content-type application/json
+<<<<<<< HEAD
+=======
+
+    - name: Upload binary to R2
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CF_API_TOKEN }}
+        command: r2 object put nerdqaxe-firmware/${{ env.VERSION_TAG }}/esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin --file esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin --content-type application/octet-stream
+>>>>>>> origin/testing

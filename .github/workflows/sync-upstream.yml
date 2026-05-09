@@ -6,7 +6,12 @@ on:
       upstream_branch:
         description: 'Upstream branch to sync from'
         required: true
-        default: 'master'
+        default: 'develop'
+        type: string
+      target_branch:
+        description: 'Your branch to sync into'
+        required: true
+        default: 'develop'
         type: string
       strategy:
         description: 'Merge strategy — merge keeps upstream history, rebase replays your commits on top'
@@ -41,7 +46,7 @@ jobs:
     - name: Check for upstream changes
       id: check_changes
       run: |
-        UPSTREAM_COMMITS=$(git rev-list HEAD..upstream/${{ github.event.inputs.upstream_branch }} --count)
+        UPSTREAM_COMMITS=$(git rev-list origin/${{ github.event.inputs.target_branch }}..upstream/${{ github.event.inputs.upstream_branch }} --count)
         echo "UPSTREAM_COMMITS=${UPSTREAM_COMMITS}" >> $GITHUB_ENV
         echo "Upstream has ${UPSTREAM_COMMITS} new commit(s) since your last sync."
         if [ "$UPSTREAM_COMMITS" -eq "0" ]; then
@@ -60,7 +65,7 @@ jobs:
       run: |
         SYNC_BRANCH="sync/upstream-$(date +'%Y%m%d-%H%M%S')"
         echo "SYNC_BRANCH=${SYNC_BRANCH}" >> $GITHUB_ENV
-        git checkout -b "${SYNC_BRANCH}"
+        git checkout -b "${SYNC_BRANCH}" origin/${{ github.event.inputs.target_branch }}
 
     - name: Merge upstream changes
       if: env.SKIP == 'false' && github.event.inputs.strategy == 'merge'
@@ -77,17 +82,31 @@ jobs:
       run: |
         git rebase upstream/${{ github.event.inputs.upstream_branch }} || {
           echo "CONFLICTS=true" >> $GITHUB_ENV
-          echo "Rebase conflicts detected. Aborting rebase and falling back to a merge commit for PR review."
+          echo "Rebase conflicts detected. Aborting rebase and falling back to merge."
           git rebase --abort
-          git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || {
-            git add -A
-            git commit -m "chore: sync upstream (rebase fallback) — conflicts need manual resolution" || true
-          }
+          # Fall back to merge so we always have commits on the branch
+          git merge upstream/${{ github.event.inputs.upstream_branch }} --no-edit || true
+          # Stage everything including conflict markers so the branch has content
+          git add -A
+          git commit --allow-empty -m "chore: sync upstream (rebase fallback) — conflicts need manual resolution" || true
         }
+
+    - name: Debug branch state
+      if: env.SKIP == 'false'
+      run: |
+        echo "=== Current branch ==="
+        git branch --show-current
+        echo "=== Log vs target branch ==="
+        git log origin/${{ github.event.inputs.target_branch }}..HEAD --oneline
+        echo "=== Diff stat vs target branch ==="
+        git diff --stat origin/${{ github.event.inputs.target_branch }}..HEAD
+        echo "=== Status ==="
+        git status
 
     - name: Push sync branch
       if: env.SKIP == 'false'
       run: |
+        git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
         git push origin "${{ env.SYNC_BRANCH }}"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -97,6 +116,10 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y gh
+
+    - name: Wait for GitHub to register branch
+      if: env.SKIP == 'false'
+      run: sleep 5
 
     - name: Open Pull Request
       if: env.SKIP == 'false'
@@ -132,9 +155,10 @@ jobs:
         fi
 
         gh pr create \
+          --repo ${{ github.repository }} \
           --title "$TITLE" \
           --body "$BODY" \
-          --base master \
+          --base ${{ github.event.inputs.target_branch }} \
           --head "${{ env.SYNC_BRANCH }}"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN }}

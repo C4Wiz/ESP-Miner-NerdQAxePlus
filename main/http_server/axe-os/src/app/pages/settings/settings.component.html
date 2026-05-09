@@ -44,7 +44,7 @@ Web-UI: {{ currentWebVersion }}<br/>
         </div>
       </div>
 
-      <hr>
+      <hr style="border-color: var(--card-divider-color); margin: 20px 0; opacity:1.0;" />
 
       <!-- Row: Release selector -->
       <div class="release-row">
@@ -100,20 +100,29 @@ Web-UI: {{ currentWebVersion }}<br/>
           <nb-icon [icon]="showChangelog ? 'chevron-up-outline' : 'chevron-down-outline'" pack="eva"></nb-icon>
           {{ showChangelog ? ('UPDATE.HIDE_CHANGELOG' | translate) : ('UPDATE.SHOW_CHANGELOG' | translate) }}
         </button>
-        <div *ngIf="showChangelog" class="changelog-content" [innerHTML]="changelog"></div>
+        <div *ngIf="showChangelog" class="changelog-content">
+          <div *ngIf="isLoadingChangelog" class="changelog-loading">
+            <nb-spinner size="small"></nb-spinner>&nbsp;Loading changelog...
+          </div>
+          <div *ngIf="!isLoadingChangelog" [innerHTML]="changelog"></div>
+        </div>
       </div>
 
-      <hr>
+      <hr style="border-color: var(--card-divider-color); margin: 20px 0; opacity:1.0;" />
 
-      <!-- Update CTA + progress -->
+       <!-- Update CTA + progress -->
       <div class="update-section">
-        <div class="mt-2">
+        <div class="d-flex align-items-center justify-content-between mt-2">
           <button nbButton [status]="updateStatus === UpdateStatus.UPDATE_AVAILABLE ? 'warning' : 'primary'"
             size="small" [nbSpinner]="isOneClickUpdate" [disabled]="isOneClickUpdate || !selectedRelease"
             (click)="directUpdateFromGithub()">
             <nb-icon icon="cloud-download-outline" pack="eva"></nb-icon>&nbsp;
             {{ 'UPDATE.INSTALL_FROM_GITHUB' | translate }}
           </button>
+          <nb-checkbox class="keep-config-toggle" [formControl]="keepConfigCtrl"
+            [nbTooltip]="'UPDATE.KEEP_SETTINGS_TOOLTIP' | translate" nbTooltipPlacement="top">
+            {{ 'UPDATE.KEEP_CONFIG' | translate }}
+          </nb-checkbox>
         </div>
       </div>
 
@@ -161,7 +170,7 @@ Web-UI: {{ currentWebVersion }}<br/>
         <small>({{ expectedFileName }})</small>
       </div>
 
-      <hr>
+      <hr style="border-color: var(--card-divider-color); margin: 20px 0; opacity:1.0;" />
 
       <!-- Manual WWW Upload -->
       <div class="update-section">

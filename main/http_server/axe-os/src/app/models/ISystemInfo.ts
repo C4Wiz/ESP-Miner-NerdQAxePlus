@@ -19,6 +19,7 @@ export interface ISystemInfo {
     maxCurrentA?: number;
     temp: number,
     vrTemp: number,
+    vrTempInt: number,
     hashRateTimestamp: number,
     hashRate: number,
     hashRate_10m: number,
@@ -54,8 +55,15 @@ export interface ISystemInfo {
     fallbackStratumUser: string,
     fallbackStratumEnonceSubscribe: number,
     fallbackStratumTLS: number,
+    stratumProtocol: number,
+    fallbackStratumProtocol: number,
+    sv2AuthorityPubkey: string,
+    fallbackSv2AuthorityPubkey: string,
+    sv2ChannelType: number,
+    fallbackSv2ChannelType: number,
     stratumDifficulty: number,
     poolDifficulty: number,
+    networkDifficulty: number,
     frequency: number,
     defaultFrequency: number,
     version: string,
@@ -64,6 +72,18 @@ export interface ISystemInfo {
     fanspeed: number,
     manualFanSpeed: number,
     fanrpm: number,
+    fanrpm2?: number,
+    fanspeed2?: number,
+    fanCount?: number,
+    fans?: {
+        label?: string,
+        mode: number,
+        manualSpeed: number,
+        overheatTemp: number,
+        rpm: number,
+        speedPerc: number,
+        pid: { targetTemp: number, p: number, i: number, d: number }
+    }[],
     coreVoltageActual: number,
     lastResetReason: string,
     jobInterval: number,
@@ -92,9 +112,11 @@ export interface ISystemInfo {
     history: IHistory
 
     otp: boolean,
+
+    errorPercentage?: number,
 }
 
-// fields swam is using
+// fields swarm is using
 export interface ISwarmInfo {
     power: number,
     voltage: number,
@@ -111,5 +133,6 @@ export interface ISwarmInfo {
     ASICModel: eASICModel,
     deviceModel: string,
     poolDifficulty: number,
+    networkDifficulty: number,
     version: string,
 }

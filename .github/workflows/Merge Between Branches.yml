@@ -6,6 +6,7 @@ on:
       source_branch:
         description: 'Branch to merge FROM'
         required: true
+<<<<<<< HEAD
         default: 'master'
         type: choice
         options:
@@ -19,6 +20,23 @@ on:
         options:
           - develop
           - master
+=======
+        default: 'develop'
+        type: choice
+        options:
+          - master
+          - develop
+          - testing
+      target_branch:
+        description: 'Branch to merge INTO'
+        required: true
+        default: 'master'
+        type: choice
+        options:
+          - develop
+          - master
+          - testing
+>>>>>>> origin/testing
 
 jobs:
   merge-branches:

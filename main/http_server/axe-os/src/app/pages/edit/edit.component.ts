@@ -7,7 +7,6 @@ import { SystemService } from '../../services/system.service';
 import { eASICModel } from '../../models/enum/eASICModel';
 import { NbToastrService, NbDialogService, NbDialogRef } from '@nebular/theme';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { ExperimentalDashboardService } from 'src/app/services/experimental-dashboard.service';
 import { OtpAuthService, EnsureOtpResult, EnsureOtpOptions } from '../../services/otp-auth.service';
 import { TranslateService } from '@ngx-translate/core';
 import { IStratum } from 'src/app/models/IStratum';
@@ -40,6 +39,8 @@ export class EditComponent implements OnInit {
   public defaultFrequency: number = 0;
   public defaultCoreVoltage: number = 0;
   public defaultVrFrequency: number = 0;
+  public fanCount: number = 1;
+  public fanLabels: string[] = ['Fan 1', 'Fan 2'];
 
   public ecoFrequency: number = 0;
   public ecoCoreVoltage: number = 0;
@@ -65,6 +66,8 @@ export class EditComponent implements OnInit {
     'stratumDifficulty',
     'stratum_keep',
     'poolMode',
+    'stratumProtocol',
+    'fallbackStratumProtocol',
   ]);
 
   @Input() uri = '';
@@ -75,7 +78,6 @@ export class EditComponent implements OnInit {
     private toastrService: NbToastrService,
     private loadingService: LoadingService,
     private localStorageService: LocalStorageService,
-    private experimentalDashboard: ExperimentalDashboardService,
     private dialogService: NbDialogService,
     private otpAuth: OtpAuthService,
     private translate: TranslateService,
@@ -112,6 +114,10 @@ export class EditComponent implements OnInit {
 
         this.defaultVrFrequency = info.defaultVrFrequency ?? undefined;
 
+        this.fanCount = info.fans?.length ?? info.fanCount ?? 1;
+        this.fanLabels = info.fans?.map((f, i) => f.label || `Fan ${i + 1}`) ?? ['Fan 1', 'Fan 2'];
+        const fan1cfg = info.fans?.[1];
+
         const freqBase = this.asicFrequencyValues.map(v => {
           let suffix = '';
           if (v === this.defaultFrequency) suffix = ' (default)';
@@ -144,7 +150,6 @@ export class EditComponent implements OnInit {
           invertscreen: [info.invertscreen == 1],
           autoscreenoff: [info.autoscreenoff == 1],
           timeFormat: [this.localStorageService.getItem('timeFormat') || '24h'],
-          experimentalDashboardEnabled: [this.experimentalDashboard.enabled],
           stratumURL: [info.stratumURL, [
             Validators.required,
             Validators.pattern(/^(?!.*stratum\+tcp:\/\/).*$/),
@@ -183,6 +188,13 @@ export class EditComponent implements OnInit {
           frequency: [info.frequency, [Validators.required]],
           jobInterval: [info.jobInterval, [Validators.required]],
           stratumDifficulty: [info.stratumDifficulty, [Validators.required, Validators.min(1)]],
+
+          stratumProtocol: [info.stratumProtocol ?? 0, [Validators.required]],   // 0 = V1, 1 = V2
+          fallbackStratumProtocol: [info.fallbackStratumProtocol ?? 0],
+          sv2AuthorityPubkey: [info.sv2AuthorityPubkey ?? ''],
+          fallbackSv2AuthorityPubkey: [info.fallbackSv2AuthorityPubkey ?? ''],
+          sv2ChannelType: [info.sv2ChannelType ?? 0],                              // 0 = Extended, 1 = Standard
+          fallbackSv2ChannelType: [info.fallbackSv2ChannelType ?? 0],
 
           poolMode: [info.stratum?.poolMode ?? 0, [Validators.required]],        // 0 = Failover, 1 = Dual
           poolBalance: [info.stratum?.poolBalance ?? 50, [                  // Anteil PRIMARY in %
@@ -226,11 +238,15 @@ export class EditComponent implements OnInit {
             Validators.required,
           ]],
           otpEnabled: [info.otp],
-        });
 
-        // Client-only toggle: persist immediately (no device reboot / no backend call)
-        this.form.controls['experimentalDashboardEnabled'].valueChanges
-          .subscribe((v: boolean) => this.experimentalDashboard.setEnabled(!!v));
+          fan1Mode: [fan1cfg?.mode ?? 3, [Validators.required]],
+          fan1ManualSpeed: [fan1cfg?.manualSpeed ?? 100, [Validators.min(0), Validators.max(100), Validators.required]],
+          fan1OverheatTemp: [fan1cfg?.overheatTemp ?? 70, [Validators.min(40), Validators.max(90), Validators.required]],
+          fan1PidTargetTemp: [fan1cfg?.pid?.targetTemp ?? 65, [Validators.min(30), Validators.max(80), Validators.required]],
+          fan1PidP: [fan1cfg?.pid?.p ?? 6, [Validators.min(0), Validators.max(100), Validators.required]],
+          fan1PidI: [fan1cfg?.pid?.i ?? 0.1, [Validators.min(0), Validators.max(10), Validators.required]],
+          fan1PidD: [fan1cfg?.pid?.d ?? 10, [Validators.min(0), Validators.max(100), Validators.required]],
+        });
 
         this.stratum = info.stratum;
 
@@ -238,7 +254,13 @@ export class EditComponent implements OnInit {
           .pipe(startWith(this.form.controls['autofanspeed'].value))
           .subscribe(() => this.updatePIDFieldStates());
 
+        this.form.controls['fan1Mode'].valueChanges
+          .pipe(startWith(this.form.controls['fan1Mode'].value))
+          .subscribe(() => this.updateFan1FieldStates());
+
         this.updatePIDFieldStates();
+        this.updateFan1FieldStates();
+
       });
   }
 
@@ -274,6 +296,44 @@ export class EditComponent implements OnInit {
     }
   }
 
+  private updateFan1FieldStates(): void {
+    const mode = this.form.controls['fan1Mode'].value;
+    const enable = (ctrl: string) => this.form.controls[ctrl]?.enable({ emitEvent: false });
+    const disable = (ctrl: string) => this.form.controls[ctrl]?.disable({ emitEvent: false });
+
+    if (mode === 3) {
+      // LINKED — disable fan1-controls; overheatTemp stays enabled (VReg shutdown threshold)
+      enable('fan1OverheatTemp');
+      disable('fan1ManualSpeed');
+      disable('fan1PidTargetTemp');
+      disable('fan1PidP');
+      disable('fan1PidI');
+      disable('fan1PidD');
+    } else if (mode === 0) {
+      // MANUAL
+      enable('fan1ManualSpeed');
+      enable('fan1OverheatTemp');
+      disable('fan1PidTargetTemp');
+      disable('fan1PidP');
+      disable('fan1PidI');
+      disable('fan1PidD');
+    } else if (mode === 2) {
+      // PID
+      disable('fan1ManualSpeed');
+      enable('fan1OverheatTemp');
+      enable('fan1PidTargetTemp');
+      if (this.supportLevel >= 1) {
+        enable('fan1PidP');
+        enable('fan1PidI');
+        enable('fan1PidD');
+      } else {
+        disable('fan1PidP');
+        disable('fan1PidI');
+        disable('fan1PidD');
+      }
+    }
+  }
+
   public updateSystem(totp?: string) {
     const form = this.form.getRawValue();
 
@@ -283,10 +343,6 @@ export class EditComponent implements OnInit {
       window.dispatchEvent(new CustomEvent('timeFormatChanged', { detail: form.timeFormat }));
       delete form.timeFormat;
     }
-    // experimentalDashboardEnabled is a client-only preference; never send to backend
-    if ('experimentalDashboardEnabled' in form) {
-      delete form.experimentalDashboardEnabled;
-    }
 
     // Allow empty WiFi password; strip masked fields
     form.wifiPass = form.wifiPass == null ? '' : form.wifiPass;
@@ -295,6 +351,32 @@ export class EditComponent implements OnInit {
     if (form.fallbackStratumPassword === '*****') delete form.fallbackStratumPassword;
 
     form.stratum_keep = form.stratum_keep ? 1 : 0;
+
+
+    // fans[]-Array for the new per channel api
+    form.fans = [
+      {
+        mode: form.autofanspeed,
+        manualSpeed: form.manualFanSpeed,
+        overheatTemp: form.overheat_temp,
+        pid: { targetTemp: form.pidTargetTemp, p: form.pidP, i: form.pidI, d: form.pidD }
+      }
+    ];
+    if (this.fanCount > 1) {
+      form.fans.push({
+        mode: form.fan1Mode,
+        manualSpeed: form.fan1ManualSpeed,
+        overheatTemp: form.fan1OverheatTemp,
+        pid: { targetTemp: form.fan1PidTargetTemp, p: form.fan1PidP, i: form.fan1PidI, d: form.fan1PidD }
+      });
+    }
+    delete form.fan1Mode;
+    delete form.fan1ManualSpeed;
+    delete form.fan1OverheatTemp;
+    delete form.fan1PidTargetTemp;
+    delete form.fan1PidP;
+    delete form.fan1PidI;
+    delete form.fan1PidD;
 
     if (this.pendingTotp) {
       form.totp = this.pendingTotp;
@@ -374,6 +456,7 @@ export class EditComponent implements OnInit {
     this.voltageOptions = this.assembleDropdownOptions(voltBase, this.form.controls['coreVoltage'].value);
 
     this.updatePIDFieldStates();
+    this.updateFan1FieldStates();
   }
 
   public isVoltageTooHigh(): boolean {
@@ -494,13 +577,17 @@ export class EditComponent implements OnInit {
   }
 
   public poolTabHeader(i: 0 | 1) {
+    const protoKey = i === 0 ? 'stratumProtocol' : 'fallbackStratumProtocol';
+    const proto = this.form?.get(protoKey)?.value;
+    const protoLabel = proto === 1 ? ' (SV2)' : ' (SV1)';
+
     if (this.form?.get("poolMode")?.value == 0) {
       if (i == 0) {
-        return this.translate.instant('SETTINGS.PRIMARY_STRATUM_POOL');
+        return this.translate.instant('SETTINGS.PRIMARY_STRATUM_POOL') + protoLabel;
       }
-      return this.translate.instant('SETTINGS.FALLBACK_STRATUM_POOL');
+      return this.translate.instant('SETTINGS.FALLBACK_STRATUM_POOL') + protoLabel;
     }
-    return `Pool ${i + 1}`;
+    return `Pool ${i + 1}` + protoLabel;
   }
 
   public swapPools(): void {
@@ -553,4 +640,3 @@ export class EditComponent implements OnInit {
   }
 
 }
-

@@ -46,6 +46,8 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_ifault = (float) (m_imax - 5);
 
     m_numFans = 2;
+    m_fanLabels[0] = "M1"; // (ASIC) now channel 0 = M1 (has PWM)
+    m_fanLabels[1] = "M2"; // (Vreg) now channel 1 = M2 (tach only)
 
     m_maxPin = 70.0;
     m_minPin = 30.0;
@@ -54,10 +56,15 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_minCurrentA = 0.0f;
     m_maxCurrentA = 6.0f;
 
-    m_pidSettings.targetTemp = 55;
-    m_pidSettings.p = 600; //   6.00
-    m_pidSettings.i = 10;  //   0.10
-    m_pidSettings.d = 1000; // 10.00
+    m_pidSettings[0].targetTemp = 55;
+    m_pidSettings[0].p = 600; //   6.00
+    m_pidSettings[0].i = 10;  //   0.10
+    m_pidSettings[0].d = 1000; // 10.00
+
+    m_pidSettings[1].targetTemp = 65;  // target temp for vreg
+    m_pidSettings[1].p = 600;  //   6.00
+    m_pidSettings[1].i = 10;   //   0.10
+    m_pidSettings[1].d = 1000; // 10.00
 
     m_asicMaxDifficulty = 1024;
     m_asicMinDifficulty = 256;
@@ -234,11 +241,11 @@ bool NerdQaxePlus::setVoltage(float core_voltage)
 }
 
 void NerdQaxePlus::setFanSpeedCh(int channel, float perc) {
-    EMC2302_set_fan_speed(channel, perc);
+    EMC2302_set_fan_speed(!channel ? 1 : 0, perc);
 }
 
 void NerdQaxePlus::getFanSpeedCh(int channel, uint16_t* rpm) {
-    EMC2302_get_fan_speed(channel, rpm);
+    EMC2302_get_fan_speed(!channel ? 1 : 0, rpm);
 }
 
 void NerdQaxePlus::setFanPolarity(bool invert) {
@@ -272,14 +279,13 @@ float NerdQaxePlus::getTemperature(int index) {
     return TMP1075_read_temperature(index + !!index);
 }
 
+
 float NerdQaxePlus::getVRTemp() {
-    float vrTemp = m_tps->get_temperature();
+    return TMP1075_read_temperature(1);
+}
 
-    // test
-    float tmp = TMP1075_read_temperature(1);
-    ESP_LOGI(TAG, "tmp1075 vs tps: %.2f vs %.2f (diff: %.2f)", tmp, vrTemp, vrTemp - tmp);
-
-    return tmp;
+float NerdQaxePlus::getVRTempInt() {
+    return m_tps->get_temperature();
 }
 
 float NerdQaxePlus::getVin() {
