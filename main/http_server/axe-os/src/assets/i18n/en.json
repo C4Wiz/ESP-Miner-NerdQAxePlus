@@ -181,7 +181,7 @@
     "MODEL": "Model",
     "DEVICE_MODEL": "Device Model",
     "FIRMWARE_VERSION": "Firmware Version",
-    "CURRENT_WEB_VERSION": "Web UI Version",
+    "WEB_VERSION": "Web UI Version",
     "MAC_ADDRESS": "MAC Address",
     "IP_ADDRESS": "IP Address",
     "FREE_HEAP": "Free Heap",
