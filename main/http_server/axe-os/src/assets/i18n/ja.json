@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "ASICから報告されたハッシュレート。",
     "HASH_RATE_CHART": "Nerd* チャート",
     "HASHRATE_ESTIMATED": "発見されたシェアから推定されたハッシュレート。",
+    "CHIP_HASHRATES": "チップごとのhashrate",
     "SHARES": "シェア",
     "POWER": "消費電力",
     "BEST_DIFFICULTY": "最高難易度",

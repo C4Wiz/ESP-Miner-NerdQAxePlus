@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Tasa de hash reportada por los ASICs.",
     "HASH_RATE_CHART": "Gráfico Nerd*",
     "HASHRATE_ESTIMATED": "Tasa de hash estimada por los shares encontrados.",
+    "CHIP_HASHRATES": "Hashrate por chip",
     "SHARES": "Shares",
     "POWER": "Consumo de energía",
     "BEST_DIFFICULTY": "Mejor Dificultad",

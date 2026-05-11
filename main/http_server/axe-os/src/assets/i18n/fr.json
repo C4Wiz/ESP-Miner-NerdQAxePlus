@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Taux de hachage rapporté par les ASIC.",
     "HASH_RATE_CHART": "Graphique Nerd*",
     "HASHRATE_ESTIMATED": "Taux de hachage estimé par les parts trouvées.",
+    "CHIP_HASHRATES": "Taux de hachage par puce",
     "SHARES": "Parts",
     "POWER": "Consommation d'énergie",
     "BEST_DIFFICULTY": "Meilleure difficulté",

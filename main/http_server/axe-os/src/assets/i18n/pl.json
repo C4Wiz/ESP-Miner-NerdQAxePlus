@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate raportowany przez ASICs.",
     "HASH_RATE_CHART": "Wykres Nerd*",
     "HASHRATE_ESTIMATED": "Hash rate oszacowany na podstawie znalezionych udziałów.",
+    "CHIP_HASHRATES": "Hash rate na układ",
     "SHARES": "Udziały",
     "POWER": "Pobór mocy",
     "BEST_DIFFICULTY": "Najlepsza trudność",

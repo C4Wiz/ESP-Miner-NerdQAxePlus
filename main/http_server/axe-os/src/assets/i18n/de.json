@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Von den ASICs gemeldete Hashrate.",
     "HASH_RATE_CHART": "Nerd* Diagramm",
     "HASHRATE_ESTIMATED": "Geschätzte Hashrate durch gefundene Shares.",
+    "CHIP_HASHRATES": "Hashrate pro Chip",
     "SHARES": "Shares",
     "POWER": "Stromverbrauch",
     "BEST_DIFFICULTY": "Beste Schwierigkeit",
@@ -436,7 +437,7 @@
     "AUTODETECT_RECOMMENDED": "Empfohlen",
     "INVERT_POLARITY": "Polarität umkehren",
     "USE_FAN1_SETTINGS": "Gekoppelt",
-    "FAN_SETTINGS_PORTS_HINT": "<strong>Hinweis:</strong> Wenn du den Modus wechselst, prüfe vorher an welche Lüfterports die einzelnen Lüfter angeschlossen sind.",
+    "FAN_SETTINGS_PORTS_HINT": "<strong>Hinweis:</strong> Wenn du vom gekoppelten Modus wegwechselst, prüfe vorher an welche Lüfterports die einzelnen Lüfter angeschlossen sind.",
     "FAN1_CONNECTOR_HINT": "Schließe den <strong>ASIC-Lüfter</strong> an Anschluss <strong>{{connector}}</strong> an.",
     "FAN2_CONNECTOR_HINT": "Schließe den <strong>Spannungsregler-Lüfter</strong> an Anschluss <strong>{{connector}}</strong> an.",
     "FAN_LINKED_HINT": "Der VReg-Lüfter folgt dem ASIC-Lüfter-Ausgang. Im PID-Modus verwendet der Regler die höhere der ASIC- und VReg-Temperaturen."

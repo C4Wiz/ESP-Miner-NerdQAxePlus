@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "ASIC报告的算力。",
     "HASH_RATE_CHART": "Nerd* 图表",
     "HASHRATE_ESTIMATED": "根据已发现份额估算的算力。",
+    "CHIP_HASHRATES": "每芯片算力",
     "SHARES": "份额",
     "POWER": "功耗",
     "BEST_DIFFICULTY": "最佳难度",

@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Caricamento...",
@@ -39,6 +38,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate riportato dagli ASIC.",
     "HASH_RATE_CHART": "Grafico Nerd*",
     "HASHRATE_ESTIMATED": "Hash rate stimato dalle share trovate.",
+    "CHIP_HASHRATES": "Hashrate per chip",
     "SHARES": "Share",
     "POWER": "Consumo Energetico",
     "BEST_DIFFICULTY": "Migliore Difficoltà",

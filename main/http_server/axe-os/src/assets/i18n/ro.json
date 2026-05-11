@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate raportat de ASIC-uri.",
     "HASH_RATE_CHART": "Grafic Nerd*",
     "HASHRATE_ESTIMATED": "Hash rate estimat pe baza share-urilor găsite.",
+    "CHIP_HASHRATES": "Hashrate per cip",
     "SHARES": "Share-uri",
     "POWER": "Consum de energie",
     "BEST_DIFFICULTY": "Cea mai bună dificultate",

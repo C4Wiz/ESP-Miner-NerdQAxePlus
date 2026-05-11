@@ -1,3 +1,4 @@
+
 {
   "COMMON": {
     "LOADING": "Загрузка...",
@@ -38,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Хешрейт, сообщаемый ASIC.",
     "HASH_RATE_CHART": "График Nerd*",
     "HASHRATE_ESTIMATED": "Хешрейт, оцененный по найденным шарам.",
+    "CHIP_HASHRATES": "Хешрейт каждого чипа",
     "SHARES": "Шары",
     "POWER": "Потребление энергии",
     "BEST_DIFFICULTY": "Лучшая сложность",

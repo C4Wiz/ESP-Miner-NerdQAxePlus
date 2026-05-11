@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate hlásený ASIC.",
     "HASH_RATE_CHART": "Nerd* Graf",
     "HASHRATE_ESTIMATED": "Hash rate odhadovaný na základe nájdených podielov.",
+    "CHIP_HASHRATES": "Hashrate jednotlivých čipov",
     "SHARES": "Podiely",
     "POWER": "Spotreba energie",
     "BEST_DIFFICULTY": "Najlepšia obtiažnosť",

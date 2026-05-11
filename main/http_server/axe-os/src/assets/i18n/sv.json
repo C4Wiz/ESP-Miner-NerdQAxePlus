@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate rapporterad av ASICs.",
     "HASH_RATE_CHART": "Nerd* Diagram",
     "HASHRATE_ESTIMATED": "Hash rate uppskattat från hittade shares.",
+    "CHIP_HASHRATES": "Hashrate per chip",
     "SHARES": "Shares",
     "POWER": "Strömförbrukning",
     "BEST_DIFFICULTY": "Bästa svårighetsgrad",
