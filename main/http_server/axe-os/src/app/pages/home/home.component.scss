@@ -2313,3 +2313,42 @@ nb-card-header{
   color: var(--unit-in-fill-color, var(--unit-color));
   line-height: 1.1;
 }
+
+/* --- Chip hashrate grid (2x2, shown between hashrate and best difficulty) --- */
+.pool-summary-square {
+  grid-template-columns: 1fr auto auto;
+}
+
+.pool-summary-square__chip-grid {
+  width: var(--metric-square);
+  height: var(--metric-square);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 4px;
+  align-items: center;
+  justify-items: center;
+  padding: 8px;
+  box-sizing: border-box;
+  background: var(--fill-color, var(--bar-track, rgba(128, 128, 128, 0.25)));
+  align-self: center;
+}
+
+.pool-summary-square__chip-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.pool-summary-square__chip-label {
+  font-size: 0.7rem;
+  color: var(--unit-in-fill-color, var(--unit-color));
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.pool-summary-square__chip-value {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--bar-value-color);
+}
