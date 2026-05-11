@@ -14,40 +14,81 @@ jobs:
       run: |
         HTTP_STATUS=$(curl -s -o releases.json -w "%{http_code}" "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json")
         if [ "$HTTP_STATUS" != "200" ] || ! jq empty releases.json 2>/dev/null; then
-          echo "No valid releases.json found."
-          exit 1
+          echo "No valid releases.json found, starting fresh."
+          echo '{"updated_at":"","releases":[]}' > releases.json
         fi
         echo "Current releases.json:"
         cat releases.json
 
-    - name: Update all release bodies from GitHub
+    - name: Fetch all GitHub releases and sync releases.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        VERSIONS=$(jq -r '.releases[].version' releases.json)
+        echo "Fetching all releases from GitHub..."
+
+        # Fetch up to 100 releases from GitHub
+        GH_RELEASES=$(curl -s \
+          -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+          "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases?per_page=100")
+
+        echo "GitHub releases count: $(echo "$GH_RELEASES" | jq 'length')"
+
         cp releases.json releases_updated.json
+        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-        for VERSION in $VERSIONS; do
-          echo "Fetching release info for $VERSION..."
-          RELEASE_INFO=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags/${VERSION}")
-
-          HTTP_CODE=$(echo "$RELEASE_INFO" | tail -n1)
-          RELEASE_JSON=$(echo "$RELEASE_INFO" | sed '$d')
-
-          if [ "$HTTP_CODE" == "404" ]; then
-            echo "Release $VERSION not found on GitHub — removing from releases.json"
+        # --- Remove releases that no longer exist on GitHub ---
+        EXISTING_VERSIONS=$(jq -r '.releases[].version' releases_updated.json)
+        for VERSION in $EXISTING_VERSIONS; do
+          EXISTS=$(echo "$GH_RELEASES" | jq -r --arg v "$VERSION" '.[] | select(.tag_name == $v) | .tag_name')
+          if [ -z "$EXISTS" ]; then
+            echo "Release $VERSION no longer on GitHub — removing"
             jq --arg version "$VERSION" \
                '.releases = (.releases | map(select(.version != $version)))' \
                releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
-            continue
           fi
+        done
 
-          BODY=$(echo "$RELEASE_JSON" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
-          echo "Updating body for $VERSION (length: ${#BODY})"
+        # --- Add or update releases from GitHub ---
+        GH_COUNT=$(echo "$GH_RELEASES" | jq 'length')
+        for i in $(seq 0 $((GH_COUNT - 1))); do
+          RELEASE=$(echo "$GH_RELEASES" | jq ".[$i]")
+          TAG=$(echo "$RELEASE" | jq -r '.tag_name')
+          IS_PRERELEASE=$(echo "$RELEASE" | jq '.prerelease')
+          PUBLISHED_AT=$(echo "$RELEASE" | jq -r '.published_at')
+          BODY=$(echo "$RELEASE" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
-          jq --arg version "$VERSION" \
-             --arg body "$BODY" \
-             '.releases = (.releases | map(if .version == $version then .body = $body else . end))' \
-             releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
+          # Build asset list from GitHub release
+          ASSETS=$(echo "$RELEASE" | jq '[.assets[] | {name: .name, browser_download_url: .browser_download_url}]')
+
+          # Check if this version already exists in releases_updated.json
+          EXISTING=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .version' releases_updated.json)
+
+          if [ -z "$EXISTING" ]; then
+            echo "Adding missing release: $TAG"
+            # Get SHA256 from existing releases.json if available, otherwise empty
+            SHA256=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .sha256 // ""' releases.json)
+
+            jq --arg version "$TAG" \
+               --arg sha256 "$SHA256" \
+               --arg published_at "$PUBLISHED_AT" \
+               --arg body "$BODY" \
+               --arg now "$NOW" \
+               --argjson prerelease "$IS_PRERELEASE" \
+               --argjson assets "$ASSETS" \
+               '.updated_at = $now |
+                .releases = [{"version": $version, "name": $version, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": $assets}] +
+                .releases' \
+               releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
+          else
+            echo "Updating body for existing release: $TAG"
+            jq --arg version "$TAG" \
+               --arg body "$BODY" \
+               --arg now "$NOW" \
+               --argjson assets "$ASSETS" \
+               '.updated_at = $now |
+                .releases = (.releases | map(if .version == $version then .body = $body | .assets = $assets else . end))' \
+               releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
+          fi
         done
 
         mv releases_updated.json releases.json
