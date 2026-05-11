@@ -131,17 +131,6 @@
                       </div>
                     </div>
                   </div>
-
-                  <div class="pool-summary-square__chip-grid"
-                       *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
-                       role="img"
-                       [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
-                    <div class="pool-summary-square__chip-cell"
-                         *ngFor="let hr of info.chipHashrates; let i = index">
-                      <span class="pool-summary-square__chip-label">A{{ i + 1 }}</span>
-                      <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
-                    </div>
-                  </div>
                 </div>
 
                 <div class="pool-summary-square__row2">
@@ -177,6 +166,18 @@
                   <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_FREQUENCY' | translate }}</div>
                   <div class="power-bar__value">{{ info.frequency | number: '1.0-0' }}<span class="unit">&nbsp;MHz</span></div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Chip hashrate grid: direct child of pool-summary-square, sits between left and best -->
+            <div class="pool-summary-square__chip-grid"
+                 *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
+                 role="img"
+                 [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
+              <div class="pool-summary-square__chip-cell"
+                   *ngFor="let hr of info.chipHashrates; let i = index">
+                <span class="pool-summary-square__chip-label">A{{ i + 1 }}</span>
+                <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
               </div>
             </div>
 
