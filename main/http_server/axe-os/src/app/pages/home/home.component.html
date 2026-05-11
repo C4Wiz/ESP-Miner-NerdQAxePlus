@@ -131,6 +131,17 @@
                       </div>
                     </div>
                   </div>
+
+                  <div class="pool-summary-square__chip-grid"
+                       *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
+                       role="img"
+                       [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
+                    <div class="pool-summary-square__chip-cell"
+                         *ngFor="let hr of info.chipHashrates; let i = index">
+                      <span class="pool-summary-square__chip-label">A{{ i + 1 }}</span>
+                      <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="pool-summary-square__row2">
