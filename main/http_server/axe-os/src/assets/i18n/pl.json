@@ -182,6 +182,7 @@
     "MODEL": "Model",
     "DEVICE_MODEL": "Model urządzenia",
     "FIRMWARE_VERSION": "Wersja firmware",
+    "WEB_VERSION": "Wersja interfejsu WWW",
     "MAC_ADDRESS": "Adres MAC",
     "IP_ADDRESS": "Adres IP",
     "FREE_HEAP": "Wolny stos",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Aktualizacje",
     "VERSION_INFO": "Informacje o wersji",
-    "CURRENT_VERSION": "Bieżąca wersja",
+    "CURRENT_VERSION": "Wersja firmware",
+    "CURRENT_WEB_VERSION": "Wersja interfejsu WWW",
     "LATEST_RELEASE": "Najnowsze wydanie",
     "PUBLISHED": "Opublikowano",
     "CHECK": "Sprawdź",
@@ -426,7 +428,7 @@
   },
   "FAN": {
     "TITLE": "Sterownik wentylatora",
-    "PRIMARY_CONTROLLER": "ASIC",
+    "PRIMARY_CONTROLLER": "ASICs",
     "SECONDARY_CONTROLLER": "Regulator napięcia",
     "CONTROLLER": "Sterownik wentylatora",
     "MANUAL": "Ręczny",

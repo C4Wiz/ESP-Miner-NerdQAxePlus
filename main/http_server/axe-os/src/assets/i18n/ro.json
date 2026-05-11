@@ -182,6 +182,7 @@
     "MODEL": "Model",
     "DEVICE_MODEL": "Model dispozitiv",
     "FIRMWARE_VERSION": "Versiune firmware",
+    "WEB_VERSION": "Versiune UI Web",
     "MAC_ADDRESS": "Adresă MAC",
     "IP_ADDRESS": "Adresă IP",
     "FREE_HEAP": "Heap liber",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Actualizări",
     "VERSION_INFO": "Informații versiune",
-    "CURRENT_VERSION": "Versiune curentă",
+    "CURRENT_VERSION": "Versiune firmware",
+    "CURRENT_WEB_VERSION": "Versiune UI Web",
     "LATEST_RELEASE": "Ultima versiune",
     "PUBLISHED": "Publicat",
     "CHECK": "Verifică",

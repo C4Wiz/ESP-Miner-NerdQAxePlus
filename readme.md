@@ -20,7 +20,7 @@ https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/releases
 
 ### Recommended Method: The Webflasher
 
-The [Webflasher](https://C4Wiz.github.io/nerdqaxe-web-flasher/) (modified fork of the great [Bitaxe Webflasher](https://github.com/bitaxeorg/bitaxe-web-flasher) by [Wantclue](https://github.com/WantClue)) is the easiest method of updating all Nerd*axe variants.
+The [Webflasher](https://C4Wiz.github.io/nerdqaxe-web-flasher/) (modified fork of the great [Bitaxe Webflasher](https://github.com/bitaxeorg/bitaxe-web-flasher) by [Wantclue](https://github.com/WantClue)) is the easiest method of updating your NerdQaxe++.
 
 [<img src="web-flasher.png" style="border:5px solid red;width:400px">](https://C4Wiz.github.io/nerdqaxe-web-flasher/)
 

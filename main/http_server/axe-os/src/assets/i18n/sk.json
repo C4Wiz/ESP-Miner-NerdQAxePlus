@@ -182,6 +182,7 @@
     "MODEL": "Model",
     "DEVICE_MODEL": "Model zariadenia",
     "FIRMWARE_VERSION": "Verzia firmvéru",
+    "WEB_VERSION": "Verzia webového rozhrania",
     "MAC_ADDRESS": "MAC adresa",
     "IP_ADDRESS": "IP adresa",
     "FREE_HEAP": "Voľná halda",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Aktualizácie",
     "VERSION_INFO": "Informácie o verzii",
-    "CURRENT_VERSION": "Aktuálna verzia",
+    "CURRENT_VERSION": "Verzia firmvéru",
+    "CURRENT_WEB_VERSION": "Verzia webového rozhrania",
     "LATEST_RELEASE": "Najnovšie vydanie",
     "PUBLISHED": "Publikované",
     "CHECK": "Skontrolovať",
@@ -430,14 +432,14 @@
     "SECONDARY_CONTROLLER": "Regulátor napätia",
     "CONTROLLER": "Ovládač ventilátora",
     "MANUAL": "Manuálne",
-    "AUTODETECT_POLARITY": "Automaticky detekovať polaritu ventilátora",
+    "AUTODETECT_POLARITY": "Automaticky detegovať polaritu ventilátora",
     "AUTODETECT_RECOMMENDED": "Odporúčané",
     "INVERT_POLARITY": "Invertovať polaritu ventilátora",
     "USE_FAN1_SETTINGS": "Prepojené",
     "FAN_SETTINGS_PORTS_HINT": "<strong>Poznámka:</strong> Pri prepínaní z prepojovaného režimu skontrolujte, ku ktorým portom ventilátora je každý ventilátor pripojený pred uložením.",
     "FAN1_CONNECTOR_HINT": "Pripojte <strong>ASIC ventilátor</strong> ku konektoru <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Pripojte <strong>ventilátor regulátora napätia</strong> ku konektoru <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "Ventilátor VReg vždy zodpovedá výstupu ventilátora ASIC. V režime PID ovládač používa vyššiu z teplôt ASIC a VReg."
+    "FAN_LINKED_HINT": "Ventilátor VReg zodpovedá výstupu ventilátora ASIC. V režime PID ovládač používa vyššiu z teplôt ASIC a VReg."
   },
   "MISC": {
     "TITLE": "Rôzne nastavenia",

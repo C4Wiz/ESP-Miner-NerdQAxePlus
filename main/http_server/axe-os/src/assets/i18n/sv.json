@@ -182,6 +182,7 @@
     "MODEL": "Modell",
     "DEVICE_MODEL": "Enhetsmodell",
     "FIRMWARE_VERSION": "Firmware-version",
+    "WEB_VERSION": "Webb-UI-version",
     "MAC_ADDRESS": "MAC-adress",
     "IP_ADDRESS": "IP-adress",
     "FREE_HEAP": "Ledigt heap",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Uppdateringar",
     "VERSION_INFO": "Versionsinformation",
-    "CURRENT_VERSION": "Nuvarande version",
+    "CURRENT_VERSION": "Firmware-version",
+    "CURRENT_WEB_VERSION": "Webb-UI-version",
     "LATEST_RELEASE": "Senaste utgåva",
     "PUBLISHED": "Publicerad",
     "CHECK": "Kontrollera",

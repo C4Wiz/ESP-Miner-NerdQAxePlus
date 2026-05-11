@@ -182,6 +182,7 @@
     "MODEL": "Modelo",
     "DEVICE_MODEL": "Modelo del dispositivo",
     "FIRMWARE_VERSION": "Versión del firmware",
+    "WEB_VERSION": "Versión de la interfaz web",
     "MAC_ADDRESS": "Dirección MAC",
     "IP_ADDRESS": "Dirección IP",
     "FREE_HEAP": "Heap libre",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Actualizaciones",
     "VERSION_INFO": "Información de versión",
-    "CURRENT_VERSION": "Versión actual",
+    "CURRENT_VERSION": "Versión del firmware",
+    "CURRENT_WEB_VERSION": "Versión de la interfaz web",
     "LATEST_RELEASE": "Último lanzamiento",
     "PUBLISHED": "Publicado",
     "CHECK": "Comprobar",
@@ -434,7 +436,7 @@
     "AUTODETECT_RECOMMENDED": "Recomendado",
     "INVERT_POLARITY": "Invertir polaridad del ventilador",
     "USE_FAN1_SETTINGS": "Vinculado",
-    "FAN_SETTINGS_PORTS_HINT": "<strong>Nota:</strong> Al cambiar de modo vinculado, comprueba a qué puertos de ventilador están conectados los ventiladores antes de guardar.",
+    "FAN_SETTINGS_PORTS_HINT": "<strong>Nota:</strong> Al cambiar del modo vinculado, compruebe a qué puertos de ventilador están conectados los ventiladores antes de guardar.",
     "FAN1_CONNECTOR_HINT": "Conecte el <strong>ventilador ASIC</strong> al conector <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Conecte el <strong>ventilador del Regulador de voltaje</strong> al conector <strong>{{connector}}</strong>.",
     "FAN_LINKED_HINT": "El ventilador VReg sigue la salida del ventilador ASIC. En modo PID, el controlador utiliza la temperatura más alta entre ASICs y VReg."
