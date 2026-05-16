@@ -108,7 +108,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         console.log('Expected filename:', this.expectedFileName);
 
         this.updateVersionStatus();
+        this.checkForUpdates();
       });
+
+    // releases$ only fetches when the user explicitly clicks Check for Updates
 
     // releases$ only fetches when the user explicitly clicks Check for Updates
     // or toggles the prerelease checkbox — no auto-fetch on page load to avoid
@@ -160,9 +163,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     );
 
     this.checkUpdateStatus();
-
-    // Auto-check for updates on page load
-    this.checkForUpdates();
 
     // If the user toggles the prerelease checkbox, re-fetch with the new setting
     this.includePrereleasesCtrl.valueChanges.subscribe(() => {
