@@ -142,9 +142,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }),
       tap(list => {
         this.selectedRelease = list[0] ?? null;
+        this.latestStableRelease = list.find(r => !r.prerelease) ?? list[0] ?? null;
         this.showChangelog = false;
         this.changelog = '';
+        this.updateVersionStatus();
         this.updateSelectedReleaseDeps();
+
+        if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+          this.toastrService.warning(
+            `${this.latestStableRelease?.tag_name ?? ''}`,
+            this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
+            { duration: 6000 }
+          );
+        }
       }),
       shareReplay({ refCount: true, bufferSize: 1 })
     );
