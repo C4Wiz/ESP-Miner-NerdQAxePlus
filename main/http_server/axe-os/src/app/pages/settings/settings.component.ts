@@ -149,10 +149,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
         if (this.includePrereleasesCtrl.value) {
           if (list.length === 0) {
-            this.toastrService.info(
+            this.toastrService.warning(
               this.translate.instant('UPDATE.NO_PRERELEASES'),
-              this.translate.instant('TOAST.WARNING'),
-              { duration: 4000 }
+              this.translate.instant('UPDATE.STATUS_UP_TO_DATE'),
+              { duration: 6000 }
             );
           } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
             this.toastrService.warning(
