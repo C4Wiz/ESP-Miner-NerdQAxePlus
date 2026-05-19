@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "加载中...",
@@ -396,7 +395,9 @@
     "FILENAME": "文件名",
     "KEEP_CONFIG": "保留设置",
     "SHOW_PRERELEASES": "显示预发行版",
-    "KEEP_SETTINGS_TOOLTIP": "未勾选时,更新时配置将重置为出厂默认值。"
+    "KEEP_SETTINGS_TOOLTIP": "未勾选时,更新时配置将重置为出厂默认值。",
+    "NO_PRERELEASES": "未找到预发布版本",
+    "NO_RELEASES": "未找到发布版本"
   },
   "TOAST": {
     "SUCCESS": "成功",

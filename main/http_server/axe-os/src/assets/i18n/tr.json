@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Yükleniyor...",
@@ -396,7 +395,9 @@
     "FILENAME": "Dosya adı",
     "KEEP_CONFIG": "Ayarları Koru",
     "SHOW_PRERELEASES": "Ön sürümleri göster",
-    "KEEP_SETTINGS_TOOLTIP": "İşaretlenmediğinde, yapılandırma güncellemede fabrika ayarlarına sıfırlanır."
+    "KEEP_SETTINGS_TOOLTIP": "İşaretlenmediğinde, yapılandırma güncellemede fabrika ayarlarına sıfırlanır.",
+    "NO_PRERELEASES": "Ön sürüm bulunamadı",
+    "NO_RELEASES": "Sürüm bulunamadı"
   },
   "TOAST": {
     "SUCCESS": "Başarılı",

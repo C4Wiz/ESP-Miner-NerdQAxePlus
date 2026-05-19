@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Lade...",
@@ -396,7 +395,9 @@
     "FILENAME": "Dateiname",
     "KEEP_CONFIG": "Einstellungen behalten",
     "SHOW_PRERELEASES": "Vorabversionen anzeigen",
-    "KEEP_SETTINGS_TOOLTIP": "Wenn nicht ausgewählt, wird die Konfiguration bei einem Update auf Werkseinstellungen zurückgesetzt."
+    "KEEP_SETTINGS_TOOLTIP": "Wenn nicht ausgewählt, wird die Konfiguration bei einem Update auf Werkseinstellungen zurückgesetzt.",
+    "NO_PRERELEASES": "Keine Vorabversionen gefunden",
+    "NO_RELEASES": "Keine Versionen gefunden"
   },
   "TOAST": {
     "SUCCESS": "Erfolg",

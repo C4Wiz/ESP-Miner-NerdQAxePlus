@@ -151,12 +151,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.updateVersionStatus();
         this.updateSelectedReleaseDeps();
 
-        if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
-          this.toastrService.warning(
-            `${this.latestStableRelease?.tag_name ?? ''}`,
-            this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
-            { duration: 6000 }
-          );
+        if (this.includePrereleasesCtrl.value) {
+          if (list.length === 0) {
+            this.toastrService.info(
+              this.translate.instant('UPDATE.NO_PRERELEASES'),
+              this.translate.instant('UPDATE.STATUS_UP_TO_DATE'),
+              { duration: 6000 }
+            );
+          } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+            this.toastrService.info(
+              `${this.selectedRelease?.tag_name ?? ''}`,
+              this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
+              { duration: 6000 }
+            );
+          }
+        } else {
+          if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+            this.toastrService.info(
+              `${this.latestStableRelease?.tag_name ?? ''}`,
+              this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
+              { duration: 6000 }
+            );
+          }
         }
       }),
       shareReplay({ refCount: true, bufferSize: 1 })
