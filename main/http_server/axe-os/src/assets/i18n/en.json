@@ -363,6 +363,8 @@
     "HIDE_CHANGELOG": "Hide Changelog",
     "DIRECT_FROM_GITHUB": "Direct from GitHub",
     "INSTALL_FROM_GITHUB": "OTA Update",
+    "NO_PRERELEASES": "No pre-releases found",
+    "NO_RELEASES": "No releases found",
     "CHECK_FOR_UPDATES": "Check for Updates",
     "LAST_CHECKED": "Last checked",
     "UPDATE_ONE_CLICK": "One Click Update",
