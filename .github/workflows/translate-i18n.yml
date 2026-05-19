@@ -103,7 +103,7 @@ jobs:
             python3 .github/scripts/merge_translations.py "$TARGET_FILE" /tmp/new_keys_${CODE}.json
           fi
 
-          sleep 2
+          sleep 10
         done
 
         # Store current hash and copy of en.json for next run diffing
