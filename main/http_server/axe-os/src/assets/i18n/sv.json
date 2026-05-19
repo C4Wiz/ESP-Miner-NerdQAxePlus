@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Laddar...",
@@ -396,7 +395,9 @@
     "FILENAME": "Filnamn",
     "KEEP_CONFIG": "Behåll inställningar",
     "SHOW_PRERELEASES": "Visa förhandsutgåvor",
-    "KEEP_SETTINGS_TOOLTIP": "När avmarkerad kommer konfigurationen att återställas till fabriksinställningar vid uppdatering."
+    "KEEP_SETTINGS_TOOLTIP": "När avmarkerad kommer konfigurationen att återställas till fabriksinställningar vid uppdatering.",
+    "NO_PRERELEASES": "Inga förhandsversioner hittades",
+    "NO_RELEASES": "Inga versioner hittades"
   },
   "TOAST": {
     "SUCCESS": "Lyckades",

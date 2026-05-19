@@ -395,7 +395,9 @@
     "FILENAME": "Nome file",
     "KEEP_CONFIG": "Mantieni Impostazioni",
     "SHOW_PRERELEASES": "Mostra pre-release",
-    "KEEP_SETTINGS_TOOLTIP": "Se deselezionato, la configurazione verrà ripristinata ai valori predefiniti di fabbrica all'aggiornamento."
+    "KEEP_SETTINGS_TOOLTIP": "Se deselezionato, la configurazione verrà ripristinata ai valori predefiniti di fabbrica all'aggiornamento.",
+    "NO_PRERELEASES": "Nessuna pre-release trovata",
+    "NO_RELEASES": "Nessuna release trovata"
   },
   "TOAST": {
     "SUCCESS": "Successo",

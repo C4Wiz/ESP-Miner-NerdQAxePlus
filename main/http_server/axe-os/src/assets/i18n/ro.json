@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Se încarcă...",
@@ -396,7 +395,9 @@
     "FILENAME": "Nume fișier",
     "KEEP_CONFIG": "Păstrează setările",
     "SHOW_PRERELEASES": "Arată pre-lansări",
-    "KEEP_SETTINGS_TOOLTIP": "Când este debifat, configurația va fi resetată la setările din fabrică la actualizare."
+    "KEEP_SETTINGS_TOOLTIP": "Când este debifat, configurația va fi resetată la setările din fabrică la actualizare.",
+    "NO_PRERELEASES": "Nu au fost găsite versiuni pre-lansare",
+    "NO_RELEASES": "Nu au fost găsite versiuni de lansare"
   },
   "TOAST": {
     "SUCCESS": "Succes",

@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "読み込み中...",
@@ -396,7 +395,9 @@
     "FILENAME": "ファイル名",
     "KEEP_CONFIG": "設定を保持",
     "SHOW_PRERELEASES": "プレリリースを表示",
-    "KEEP_SETTINGS_TOOLTIP": "チェックを外すと、更新時に設定が工場出荷時のデフォルトにリセットされます。"
+    "KEEP_SETTINGS_TOOLTIP": "チェックを外すと、更新時に設定が工場出荷時のデフォルトにリセットされます。",
+    "NO_PRERELEASES": "プレリリースが見つかりません",
+    "NO_RELEASES": "リリースが見つかりません"
   },
   "TOAST": {
     "SUCCESS": "成功",

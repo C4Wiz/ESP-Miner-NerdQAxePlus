@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Ładowanie...",
@@ -396,7 +395,9 @@
     "FILENAME": "Nazwa pliku",
     "KEEP_CONFIG": "Zachowaj ustawienia",
     "SHOW_PRERELEASES": "Pokaż przedwydania",
-    "KEEP_SETTINGS_TOOLTIP": "Gdy odznaczone, konfiguracja zostanie zresetowana do ustawień fabrycznych podczas aktualizacji."
+    "KEEP_SETTINGS_TOOLTIP": "Gdy odznaczone, konfiguracja zostanie zresetowana do ustawień fabrycznych podczas aktualizacji.",
+    "NO_PRERELEASES": "Nie znaleziono wersji przedpremierowych",
+    "NO_RELEASES": "Nie znaleziono wydań"
   },
   "TOAST": {
     "SUCCESS": "Sukces",
