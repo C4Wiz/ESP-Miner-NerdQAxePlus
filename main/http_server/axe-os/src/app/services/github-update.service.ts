@@ -77,7 +77,8 @@ export class GithubUpdateService {
           ? data.releases.filter(r => r.prerelease)
           : data.releases.filter(r => !r.prerelease);
 
-        const sliced = filtered.slice(0, 10);
+        const sorted = filtered.sort((a, b) => this.compareVersions(b.version, a.version));
+        const sliced = sorted.slice(0, 10);
 
         // Mark the first entry as latest
         return sliced.map((r, index) => ({
