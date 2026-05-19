@@ -57,7 +57,7 @@ Web-UI: {{ currentWebVersion }}<br/>
             <strong>{{ 'UPDATE.SELECT_RELEASE' | translate }}:</strong>
           </label>
           <nb-select [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
-                placeholder="Click 'Check for Updates' to load"
+                [placeholder]="lastChecked && (releases$ | async)?.length === 0 ? (includePrereleasesCtrl.value ? ('UPDATE.NO_PRERELEASES' | translate) : ('UPDATE.NO_RELEASES' | translate)) : ('UPDATE.SELECT_RELEASE' | translate)"
                 [disabled]="isOneClickUpdate || isCheckingForUpdates">
             <nb-option *ngFor="let r of (releases$ | async) ?? []; let i = index" [value]="r.id">
               {{ getReleaseLabel(r, i) }}
