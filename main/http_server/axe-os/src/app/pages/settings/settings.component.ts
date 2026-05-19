@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, Subject } from 'rxjs';
+import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, BehaviorSubject } from 'rxjs';
 import { switchMap, tap, take, startWith } from 'rxjs/operators';
 import { GithubUpdateService, UpdateStatus, VersionComparison, GithubRelease } from '../../services/github-update.service';
 import { LoadingService } from '../../services/loading.service';
@@ -71,8 +71,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public selectedRelease: GithubRelease | null = null;
   private latestStableRelease: GithubRelease | null = null;
 
-  // Manual refresh trigger — only emits on button click, no auto-load on page open
-  private refreshTrigger$ = new Subject<void>();
+  // BehaviorSubject emits immediately on subscription — triggers auto-check on page load
+  private refreshTrigger$ = new BehaviorSubject<void>(undefined);
   public lastChecked: Date | null = null;
 
   private readonly githubApiBase =
@@ -108,14 +108,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         console.log('Expected filename:', this.expectedFileName);
 
         this.updateVersionStatus();
-        this.checkForUpdates();
       });
 
-    // releases$ only fetches when the user explicitly clicks Check for Updates
-
-    // releases$ only fetches when the user explicitly clicks Check for Updates
-    // or toggles the prerelease checkbox — no auto-fetch on page load to avoid
-    // burning through the GitHub API unauthenticated rate limit (60 req/hr)
+    // releases$ fetches on page load (BehaviorSubject initial emit),
+    // on manual Check for Updates click, and when prerelease toggle changes
     this.releases$ = combineLatest([
       this.includePrereleasesCtrl.valueChanges.pipe(startWith(this.includePrereleasesCtrl.value)),
       this.info$,
@@ -151,12 +147,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.updateVersionStatus();
         this.updateSelectedReleaseDeps();
 
-        if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
-          this.toastrService.warning(
-            `${this.latestStableRelease?.tag_name ?? ''}`,
-            this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
-            { duration: 6000 }
-          );
+        if (this.includePrereleasesCtrl.value) {
+          if (list.length === 0) {
+            this.toastrService.info(
+              this.translate.instant('UPDATE.NO_PRERELEASES'),
+              this.translate.instant('TOAST.WARNING'),
+              { duration: 4000 }
+            );
+          } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+            this.toastrService.warning(
+              `${this.selectedRelease?.tag_name ?? ''}`,
+              this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
+              { duration: 6000 }
+            );
+          }
+        } else {
+          if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+            this.toastrService.warning(
+              `${this.latestStableRelease?.tag_name ?? ''}`,
+              this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
+              { duration: 6000 }
+            );
+          }
         }
       }),
       shareReplay({ refCount: true, bufferSize: 1 })
@@ -164,11 +176,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.checkUpdateStatus();
 
-    // If the user toggles the prerelease checkbox, re-fetch with the new setting
+    // Re-fetch when prerelease toggle changes
     this.includePrereleasesCtrl.valueChanges.subscribe(() => {
-      if (this.lastChecked) {
-        this.refreshTrigger$.next();
-      }
+      this.refreshTrigger$.next();
     });
   }
 
