@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, BehaviorSubject } from 'rxjs';
+import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, Subject } from 'rxjs';
 import { switchMap, tap, take, startWith } from 'rxjs/operators';
 import { GithubUpdateService, UpdateStatus, VersionComparison, GithubRelease } from '../../services/github-update.service';
 import { LoadingService } from '../../services/loading.service';
@@ -71,8 +71,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public selectedRelease: GithubRelease | null = null;
   private latestStableRelease: GithubRelease | null = null;
 
-  // BehaviorSubject emits immediately on subscription — triggers auto-check on page load
-  private refreshTrigger$ = new BehaviorSubject<void>(undefined);
+  // Manual refresh trigger — only emits on button click, no auto-load on page open
+  private refreshTrigger$ = new Subject<void>();
   public lastChecked: Date | null = null;
 
   private readonly githubApiBase =
@@ -108,10 +108,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
         console.log('Expected filename:', this.expectedFileName);
 
         this.updateVersionStatus();
+        this.checkForUpdates();
       });
 
-    // releases$ fetches on page load (BehaviorSubject initial emit),
-    // on manual Check for Updates click, and when prerelease toggle changes
+    // releases$ only fetches when the user explicitly clicks Check for Updates
+
+    // releases$ only fetches when the user explicitly clicks Check for Updates
+    // or toggles the prerelease checkbox — no auto-fetch on page load to avoid
+    // burning through the GitHub API unauthenticated rate limit (60 req/hr)
     this.releases$ = combineLatest([
       this.includePrereleasesCtrl.valueChanges.pipe(startWith(this.includePrereleasesCtrl.value)),
       this.info$,
@@ -160,9 +164,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.checkUpdateStatus();
 
-    // Re-fetch when prerelease toggle changes
+    // If the user toggles the prerelease checkbox, re-fetch with the new setting
     this.includePrereleasesCtrl.valueChanges.subscribe(() => {
-      this.refreshTrigger$.next();
+      if (this.lastChecked) {
+        this.refreshTrigger$.next();
+      }
     });
   }
 
