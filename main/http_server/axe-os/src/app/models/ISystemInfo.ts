@@ -114,6 +114,8 @@ export interface ISystemInfo {
     otp: boolean,
 
     errorPercentage?: number,
+
+    chipHashrates?: number[];
 }
 
 // fields swarm is using

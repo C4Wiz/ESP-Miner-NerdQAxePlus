@@ -1,4 +1,3 @@
-
 {
   "COMMON": {
     "LOADING": "Caricamento...",
@@ -39,6 +38,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate riportato dagli ASIC.",
     "HASH_RATE_CHART": "Grafico Nerd*",
     "HASHRATE_ESTIMATED": "Hash rate stimato dalle share trovate.",
+    "CHIP_HASHRATES": "Hashrate per chip",
     "SHARES": "Share",
     "POWER": "Consumo Energetico",
     "BEST_DIFFICULTY": "Migliore Difficoltà",
@@ -182,6 +182,7 @@
     "MODEL": "Modello",
     "DEVICE_MODEL": "Modello Dispositivo",
     "FIRMWARE_VERSION": "Versione Firmware",
+    "WEB_VERSION": "Versione Interfaccia Web",
     "MAC_ADDRESS": "Indirizzo MAC",
     "IP_ADDRESS": "Indirizzo IP",
     "FREE_HEAP": "Heap Libera",
@@ -328,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Aggiornamenti",
     "VERSION_INFO": "Informazioni Versione",
-    "CURRENT_VERSION": "Versione Corrente",
+    "CURRENT_VERSION": "Versione Firmware",
+    "CURRENT_WEB_VERSION": "Versione Interfaccia Web",
     "LATEST_RELEASE": "Ultima Release",
     "PUBLISHED": "Pubblicato",
     "CHECK": "Verifica",

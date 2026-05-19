@@ -32,6 +32,7 @@ import { LoadingService } from '../../services/loading.service';
 import { OtpAuthService, EnsureOtpResult } from '../../services/otp-auth.service';
 import { SystemService } from '../../services/system.service';
 import { WebsocketService } from '../../services/web-socket.service';
+import { getAppVersion } from 'src/app/app.module';
 
 type LogLine = { id: number; text: string; ts: number };
 
@@ -70,6 +71,9 @@ export class SystemComponent implements OnDestroy, AfterViewInit {
 
   /** Used to select light/dark logo variants. */
   public logoPrefix = '';
+  
+  /** Get the current webui version. */
+  public currentWebVersion: string = getAppVersion();
 
   /** Virtual scroll tuning (must match SCSS line-height). */
   public logItemSize = 18;

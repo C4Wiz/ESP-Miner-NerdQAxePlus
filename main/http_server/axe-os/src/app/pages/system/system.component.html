@@ -54,8 +54,12 @@
           <td>SRAM: {{ info.freeHeapInt }}, PSRAM: {{ info.freeHeap }}</td>
         </tr>
         <tr>
-          <td><b>{{ 'SYSTEM.VERSION' | translate }}:</b></td>
+          <td><b>{{ 'SYSTEM.FIRMWARE_VERSION' | translate }}:</b></td>
           <td>{{ info.version }}</td>
+        </tr>
+        <tr>
+          <td><b>{{ 'SYSTEM.WEB_VERSION' | translate }}:</b></td>
+          <td>{{ currentWebVersion }}</td>
         </tr>
         <!-- Collaboration trigger: only for NerdQX -->
         <tr *ngIf="info.deviceModel === 'NerdQX'">

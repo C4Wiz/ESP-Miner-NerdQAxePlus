@@ -95,7 +95,7 @@
                 <div class="chart-canvas__wrap chart-canvas__wrap--tall" [style.height.px]="chartHeightPx">
                   <canvas #myChart></canvas>
                 </div>
-                <div class="chart-resize-handle" (mousedown)="onChartResizeDrag($event)" title="Drag to resize chart"></div>
+                <div class="chart-resize-handle" (mousedown)="onChartResizeDrag($event)" (touchstart)="onChartResizeTouchDrag($event)" title="Drag to resize chart"></div>
               </div>
             </nb-card-body>
           </nb-card>
@@ -129,6 +129,18 @@
                         <span class="pool-summary-square__hashrate-split-divider" aria-hidden="true"></span>
                         <span class="pool-summary-square__hashrate-split-pct">{{ getActiveBalance(1) | number: '1.0-0' }} %</span>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- Chip hashrates: 2x2 grid inline next to total hashrate -->
+                  <div class="pool-summary-square__chip-grid"
+                       *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
+                       role="img"
+                       [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
+                    <div class="pool-summary-square__chip-cell"
+                         *ngFor="let hr of info.chipHashrates; let i = index">
+                      <span class="pool-summary-square__chip-label">A{{ i + 1 }}:&nbsp;</span>
+                      <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
                     </div>
                   </div>
                 </div>

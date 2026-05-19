@@ -67,7 +67,6 @@ class HashrateMonitor {
     Board *m_board = nullptr;
     Asic *m_asic = nullptr;
     void setChipHashrate(int nr, float temp);
-    float getChipHashrate(int nr);
     float getTotalChipHashrate();
   public:
     HashrateMonitor();
@@ -78,6 +77,7 @@ class HashrateMonitor {
     // 'counterNow' is the 32-bit counter (host-endian).
     void onRegisterReply(uint8_t asic_idx, uint32_t counterNow);
     void onErrorRegisterReply(uint8_t asic_idx, uint32_t counterNow);
+    float getChipHashrate(int nr);
     float getSmoothedTotalChipHashrate() {
       return m_smoothedHashrate;
     }

@@ -263,6 +263,12 @@ esp_err_t GET_system_info(httpd_req_t *req)
         doc["errorPercentage"] = errorPct;
     }
 
+    // Per-chip hashrates
+    JsonArray chipHashrates = doc["chipHashrates"].to<JsonArray>();
+        for (int i = 0; i < board->getAsicCount(); i++) {
+        chipHashrates.add(HASHRATE_MONITOR.getChipHashrate(i));
+   }
+
     //ESP_LOGI(TAG, "allocs: %d, deallocs: %d, reallocs: %d", allocs, deallocs, reallocs);
 
     // Serialize the JSON document to a String and send it

@@ -39,6 +39,7 @@
     "HASH_RATE_TOOLTIP": "Hash rate hlásený ASIC.",
     "HASH_RATE_CHART": "Nerd* Graf",
     "HASHRATE_ESTIMATED": "Hash rate odhadovaný na základe nájdených podielov.",
+    "CHIP_HASHRATES": "Hashrate jednotlivých čipov",
     "SHARES": "Podiely",
     "POWER": "Spotreba energie",
     "BEST_DIFFICULTY": "Najlepšia obtiažnosť",
@@ -182,6 +183,7 @@
     "MODEL": "Model",
     "DEVICE_MODEL": "Model zariadenia",
     "FIRMWARE_VERSION": "Verzia firmvéru",
+    "WEB_VERSION": "Verzia webového rozhrania",
     "MAC_ADDRESS": "MAC adresa",
     "IP_ADDRESS": "IP adresa",
     "FREE_HEAP": "Voľná halda",
@@ -328,7 +330,8 @@
   "UPDATE": {
     "TITLE": "Aktualizácie",
     "VERSION_INFO": "Informácie o verzii",
-    "CURRENT_VERSION": "Aktuálna verzia",
+    "CURRENT_VERSION": "Verzia firmvéru",
+    "CURRENT_WEB_VERSION": "Verzia webového rozhrania",
     "LATEST_RELEASE": "Najnovšie vydanie",
     "PUBLISHED": "Publikované",
     "CHECK": "Skontrolovať",
@@ -437,7 +440,7 @@
     "FAN_SETTINGS_PORTS_HINT": "<strong>Poznámka:</strong> Pri prepínaní z prepojovaného režimu skontrolujte, ku ktorým portom ventilátora je každý ventilátor pripojený pred uložením.",
     "FAN1_CONNECTOR_HINT": "Pripojte <strong>ASIC ventilátor</strong> ku konektoru <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Pripojte <strong>ventilátor regulátora napätia</strong> ku konektoru <strong>{{connector}}</strong>.",
-    "FAN_LINKED_HINT": "Ventilátor VReg vždy zodpovedá výstupu ventilátora ASIC. V režime PID ovládač používa vyššiu z teplôt ASIC a VReg."
+    "FAN_LINKED_HINT": "Ventilátor VReg zodpovedá výstupu ventilátora ASIC. V režime PID ovládač používa vyššiu z teplôt ASIC a VReg."
   },
   "MISC": {
     "TITLE": "Rôzne nastavenia",
