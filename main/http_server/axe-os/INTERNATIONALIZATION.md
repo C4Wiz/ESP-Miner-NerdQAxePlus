@@ -16,11 +16,15 @@ The web interface uses **Angular i18n** with **ngx-translate** to manage multi-l
 - 🇯🇵 **Japanese (ja)**
 - 🇵🇱 **Polish (pl)**
 - 🇷🇴 **Romanian (ro)**
+<<<<<<< HEAD
 - 🇷🇺 **Russian (ru)**
 - 🇸🇰 **Slovak (sk)**
 - 🇸🇪 **Swedish (sv)**
 - 🇹🇷 **Turkish (tr)**
 - 🇨🇳 **Chinese (Simplified) (zh)**
+=======
+- 🇵🇱 **Polish (pl)**
+>>>>>>> upstream/develop
 
 ## File Structure
 
@@ -31,6 +35,7 @@ src/assets/i18n/
 ├── es.json    # Spanish
 ├── fr.json    # French
 ├── it.json    # Italian
+<<<<<<< HEAD
 ├── ja.json    # Japanese
 ├── pl.json    # Polish
 ├── ro.json    # Romanian
@@ -39,6 +44,10 @@ src/assets/i18n/
 ├── sv.json    # Swedish
 ├── tr.json    # Turkish
 └── zh.json    # Chinese (Simplified)
+=======
+├── ro.json    # Romanian
+└── pl.json    # Polish
+>>>>>>> upstream/develop
 ```
 
 ## Translation Key Structure
@@ -134,10 +143,16 @@ The language selector is available in the header and uses **NgRx Store** for sta
 
 ## Adding a New Language
 
+The following is an example of adding the Portuguese (pt) language.
+
 ### 1. Update the Model
 In `src/app/@i18n/models/language.model.ts`:
 ```typescript
+<<<<<<< HEAD
 export type Language = 'en' | 'de' | 'es' | 'fr' | 'it' | 'ja' | 'pl' | 'ro' | 'ru' | 'sk' | 'sv' | 'tr' | 'zh';
+=======
+export type Language = 'fr' | 'en' | 'de' | 'es' | 'it' | 'ro' | 'pl' | 'pt';
+>>>>>>> upstream/develop
 ```
 
 ### 2. Create Translation File
@@ -146,7 +161,11 @@ Create `src/assets/i18n/pt.json` with all translated keys.
 ### 3. Update the Application
 In `src/app/app.component.ts`:
 ```typescript
+<<<<<<< HEAD
 translate.addLangs(['en', 'de', 'es', 'fr', 'it', 'ja', 'pl', 'ro', 'ru', 'sk', 'sv', 'tr', 'zh']);
+=======
+translate.addLangs(['en', 'fr', 'es', 'de', 'it', 'ro', 'pl', 'pt']);
+>>>>>>> upstream/develop
 ```
 
 ### 4. Add Option to Selector

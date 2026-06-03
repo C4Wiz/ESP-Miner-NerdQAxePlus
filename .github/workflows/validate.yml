@@ -12,6 +12,26 @@ jobs:
         include:
           - board: NERDQAXEPLUS2
             label: NerdQAxe++
+<<<<<<< HEAD
+=======
+          - board: NERDAXE
+            label: NerdAxe
+          - board: NERDOCTAXEGAMMA
+            label: NerdOCTAXE-Gamma
+          - board: NERDAXEGAMMA
+            label: NerdAxeGamma
+          - board: NERDHAXEGAMMA
+            label: NerdHaxe-Gamma
+          - board: NERDEKO
+            label: NerdEKO
+          - board: NERDQX
+            label: NerdQX
+          - board: Q1370
+            label: Q1370
+          - board: Q1373
+            label: Q1373
+
+>>>>>>> upstream/develop
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3

@@ -3,6 +3,7 @@
 #include "esp_log.h"
 #include "nvs.h"
 #include "nvs_config.h"
+#include "macros.h"
 
 #define NVS_CONFIG_NAMESPACE "main"
 
@@ -28,7 +29,7 @@ char *nvs_config_get_string(const char *key, const char *default_value)
         return strdup(default_value);
     }
 
-    char *out = (char *) malloc(size);
+    char *out = (char *) MALLOC(size);
     err = nvs_get_str(handle, key, out, &size);
 
     if (err != ESP_OK) {
@@ -165,12 +166,28 @@ void migrate_config()
         setTempControlMode(0);
         setFanSpeed(100);
     }
+<<<<<<< HEAD
     
     // migrate VReg overheat temp: if not yet set, inherit ASIC overheat temp
     if (!nvs_config_has_u16(NVS_CONFIG_FAN1_OVERHEAT)) {
         uint16_t asic_temp = getOverheatTemp();
         ESP_LOGI(TAG, "Migrating VReg overheat temp from ASIC value: %u°C", asic_temp);
         setFanOverheatTemp(1, asic_temp);
+=======
+
+    // migrate VReg overheat temp: if not yet set, inherit ASIC overheat temp
+    // Single-fan boards (NerdAxe) use a higher default because the PID no longer
+    // regulates VReg temp implicitly via max(asic, vreg).
+    if (!nvs_config_has_u16(NVS_CONFIG_FAN1_OVERHEAT)) {
+#if defined(NERDAXE) || defined(NERDAXEGAMMA)
+        uint16_t vreg_default = 80;
+        ESP_LOGI(TAG, "Setting VReg overheat temp to %u°C (single-fan board)", vreg_default);
+#else
+        uint16_t vreg_default = getOverheatTemp();
+        ESP_LOGI(TAG, "Migrating VReg overheat temp from ASIC value: %u°C", vreg_default);
+#endif
+        setFanOverheatTemp(1, vreg_default);
+>>>>>>> upstream/develop
     }
 }
 

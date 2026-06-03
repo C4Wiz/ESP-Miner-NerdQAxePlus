@@ -11,12 +11,41 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    env:
+      RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
     strategy:
       matrix:
         include:
           - board: NERDQAXEPLUS2
             upload_www: true
             label: NerdQAxe++
+<<<<<<< HEAD
+=======
+          - board: NERDAXE
+            upload_www: false
+            label: NerdAxe
+          - board: NERDOCTAXEGAMMA
+            upload_www: false
+            label: NerdOCTAXE-Gamma
+          - board: NERDAXEGAMMA
+            upload_www: false
+            label: NerdAxeGamma
+          - board: NERDHAXEGAMMA
+            upload_www: false
+            label: NerdHaxe-Gamma
+          - board: NERDEKO
+            upload_www: false
+            label: NerdEKO
+          - board: NERDQX
+            upload_www: false
+            label: NerdQX
+          - board: Q1370
+            upload_www: false
+            label: Q1370
+          - board: Q1373
+            upload_www: false
+            label: Q1373
+>>>>>>> upstream/develop
 
     steps:
     - name: Checkout repository
@@ -48,7 +77,7 @@ jobs:
         COMMIT_HASH=$(git rev-parse --short HEAD)
         sed -e "s|__COMMIT__|${COMMIT_HASH}|g" -i ./main/http_server/axe-os/src/app/app.module.ts
         sed -e "s|__VERSION__|${VERSION_TAG}|g" -i ./main/http_server/axe-os/src/app/app.module.ts
-        for l in de en es fr; do
+        for l in de en es fr it pl ro; do
           mv "./main/http_server/axe-os/src/assets/i18n/${l}.json" "./main/http_server/axe-os/src/assets/i18n/${l}.${COMMIT_HASH}.json"
         done
 
@@ -88,6 +117,34 @@ jobs:
         sudo mv build/esp-miner.bin build/esp-miner-${{ matrix.label }}.bin
         sudo mv build/esp-miner.elf build/esp-miner-${{ matrix.label }}.elf
 
+<<<<<<< HEAD
+=======
+    - name: Upload factory binary
+      if: env.RELEASE_EXISTS == 'false'
+      uses: actions/upload-artifact@v4
+      with:
+        name: esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
+        path: esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin
+        retention-days: 7
+
+    - name: Upload BIN firmware
+      if: env.RELEASE_EXISTS == 'false'
+      uses: actions/upload-artifact@v4
+      with:
+        name: esp-miner-${{ matrix.label }}.bin
+        path: build/esp-miner-${{ matrix.label }}.bin
+        retention-days: 7
+
+    - name: Upload www.bin (only once)
+      if: env.RELEASE_EXISTS == 'false' && matrix.board == 'NERDQAXEPLUS'
+      uses: actions/upload-artifact@v4
+      with:
+        name: www.bin
+        path: build/www.bin
+        retention-days: 7
+
+
+>>>>>>> upstream/develop
     - name: Create files list
       run: |
         echo "esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin" > file_list.txt
@@ -99,7 +156,9 @@ jobs:
 
     - name: Set files variable
       id: set_files_var
-      run: echo "files=$(cat file_list.txt | tr '\n' ',')" >> $GITHUB_ENV
+      run: |
+        echo "files=$(grep -v '\.elf$' file_list.txt | tr '\n' ',')" >> $GITHUB_ENV
+        echo "r2_files=$(cat file_list.txt | tr '\n' ',')" >> $GITHUB_ENV
 
     - name: Upload to Release
       uses: softprops/action-gh-release@v1
@@ -109,7 +168,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+<<<<<<< HEAD
     - name: Download existing releases.json from R2
+=======
+    - name: Install rclone
+      if: env.RCLONE_CONF != ''
+>>>>>>> upstream/develop
       run: |
         HTTP_STATUS=$(curl -s -o releases.json -w "%{http_code}" "https://pub-f8ed8218b3b94a659b581f81c298b179.r2.dev/releases.json")
         if [ "$HTTP_STATUS" != "200" ] || ! jq empty releases.json 2>/dev/null; then
@@ -117,7 +181,12 @@ jobs:
           echo '{"updated_at":"","releases":[]}' > releases.json
         fi
 
+<<<<<<< HEAD
     - name: Update releases.json
+=======
+    - name: Upload to Cloudflare R2 using rclone
+      if: env.RCLONE_CONF != ''
+>>>>>>> upstream/develop
       run: |
         BINARY_NAME="esp-miner-factory-${{ matrix.label }}-${{ env.VERSION_TAG }}.bin"
         DOWNLOAD_URL="https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/releases/download/${{ env.VERSION_TAG }}/${BINARY_NAME}"
@@ -128,12 +197,18 @@ jobs:
         IS_PRERELEASE=$(echo "$RELEASE_INFO" | jq '.prerelease')
         PUBLISHED_AT=$(echo "$RELEASE_INFO" | jq -r '.published_at')
 
+<<<<<<< HEAD
         echo "BINARY_NAME: ${BINARY_NAME}"
         echo "SHA256: ${SHA256}"
         echo "IS_PRERELEASE: ${IS_PRERELEASE}"
         echo "PUBLISHED_AT: ${PUBLISHED_AT}"
         echo "Current releases.json:"
         cat releases.json
+=======
+        echo "$r2_files" | tr ',' '\n' | grep -v '^$' | while read file; do
+          rclone copyto "$file" "r2:${TARGET_DIR}/$(basename "$file")" --s3-acl public-read
+        done
+>>>>>>> upstream/develop
 
         BODY=$(echo "$RELEASE_INFO" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
