@@ -93,6 +93,7 @@ export interface ISystemInfo {
     defaultVrFrequency?: number,
     vrFrequency: number,
     shutdown: boolean,
+    can?: { hasExtension: boolean, enabled: boolean, fleetPower?: number },
 
     stratum: IStratum,
 
@@ -113,9 +114,36 @@ export interface ISystemInfo {
 
     otp: boolean,
 
+<<<<<<< HEAD
     errorPercentage?: number,
 
     chipHashrates?: number[];
+=======
+    networkDifficulty?: number,
+
+    // Block header / coinbase data (array, one per pool with data)
+    blockHeaders?: IBlockHeader[],
+
+    // Coinbase verification settings (per pool)
+    coinbaseVerifyMode?: number,
+    coinbaseMaxFee?: number,
+    coinbaseVerifyForce?: boolean,
+    fallbackCoinbaseVerifyMode?: number,
+    fallbackCoinbaseMaxFee?: number,
+    fallbackCoinbaseVerifyForce?: boolean,
+}
+
+export interface IBlockHeader {
+    pool: number,
+    blockHeight: number,
+    networkDifficulty: number,
+    scriptsig?: string,
+    coinbaseValueTotalSatoshis?: number,
+    coinbaseValueUserSatoshis?: number,
+    verificationOk?: boolean,
+    verificationFailCount?: number,
+    verificationCheckCount?: number,
+>>>>>>> upstream/develop
 }
 
 // fields swarm is using

@@ -42,7 +42,11 @@
     "SHARES": "Parts",
     "POWER": "Consommation d'énergie",
     "BEST_DIFFICULTY": "Meilleure difficulté",
+<<<<<<< HEAD
     "ALL_TIME_BEST": "meilleur de tous les temps",
+=======
+    "ALL_TIME_BEST": "record absolu",
+>>>>>>> upstream/develop
     "TEMPERATURE": "Température",
     "FAN_SPEED": "Ventilateur(s) système",
     "UPTIME": "Temps de fonctionnement",
@@ -79,10 +83,24 @@
     "HIDE_CHART": "Masquer",
     "SHOW_CHART": "Afficher",
     "STRATUM_NOT_CONNECTED": "Stratum non connecté pour ce pool.",
+    "VERIFY_BLOCKED": "Pool bloqué par la vérification.",
+    "VERIFY_BLOCKED_ADDRESS": "Votre adresse n'a pas été trouvée dans la transaction coinbase.",
+    "VERIFY_BLOCKED_FEE": "Les frais du pool dépassent la limite configurée.",
     "RESET_STATS": "Réinitialiser les stats de session",
     "RESET_STATS_CONFIRM": "Réinitialiser toutes les stats de session (parts, meilleure diff, erreurs) ?",
     "RESET_STATS_SUCCESS": "Stats de session réinitialisées.",
+<<<<<<< HEAD
     "RESET_STATS_FAILED": "Échec de la réinitialisation des stats de session."
+=======
+    "RESET_STATS_FAILED": "Échec de la réinitialisation.",
+    "BLOCK_HEADER": "En-tête de Bloc",
+    "BLOCK_HEIGHT": "Hauteur",
+    "BLOCK_DIFFICULTY": "Difficulté",
+    "BLOCK_SCRIPTSIG": "Scriptsig",
+    "BLOCK_VALUE": "Valeur",
+    "BLOCK_FEE": "Frais",
+    "BLOCK_SHARE": "Part"
+>>>>>>> upstream/develop
   },
   "PERFORMANCE": {
     "TITLE": "Performance",
@@ -92,7 +110,12 @@
     "INPUT_CURRENT": "Courant d'entrée",
     "INPUT_VOLTAGE": "Tension d'entrée",
     "ASIC_VOLTAGE": "Tension ASIC",
+<<<<<<< HEAD
     "ASIC_VOLTAGE_MEASURED": "Tension ASIC",
+=======
+    "ASIC_VOLTAGE_MEASURED": "Tension ASIC Mesurée",
+    "BEST_DIFFICULTY": "Meilleure difficulté",
+>>>>>>> upstream/develop
     "HEAT": "Chaleur",
     "TITLE_HEAT": "Chaleur",
     "ASIC_TEMP": "Température ASIC",
@@ -142,6 +165,10 @@
     "WIFI_SSID": "Réseau WiFi (SSID)",
     "WIFI_PASSWORD": "Mot de passe WiFi",
     "WIFI_PASSWORD_PLACEHOLDER": "Entrez le mot de passe WiFi",
+    "WIFI_SCAN": "Rechercher WiFi",
+    "WIFI_SCAN_SELECT": "Sélectionner un réseau WiFi",
+    "WIFI_SCAN_NONE": "Aucun réseau trouvé",
+    "WIFI_SCAN_FAILED": "Recherche WiFi échouée",
     "FREQUENCY": "Fréquence",
     "VOLTAGE": "Tension",
     "CORE_VOLTAGE": "Tension du cœur",
@@ -157,6 +184,7 @@
     "FALLBACK_STRATUM_POOL": "Pool Stratum de secours",
     "STRATUM_HOST_HINT": "Ne pas inclure 'stratum+tcp://' ou le port.",
     "DEFAULT": "défaut",
+<<<<<<< HEAD
     "TIME_FORMAT": "Format de l'heure",
     "TIME_FORMAT_24H": "Format 24 h",
     "TIME_FORMAT_12H": "Format 12 h (AM/PM)",
@@ -170,6 +198,21 @@
     "SV2_CHANNEL_STANDARD": "Canal standard (expérimental)",
     "POOL_MODE": "Mode du pool",
     "POOL_MODE_FAILOVER": "Failover (Principal/Secours)",
+=======
+    "TIME_FORMAT": "Format d'Heure",
+    "TIME_FORMAT_24H": "Format 24 heures",
+    "TIME_FORMAT_12H": "Format 12 heures (AM/PM)",
+    "STRATUM_PROTOCOL": "Protocole Stratum",
+    "STRATUM_V1": "Stratum V1",
+    "STRATUM_V2": "Stratum V2",
+    "SV2_AUTHORITY_PUBKEY": "Clé publique SV2 Authority",
+    "SV2_AUTHORITY_PUBKEY_HINT": "Clé optionnelle encodée en Base58 pour la vérification du certificat du serveur.",
+    "SV2_CHANNEL_TYPE": "Type de canal SV2",
+    "SV2_CHANNEL_EXTENDED": "Canal étendu",
+    "SV2_CHANNEL_STANDARD": "Canal standard (expérimental)",
+    "POOL_MODE": "Mode de pool",
+    "POOL_MODE_FAILOVER": "Failover (primaire/secours)",
+>>>>>>> upstream/develop
     "POOL_MODE_DUAL": "Pool double",
     "POOL_BALANCE": "Répartition du pool",
     "POOL_BALANCE_HINT": "Distribue les jobs entre le pool principal et secondaire, ex : 70/30.",
@@ -291,11 +334,19 @@
     "SETTINGS_SAVE_FAILED": "Impossible d'enregistrer les paramètres InfluxDB."
   },
   "ALERTS": {
+<<<<<<< HEAD
     "TITLE": "Configuration des alertes",
     "DISCORD_WEBHOOK": "URL du webhook Discord",
     "TEMPERATURE_ALERT": "Alerte de température",
     "HASHRATE_ALERT": "Alerte de taux de hachage",
     "OFFLINE_ALERT": "Alerte hors ligne",
+=======
+    "TITLE": "Configuration des Alertes",
+    "DISCORD_WEBHOOK": "URL du webhook",
+    "TEMPERATURE_ALERT": "Alerte de Température",
+    "HASHRATE_ALERT": "Alerte de Taux de Hachage",
+    "OFFLINE_ALERT": "Alerte Hors Ligne",
+>>>>>>> upstream/develop
     "THRESHOLD": "Seuil",
     "ENABLED": "Activé",
     "TEST_ALERT": "Envoyer une alerte de test",
@@ -438,6 +489,7 @@
     "AUTODETECT_RECOMMENDED": "Recommandé",
     "INVERT_POLARITY": "Inverser la polarité du ventilateur",
     "USE_FAN1_SETTINGS": "Lié",
+<<<<<<< HEAD
     "FAN_SETTINGS_PORTS_HINT": "<strong>Note :</strong> Lors du changement de mode lié, vérifiez sur quels ports de ventilateur chaque ventilateur est connecté avant d'enregistrer.",
     "FAN1_CONNECTOR_HINT": "Connectez le <strong>ventilateur ASIC</strong> au connecteur <strong>{{connector}}</strong>.",
     "FAN2_CONNECTOR_HINT": "Connectez le <strong>ventilateur du régulateur de tension</strong> au connecteur <strong>{{connector}}</strong>.",
@@ -449,6 +501,22 @@
     "FLIP_SCREEN": "Retourner l'écran",
     "AUTO_SCREEN_OFF": "Extinction automatique de l'écran",
     "STRATUM_KEEPALIVE": "Activer le keepalive TCP Stratum"
+=======
+    "FAN_SETTINGS_PORTS_HINT": "<strong>Note :</strong> En quittant le mode lié, vérifie sur quels ports de ventilateur chaque ventilateur est connecté avant d'enregistrer.",
+    "FAN1_CONNECTOR_HINT": "Branchez le <strong>ventilateur ASIC</strong> sur le connecteur <strong>{{connector}}</strong>.",
+    "FAN2_CONNECTOR_HINT": "Branchez le <strong>ventilateur du régulateur de tension</strong> sur le connecteur <strong>{{connector}}</strong>.",
+    "FAN_LINKED_HINT": "Le ventilateur VReg suit la sortie du ventilateur ASIC. En mode PID, le régulateur utilise la température la plus élevée entre l'ASIC et le VReg.",
+    "PID_USE_MAX_TEMP": "Le PID utilise la température la plus élevée entre ASIC et VReg"
+  },
+  "MISC": {
+    "TITLE": "Paramètres Divers",
+    "SETTINGS": "Paramètres Divers",
+    "FLIP_SCREEN": "Retourner l'Écran",
+    "AUTO_SCREEN_OFF": "Extinction Automatique de l'Écran",
+    "STRATUM_KEEPALIVE": "Activer Stratum TCP Keepalive",
+    "CUSTOM_MEMPOOL": "Endpoint Mempool personnalisé",
+    "MEMPOOL_URL": "URL Mempool"
+>>>>>>> upstream/develop
   },
   "WARNINGS": {
     "UNSAFE_SETTINGS": "⚠️ Avertissement : Enregistrement de paramètres non sécurisés ⚠️",
@@ -463,19 +531,30 @@
     "PROCEED_ANYWAY": "Continuer quand même"
   },
   "DISCORD": {
-    "TITLE": "Alertes Discord",
-    "ALERTS": "Alertes Discord",
-    "WEBHOOK": "Webhook Discord",
+    "TITLE": "Alertes webhook",
+    "ALERTS": "Alertes webhook",
+    "WEBHOOK": "Webhook",
     "WEBHOOK_URL": "URL du webhook",
+<<<<<<< HEAD
     "WEBHOOK_HELP": "Webhook de l'intégration de votre canal Discord",
     "CONFIGURE_DESCRIPTION": "Configurez les alertes Discord que vous souhaitez recevoir. Le webhook est utilisé pour toutes les alertes sélectionnées.",
+=======
+    "WEBHOOK_HELP": "Tout point de terminaison HTTP(S) acceptant un corps JSON avec un champ content.",
+    "CONFIGURE_DESCRIPTION": "Configurez les alertes que vous souhaitez recevoir. Le webhook sélectionné reçoit un corps JSON avec un champ content pour chaque alerte activée.",
+>>>>>>> upstream/develop
     "MINER_WATCHDOG": "Watchdog du mineur déclenché",
     "MINER_WATCHDOG_DESC": "se déclenche quand l'appareil redémarre après avoir échoué à soumettre une part pendant 1 heure",
     "BLOCK_FOUND": "Bloc trouvé",
     "BLOCK_FOUND_DESC": "se déclenche quand votre mineur trouve un bloc",
     "TEST": "Test",
     "BEST_DIFF_FOUND": "Meilleure difficulté trouvée",
+<<<<<<< HEAD
     "BEST_DIFF_FOUND_DESC": "se déclenche quand l'appareil trouve une nouvelle meilleure difficulté"
+=======
+    "BEST_DIFF_FOUND_DESC": "se déclenche lorsque l’appareil trouve une nouvelle meilleure difficulté",
+    "COINBASE_VERIFY_FAILED": "Vérification coinbase échouée",
+    "COINBASE_VERIFY_FAILED_DESC": "se déclenche lorsque la coinbase du pool ne contient pas votre adresse ou dépasse la limite de frais configurée"
+>>>>>>> upstream/develop
   },
   "LANGUAGE": {
     "TITLE": "Language / Langue",
@@ -569,7 +648,25 @@
     "FORGET_THIS_DEVICE": "Oublier ce navigateur",
     "FORGET_THIS_DEVICE_HELP": "Met fin à la confiance de 24 heures pour ce navigateur. Le token de session locale est supprimé — la prochaine action protégée exigera de nouveau le code à 6 chiffres.",
     "THIS_DEVICE_FORGOTTEN": "Ce navigateur a été oublié.",
+<<<<<<< HEAD
     "NO_TRUSTED_DEVICE_HELP": "Aucune session de confiance dans ce navigateur. Les actions protégées demanderont un code à 6 chiffres jusqu'à ce que vous choisissiez &ldquo;Se souvenir de ce navigateur&rdquo;.",
     "NOT_TRUSTED": "Non fiable"
+=======
+    "NO_TRUSTED_DEVICE_HELP": "Aucune session approuvée dans ce navigateur. Les actions protégées demanderont un code à 6 chiffres jusqu’à ce que vous choisissiez « Se souvenir de ce navigateur ».",
+    "NOT_TRUSTED": "Non approuvé",
+    "COINBASE_VERIFY_TITLE": "Vérification Coinbase",
+    "COINBASE_VERIFY_HINT": "Vérifie que l'adresse de votre mineur apparaît dans la transaction coinbase du pool. Lorsqu'elle est activée, l'adresse dans le tableau de bord devient verte si la vérification réussit.",
+    "COINBASE_VERIFY_MODE": "Mode de vérification",
+    "COINBASE_VERIFY_BASIC": "Basique (adresse dans coinbase)",
+    "COINBASE_VERIFY_EXTENDED": "Étendu (adresse + limite de frais)",
+    "COINBASE_MAX_FEE": "Frais pool max",
+    "COINBASE_MAX_FEE_HINT": "La vérification échoue si la part du pool dans la récompense coinbase dépasse ce pourcentage (ex. 3 pour les frais de 3% de ckpool).",
+    "COINBASE_VERIFY_BASIC_HINT": "Vérifie que votre adresse apparaît dans le paiement coinbase. L'adresse dans le tableau de bord devient verte si trouvée.",
+    "COINBASE_VERIFY_EXTENDED_HINT": "Vérifie aussi que les frais du pool ne dépassent pas la limite configurée. L'adresse devient rouge dans le tableau de bord si la limite est dépassée.",
+    "COINBASE_VERIFY_FORCE": "Appliquer",
+    "COINBASE_VERIFY_FORCE_TOOLTIP": "Déconnecte et bloque le pool si la vérification échoue.",
+    "COINBASE_VERIFY_DISABLED": "Désactivé",
+    "COINBASE_RECONNECT_HINT": "La sauvegarde déconnectera brièvement du pool et le reconnectera pour appliquer les nouveaux paramètres."
+>>>>>>> upstream/develop
   }
 }

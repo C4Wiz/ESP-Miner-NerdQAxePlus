@@ -16,7 +16,7 @@ import { map,
   firstValueFrom } from 'rxjs';
 import { HashSuffixPipe } from '../../pipes/hash-suffix.pipe';
 import { SystemService } from '../../services/system.service';
-import { ISystemInfo } from '../../models/ISystemInfo';
+import { IDashboardV2, IDashboardV2BlockHeader, IDashboardV2Pool } from '../../models/IDashboardV2';
 import { Chart } from 'chart.js';  // Import Chart.js
 import { registerHomeChartPlugins } from './plugins';
 import { HOME_CFG,
@@ -54,7 +54,6 @@ import { NbThemeService, NbDialogService, NbToastrService } from '@nebular/theme
 import { NbTrigger } from '@nebular/theme';
 import { TranslateService } from '@ngx-translate/core';
 import { LocalStorageService } from '../../services/local-storage.service';
-import { IPool } from 'src/app/models/IStratum';
 import {
   getPoolIconUrl as resolvePoolIconUrl,
   getQuickLink,
@@ -219,9 +218,10 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
    * Input Voltage warn-band (yellow) should be data-driven (HOME_CFG) and centralized.
    * We keep the template free of thresholds by routing through this method.
    */
-  public isInputVoltageWarn(voltage: any): boolean {
-    const band = HOME_CFG.tiles.inputVoltageBand;
-    return isOutsideBand(voltage, band.low, band.high);
+  public isInputVoltageWarn(voltage: any, voltageMin?: number, voltageMax?: number): boolean {
+    const low = voltageMin ?? HOME_CFG.tiles.inputVoltageBand.low;
+    const high = voltageMax ?? HOME_CFG.tiles.inputVoltageBand.high;
+    return isOutsideBand(voltage, low, high);
   }
 
   /**
@@ -256,6 +256,7 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
     return isAtLeast(vrTempC, band.critC);
   }*/
 
+<<<<<<< HEAD
   public vrTempMax(info: any): number {
   const overheat = Number(info?.fans?.[1]?.overheatTemp);
   return Number.isFinite(overheat) && overheat > 0 ? overheat : BAR_LIMITS.vrTemp.max;
@@ -266,6 +267,121 @@ public isVrTempWarn(vrTempC: any, info?: any): boolean {
   const warnC = max * 0.94;
   return isBetween(vrTempC, warnC, max);
 }
+=======
+  private readonly lowRpmHintThresholdPct: number = 35;
+  private readonly hoverTooltipOffsetX: number = 14;
+  private readonly hoverTooltipOffsetY: number = 18;
+  private readonly hoverTooltipWidthPx: number = 360;
+  private readonly hoverTooltipHeightPx: number = 140;
+  public activeHoverTooltipId: string | null = null;
+  public hoverTooltipX: number = 0;
+  public hoverTooltipY: number = 0;
+  public poolVerifyTooltipX: number = 0;
+  public poolVerifyTooltipY: number = 0;
+
+  public shouldShowLowRpmHint(percent: any, rpm: any): boolean {
+    const pct = Number(percent);
+    const rpmValue = Number(rpm);
+    return Number.isFinite(pct)
+      && pct > 0
+      && pct < this.lowRpmHintThresholdPct
+      && !(Number.isFinite(rpmValue) && rpmValue > 0);
+  }
+
+  public shouldShowFanRpm(percent: any, rpm: any): boolean {
+    const rpmValue = Number(rpm);
+    return Number.isFinite(rpmValue) && rpmValue > 0;
+  }
+
+  public getFanAriaLabel(channel: number | null, percent: any, rpm: any): string {
+    const pctValue = Number(percent);
+    const rpmValue = Number(rpm);
+    const pctText = `${Number.isFinite(pctValue) ? Math.round(pctValue) : 0} %`;
+    const label = channel != null
+      ? this.translateService.instant('HOME.FAN_CHANNEL', { channel })
+      : this.translateService.instant('HOME.FAN_SPEED');
+
+    if (this.shouldShowLowRpmHint(percent, rpm)) {
+      return `${label}: ${pctText}. ${this.translateService.instant('HOME.FAN_LOW_RPM_HINT')}`;
+    }
+
+    if (!(Number.isFinite(rpmValue) && rpmValue > 0)) {
+      return `${label}: ${pctText}`;
+    }
+
+    const rpmText = `${Number.isFinite(rpmValue) ? Math.round(rpmValue) : 0} RPM`;
+    return `${label}: ${pctText} (${rpmText})`;
+  }
+
+  public showHoverTooltip(id: string, event: MouseEvent): void {
+    this.activeHoverTooltipId = id;
+    this.updateHoverTooltipPosition(event);
+  }
+
+  public showConditionalHoverTooltip(id: string, enabled: boolean, event: MouseEvent): void {
+    if (!enabled) return;
+    this.showHoverTooltip(id, event);
+  }
+
+  public showPoolVerifyTooltip(id: string, enabled: boolean, event: MouseEvent): void {
+    if (!enabled) return;
+    this.activeHoverTooltipId = id;
+    this.updatePoolVerifyTooltipPosition(event);
+  }
+
+  public movePoolVerifyTooltip(event: MouseEvent): void {
+    if (!this.activeHoverTooltipId) return;
+    this.updatePoolVerifyTooltipPosition(event);
+  }
+
+  private updatePoolVerifyTooltipPosition(event: MouseEvent): void {
+    const pad = 12;
+    const tooltipW = 200;
+    const viewportWidth = window.innerWidth || 0;
+    let x = event.clientX + 14;
+    if (x + tooltipW > viewportWidth - pad) {
+      x = Math.max(pad, viewportWidth - tooltipW - pad);
+    }
+    this.poolVerifyTooltipX = x;
+    this.poolVerifyTooltipY = event.clientY + 18;
+  }
+
+  public moveHoverTooltip(event: MouseEvent): void {
+    if (!this.activeHoverTooltipId) return;
+    this.updateHoverTooltipPosition(event);
+  }
+
+  public moveConditionalHoverTooltip(enabled: boolean, event: MouseEvent): void {
+    if (!enabled || !this.activeHoverTooltipId) return;
+    this.updateHoverTooltipPosition(event);
+  }
+
+  public hideHoverTooltip(id?: string): void {
+    if (!id || this.activeHoverTooltipId === id) {
+      this.activeHoverTooltipId = null;
+    }
+  }
+
+  private updateHoverTooltipPosition(event: MouseEvent): void {
+    const viewportWidth = window.innerWidth || 0;
+    const viewportHeight = window.innerHeight || 0;
+    const pad = 12;
+
+    let x = event.clientX + this.hoverTooltipOffsetX;
+    let y = event.clientY + this.hoverTooltipOffsetY;
+
+    if (x + this.hoverTooltipWidthPx > viewportWidth - pad) {
+      x = Math.max(pad, viewportWidth - this.hoverTooltipWidthPx - pad);
+    }
+
+    if (y + this.hoverTooltipHeightPx > viewportHeight - pad) {
+      y = Math.max(pad, event.clientY - this.hoverTooltipHeightPx - 10);
+    }
+
+    this.hoverTooltipX = x;
+    this.hoverTooltipY = y;
+  }
+>>>>>>> upstream/develop
 
 public isVrTempCrit(vrTempC: any, info?: any): boolean {
   const max = this.vrTempMax(info);
@@ -380,13 +496,13 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
   private chart?: Chart;
   private themeSubscription?: Subscription;
   private chartInitialized = false;
-  private _info: any;
+  private _info: IDashboardV2 | undefined;
   private timeFormatListener: any;
 
   private wasLoaded = false;
   private saveLock = false;
 
-  public info$: Observable<ISystemInfo>;
+  public info$: Observable<IDashboardV2>;
   public quickLink$: Observable<string | undefined>;
   public fallbackQuickLink$!: Observable<string | undefined>;
   public expectedHashRate$: Observable<number | undefined>;
@@ -549,7 +665,7 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     this.historyDrainer = new HomeHistoryDrainer(
       {
         fetchInfo: (startTimestampMs, chunkSize) =>
-          this.systemService.getInfoWithSpan(startTimestampMs, chunkSize, HOME_CFG.xAxis.maxWindowMs),
+          this.systemService.getDashboardV2WithSpan(startTimestampMs, chunkSize, HOME_CFG.xAxis.maxWindowMs),
         importHistoryChunk: (history) => this.importHistoricalData(history),
         setRunning: (running) => (this.historyDrainRunning = running),
         setSuppressed: (suppressed) => (this.suppressChartUpdatesDuringHistoryDrain = suppressed),
@@ -609,8 +725,8 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
       chunkSize: this.chunkSizeDrainer,
       historyWindowMs: HOME_CFG.xAxis.maxWindowMs,
       fetchInfo: (startTimestampMs, chunkSize) =>
-        this.systemService.getInfoWithSpan(startTimestampMs, chunkSize, HOME_CFG.xAxis.maxWindowMs),
-      defaultInfo: () => SystemService.defaultInfo(),
+        this.systemService.getDashboardV2WithSpan(startTimestampMs, chunkSize, HOME_CFG.xAxis.maxWindowMs),
+      defaultInfo: () => SystemService.defaultDashboardV2(),
       getStoredLastTimestampMs: () => this.getStoredTimestamp(),
       getForceStartTimestampMs: () => {
         try {
@@ -646,7 +762,7 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
         // expectedHashRate$ returns an "expected" value used in UI. For internal comparisons
         // we keep everything in H/s to match live pool sums and chart values.
         try {
-          const expectedGh = Math.floor(Number(info.frequency) * ((Number(info.smallCoreCount) * Number(info.asicCount)) / 1000));
+          const expectedGh = Math.floor(Number(info.performance.frequency) * ((Number(info.performance.smallCoreCount) * Number(info.performance.asicCount)) / 1000));
           const expectedHs = Number.isFinite(expectedGh) && expectedGh > 0 ? expectedGh * 1e9 : 0;
           this.expectedHashrateHsLast = expectedHs;
         } catch {
@@ -667,8 +783,8 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
         const systemOk = Number.isFinite(this.expectedHashrateHsLast) && this.expectedHashrateHsLast > 0;
         this.warmupMachine.observeLive({
           nowMs,
-          vregTempC: (info as any).vrTemp,
-          asicTempC: (info as any).temp,
+          vregTempC: info.thermal.vrTemp,
+          asicTempC: info.thermal.asicTemp,
           liveHashrateHs: liveHs,
           expectedHashrateHs: this.expectedHashrateHsLast,
           systemOk,
@@ -687,7 +803,7 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
       },
       mapInfo: (info) => {
         // Normalize/derive everything the tiles need (bars + squares).
-        const derived = normalizeHomeTileInfo(info as any, {
+        const derived = normalizeHomeTileInfo(info, {
           powerUsageAliases: HOME_CFG.tiles.powerUsageAliases,
           vrTempLimits: (BAR_LIMITS as any).vrTemp,
         });
@@ -703,17 +819,17 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     });
 
     this.expectedHashRate$ = this.info$.pipe(map(info => {
-      if (!info || info.frequency == null || info.smallCoreCount == null || info.asicCount == null) return undefined;
-      const val = Math.floor(info.frequency * ((info.smallCoreCount * info.asicCount) / 1000));
+      if (!info || info.performance.frequency == null || info.performance.smallCoreCount == null || info.performance.asicCount == null) return undefined;
+      const val = Math.floor(info.performance.frequency * ((info.performance.smallCoreCount * info.performance.asicCount) / 1000));
       return Number.isFinite(val) ? val : undefined;
     }));
 
     this.quickLink$ = this.info$.pipe(
-      map(info => this.getQuickLink(info.stratumURL, info.stratumUser))
+      map(info => this.getQuickLink((info.stratum.pools[0]?.host ?? ''), (info.stratum.pools[0]?.user ?? '')))
     );
 
     this.fallbackQuickLink$ = this.info$.pipe(
-      map(info => this.getQuickLink(info.fallbackStratumURL, info.fallbackStratumUser))
+      map(info => this.getQuickLink((info.stratum.pools[1]?.host ?? ''), (info.stratum.pools[1]?.user ?? '')))
     );
   }
 
@@ -1623,6 +1739,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       smoothingCfg: this.hashrate1mSmoothingCfg,
       windowMs: this.chartWindowMs,
       zoomCfg: this.zoomCfg,
+      hideTempDatasets: false,
     });
   }
 
@@ -1653,15 +1770,16 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
   public getPoolHashrate(i: 0 | 1) {
     if (!this._info?.stratum) return 0;
     const balance = this.getActiveBalance(i);
-    return this._info.hashRate * balance / 100.0;
+    return this._info.performance.hashRate * balance / 100.0;
   }
 
   public getActiveBalance(i: 0 | 1) {
     const stratum = this._info?.stratum;
     if (!stratum) return 0;
-    const connected = stratum.pools.map(p => p.connected);
+    const active = stratum.pools.map((p: IDashboardV2Pool) => p.connected && !p.verifyBlocked);
     const balance = stratum.poolBalance;
 
+<<<<<<< HEAD
     if (!connected[0] && !connected[1]) {
       return 0;
     }
@@ -1674,12 +1792,25 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
   }
 
   public getPoolInfo(i?: 0 | 1): IPool {
+=======
+    // If neither pool is active
+    if (!active[0] && !active[1]) return 0;
+
+    // If both pools are active
+    if (active[0] && active[1]) return i === 0 ? balance : 100 - balance;
+
+    // Only one pool is active → return 100 for that pool, 0 for the other
+    return active[i] ? 100 : 0;
+  }
+
+
+  public getPoolInfo(i?: 0 | 1): IDashboardV2Pool {
+>>>>>>> upstream/develop
     const stratum = this._info?.stratum;
-    if (!this._info || !stratum) {
-      return {} as IPool;
-    }
+    if (!this._info || !stratum) return {} as any;
 
     if (i === undefined) {
+<<<<<<< HEAD
       const useFallback = stratum?.usingFallback ?? false;
       const base = stratum?.pools[0] ?? {};
 
@@ -1699,6 +1830,11 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       port: i === 0 ? this._info.stratumPort : this._info.fallbackStratumPort,
       user: i === 0 ? this._info.stratumUser : this._info.fallbackStratumUser,
     };
+=======
+      return stratum.pools[0] ?? {} as any;
+    }
+    return stratum.pools[i] ?? {} as any;
+>>>>>>> upstream/develop
   }
 
   private clearChartHistoryInternal(updateChartNow: boolean): void {
@@ -1726,7 +1862,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     let info: any = null;
     try {
       info = await firstValueFrom(
-        this.systemService.getInfoWithSpan(start, this.chunkSizeDrainer, windowMs)
+        this.systemService.getDashboardV2WithSpan(start, this.chunkSizeDrainer, windowMs)
       );
     } catch {
       return;
@@ -1802,4 +1938,109 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
   private importHistoricalDataChunked(history: any): void {
     this.historyDrainer.ingest(history);
   }
+
+  /* ── Block Header helpers ── */
+
+  trackByPool(_index: number, bh: IDashboardV2BlockHeader): number {
+    return bh.pool;
+  }
+
+  getPoolVerificationOk(poolIdx: number): boolean {
+    const bh = this._info?.coinbase?.blockHeaders?.find(h => h.pool === poolIdx);
+    return bh?.verificationOk ?? false;
+  }
+
+  getVerifyPoolIdx(idx: number | undefined, usingFallback: boolean | undefined): number {
+    return (usingFallback && !this.isDualPool) ? 1 : (idx ?? 0);
+  }
+
+  getPoolVerifyMode(poolIdx: number): number {
+    return poolIdx === 0
+      ? (this._info?.coinbase?.pools[0]?.mode ?? 0)
+      : (this._info?.coinbase?.pools[1]?.mode ?? 0);
+  }
+
+  getPoolHonestyPct(bh: IDashboardV2BlockHeader): number | null {
+    const checks = bh.verificationCheckCount ?? 0;
+    if (checks === 0) return null;
+    const fails = bh.verificationFailCount ?? 0;
+    return ((checks - fails) / checks) * 100;
+  }
+
+  getPoolVerificationColor(poolIdx: number): string | null {
+    const mode = this.getPoolVerifyMode(poolIdx);
+    if (mode === 0) return null;
+    const bh = this._info?.coinbase?.blockHeaders?.find(h => h.pool === poolIdx);
+    if (!bh) return null;
+    const honesty = this.getPoolHonestyPct(bh);
+    if (honesty === null) return '#4caf50'; // not yet checked — neutral green
+    return honesty >= 100 ? '#4caf50' : '#f44336';
+  }
+
+  getPoolVerificationTooltip(poolIdx: number): string {
+    const mode = this.getPoolVerifyMode(poolIdx);
+    if (mode === 0) return '';
+    const bh = this._info?.coinbase?.blockHeaders?.find(h => h.pool === poolIdx);
+    if (!bh) return '';
+
+    const lines: string[] = [];
+
+    if (mode === 1) {
+      // Basic mode: only address check. Show payout share as % and BTC.
+      const total = bh.coinbaseValueTotalSatoshis ?? 0;
+      const user  = bh.coinbaseValueUserSatoshis ?? 0;
+      if (total > 0) {
+        const pct = (user / total) * 100;
+        lines.push(`Payout: ${pct.toFixed(2)}% (${this.formatSats(user)})`);
+      } else {
+        lines.push('Payout: n/a (no coinbase data yet)');
+      }
+      if (!bh.verificationOk) {
+        lines.push('Your address was not found in the last coinbase.');
+      }
+      return lines.join('\n');
+    }
+
+    // Advanced mode (fee check etc.): keep honesty-style summary
+    const checks = bh.verificationCheckCount ?? 0;
+    const fails = bh.verificationFailCount ?? 0;
+    const honesty = this.getPoolHonestyPct(bh);
+    const honestyStr = honesty !== null ? honesty.toFixed(1) + '%' : 'n/a';
+    const fee = this.getBlockHeaderFee(bh);
+    const feeStr = fee >= 0 ? fee.toFixed(2) + '%' : 'unknown';
+
+    lines.push(`Honesty: ${honestyStr} (${checks - fails}/${checks} checks passed)`);
+    lines.push(`Current pool fee: ${feeStr}`);
+    if (!bh.verificationOk) {
+      lines.push(bh.coinbaseValueUserSatoshis === 0
+        ? 'Your address was not found in the last coinbase.'
+        : 'Pool fee exceeded configured limit.');
+    }
+    return lines.join('\n');
+  }
+
+  getBlockHeaderFee(bh: IDashboardV2BlockHeader): number {
+    if (bh.coinbaseValueTotalSatoshis) {
+      return (1 - (bh.coinbaseValueUserSatoshis ?? 0) / bh.coinbaseValueTotalSatoshis) * 100;
+    }
+    return -1;
+  }
+
+  formatDifficulty(diff: number | undefined): string {
+    if (!diff) return '-';
+    const suffixes = ['', 'K', 'M', 'G', 'T', 'P', 'E'];
+    let idx = 0;
+    let v = diff;
+    while (v >= 1000 && idx < suffixes.length - 1) {
+      v /= 1000;
+      idx++;
+    }
+    return v.toFixed(idx === 0 ? 0 : 2) + suffixes[idx];
+  }
+
+  formatSats(sats: number | undefined): string {
+    if (!sats) return '-';
+    return (sats / 100_000_000).toFixed(8) + ' BTC';
+  }
+
 }

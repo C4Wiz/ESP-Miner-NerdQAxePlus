@@ -151,7 +151,13 @@ Web-UI: {{ currentWebVersion }}<br/>
     </nb-card-body>
   </nb-card>
 
+<<<<<<< HEAD
   <nb-card class="card-item" style="position: relative;">
+=======
+
+  <div class="card-item" *ngIf="!isDangerZone"></div>
+  <nb-card class="card-item" style="position: relative;" *ngIf="isDangerZone">
+>>>>>>> upstream/develop
     <nb-card-header>
       {{ 'UPDATE.LEGACY' | translate }}
     </nb-card-header>
