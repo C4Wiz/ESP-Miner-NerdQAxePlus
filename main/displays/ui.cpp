@@ -24,6 +24,27 @@ void on_screen_loaded(lv_event_t * e)
     driver->setScreenAnimationRunning(false);
 }
 
+static void apply_img_tint(lv_obj_t *img, lv_color_t color, lv_opa_t opa)
+{
+    if (img) {
+        lv_obj_set_style_img_recolor(img, color, 0);
+        lv_obj_set_style_img_recolor_opa(img, opa, 0);
+    }
+}
+
+// Tint all image children of a screen
+static void tint_screen_bg(lv_obj_t *screen, lv_color_t color, lv_opa_t opa)
+{
+    if (!screen) return;
+    uint32_t cnt = lv_obj_get_child_cnt(screen);
+    for (uint32_t i = 0; i < cnt; i++) {
+        lv_obj_t *child = lv_obj_get_child(screen, i);
+        if (lv_obj_check_type(child, &lv_img_class)) {
+            apply_img_tint(child, color, opa);
+        }
+    }
+}
+
 ///////////////////// SCREENS ////////////////////
 
 void UI::splash1ScreenInit(void)
@@ -43,6 +64,8 @@ void UI::splash1ScreenInit(void)
 
     // Liberar memoria de imágenes no utilizadas
     lv_img_cache_invalidate_src(m_theme->getSplashscreen2());
+
+    addInitScreenOverlays();
 }
 
 void UI::splash2ScreenInit(void)
@@ -74,6 +97,115 @@ void UI::splash2ScreenInit(void)
 
     // Liberar memoria de imágenes no utilizadas
     lv_img_cache_invalidate_src(m_theme->getInitscreen2());
+
+    addSplash2Overlays();
+}
+
+bool UI::isGenericTheme() const
+{
+    LV_IMG_DECLARE(ui_img_Generic_splashscreen2_png);
+    return m_theme->getSplashscreen2() == &ui_img_Generic_splashscreen2_png;
+}
+
+void UI::addInitScreenOverlays()
+{
+    if (!isGenericTheme()) return;
+
+    // Device name centered
+    lv_obj_t *lbDevice = lv_label_create(ui_Splash1);
+    lv_label_set_text(lbDevice, m_board->getDeviceModel());
+    lv_obj_set_style_text_color(lbDevice, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(lbDevice, &ui_font_OpenSansBold45, LV_PART_MAIN);
+    lv_obj_align(lbDevice, LV_ALIGN_CENTER, 0, 0);
+}
+
+void UI::addMiningScreenOverlays()
+{
+    if (!isGenericTheme()) return;
+
+    // Device name top left (small)
+    lv_obj_t *lbDevice = lv_label_create(ui_MiningScreen);
+    lv_label_set_text(lbDevice, m_board->getDeviceModel());
+    lv_obj_set_style_text_color(lbDevice, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(lbDevice, &ui_font_OpenSansBold24, LV_PART_MAIN);
+    lv_obj_align(lbDevice, LV_ALIGN_LEFT_MID, 8, -25);
+}
+
+void UI::addSplash2Overlays()
+{
+    if (!isGenericTheme()) return;
+
+    // --- Device name (top left) ---
+    lv_obj_t *lbDevice = lv_label_create(ui_Splash2);
+    lv_label_set_text(lbDevice, m_board->getDeviceModel());
+    lv_obj_set_style_text_color(lbDevice, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(lbDevice, &ui_font_OpenSansBold45, LV_PART_MAIN);
+    lv_obj_align(lbDevice, LV_ALIGN_LEFT_MID, 8, -15);
+/*
+    // --- Credits (center) ---
+    lv_obj_t *lbCredits = lv_label_create(ui_Splash2);
+    lv_label_set_text(lbCredits,
+        "Credits to\n");
+    lv_obj_set_style_text_color(lbCredits, lv_color_hex(0xDEDADE), LV_PART_MAIN);
+    lv_obj_set_style_text_font(lbCredits, &ui_font_OpenSansBold13, LV_PART_MAIN);
+    lv_obj_set_style_text_align(lbCredits, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_align(lbCredits, LV_ALIGN_CENTER, 0, 12);
+*/
+    // --- Donation QR code (right side) ---
+    const int maxVer = 6;
+    uint8_t *tmpBuf = (uint8_t *) MALLOC(qrcodegen_BUFFER_LEN_FOR_VERSION(maxVer));
+    uint8_t *qrBuf  = (uint8_t *) MALLOC(qrcodegen_BUFFER_LEN_FOR_VERSION(maxVer));
+    if (!tmpBuf || !qrBuf) {
+        free(tmpBuf);
+        free(qrBuf);
+        return;
+    }
+
+    bool ok = qrcodegen_encodeText(CONFIG_DONATE_ADDR, tmpBuf, qrBuf,
+        qrcodegen_Ecc_MEDIUM, qrcodegen_VERSION_MIN, maxVer,
+        qrcodegen_Mask_AUTO, true);
+    free(tmpBuf);
+
+    if (!ok) {
+        free(qrBuf);
+        return;
+    }
+
+    int n = qrcodegen_getSize(qrBuf);
+    const int quiet = 3;
+    const int max_px = 100;
+    const int scale = std::max(2, max_px / (n + 2 * quiet));
+    const int img = (n + 2 * quiet) * scale;
+
+    m_splash_qr_buf = (lv_color_t *) MALLOC(img * img * sizeof(lv_color_t));
+    if (!m_splash_qr_buf) {
+        free(qrBuf);
+        return;
+    }
+
+    lv_obj_t *canvas = lv_canvas_create(ui_Splash2);
+    lv_canvas_set_buffer(canvas, m_splash_qr_buf, img, img, LV_IMG_CF_TRUE_COLOR);
+    lv_obj_align(canvas, LV_ALIGN_RIGHT_MID, -24, 30);
+
+    // White background
+    lv_draw_rect_dsc_t bg;
+    lv_draw_rect_dsc_init(&bg);
+    bg.bg_color = lv_color_white();
+    lv_canvas_draw_rect(canvas, 0, 0, img, img, &bg);
+
+    // Black modules
+    lv_draw_rect_dsc_t blk;
+    lv_draw_rect_dsc_init(&blk);
+    blk.bg_color = lv_color_black();
+    blk.border_opa = LV_OPA_TRANSP;
+
+    for (int y = 0; y < n; ++y) {
+        for (int x = 0; x < n; ++x) {
+            if (!qrcodegen_getModule(qrBuf, x, y)) continue;
+            lv_canvas_draw_rect(canvas, (quiet + x) * scale, (quiet + y) * scale, scale, scale, &blk);
+        }
+    }
+    free(qrBuf);
 }
 
 void UI::portalScreenInit(void)
@@ -127,7 +259,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbVinput, 234);
     lv_obj_set_y(ui_lbVinput, -34);
     lv_obj_set_align(ui_lbVinput, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbVinput, "5V");
+    lv_label_set_text(ui_lbVinput, "0V");
     lv_obj_set_style_text_color(ui_lbVinput, lv_color_hex(0xDEDADE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbVinput, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbVinput, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -139,7 +271,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbVcore, 234);
     lv_obj_set_y(ui_lbVcore, -12);
     lv_obj_set_align(ui_lbVcore, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbVcore, "1200mV");
+    lv_label_set_text(ui_lbVcore, "0mV");
     lv_obj_set_style_text_color(ui_lbVcore, lv_color_hex(0xDEDEDE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbVcore, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbVcore, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -151,7 +283,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbIntensidad, 234);
     lv_obj_set_y(ui_lbIntensidad, 10);
     lv_obj_set_align(ui_lbIntensidad, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbIntensidad, "2.344mA");
+    lv_label_set_text(ui_lbIntensidad, "0.000mA");
     lv_obj_set_style_text_color(ui_lbIntensidad, lv_color_hex(0xDEDEDE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbIntensidad, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbIntensidad, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -175,7 +307,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbEficiency, -43);
     lv_obj_set_y(ui_lbEficiency, 61);
     lv_obj_set_align(ui_lbEficiency, LV_ALIGN_RIGHT_MID);
-    lv_label_set_text(ui_lbEficiency, "12.4");
+    lv_label_set_text(ui_lbEficiency, "0.0");
     lv_obj_set_style_text_color(ui_lbEficiency, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbEficiency, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbEficiency, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -187,7 +319,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbTemp, -139);
     lv_obj_set_y(ui_lbTemp, 24);
     lv_obj_set_align(ui_lbTemp, LV_ALIGN_RIGHT_MID);
-    lv_label_set_text(ui_lbTemp, "48");
+    lv_label_set_text(ui_lbTemp, "20");
     lv_obj_set_style_text_color(ui_lbTemp, lv_color_hex(0xDEDADE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbTemp, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbTemp, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -199,7 +331,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbTime, -190);
     lv_obj_set_y(ui_lbTime, 0);
     lv_obj_set_align(ui_lbTime, LV_ALIGN_RIGHT_MID);
-    lv_label_set_text(ui_lbTime, "1d 2h 5m");
+    lv_label_set_text(ui_lbTime, "0d 0h 0m");
     lv_obj_set_style_text_color(ui_lbTime, lv_color_hex(0xDEEE00), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbTime, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbTime, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -211,7 +343,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbIP, -16);
     lv_obj_set_y(ui_lbIP, -77);
     lv_obj_set_align(ui_lbIP, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_lbIP, "192.168.1.200");
+    lv_label_set_text(ui_lbIP, "0.0.0.0");
     lv_obj_set_style_text_color(ui_lbIP, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbIP, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbIP, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -223,7 +355,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbBestDifficulty, 34);
     lv_obj_set_y(ui_lbBestDifficulty, 21);
     lv_obj_set_align(ui_lbBestDifficulty, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbBestDifficulty, "22M");
+    lv_label_set_text(ui_lbBestDifficulty, "0M");
     lv_obj_set_style_text_color(ui_lbBestDifficulty, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbBestDifficulty, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbBestDifficulty, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -235,7 +367,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbHashrate, -208);
     lv_obj_set_y(ui_lbHashrate, 59);
     lv_obj_set_align(ui_lbHashrate, LV_ALIGN_RIGHT_MID);
-    lv_label_set_text(ui_lbHashrate, "500,0");
+    lv_label_set_text(ui_lbHashrate, "0,0");
     lv_obj_set_style_text_color(ui_lbHashrate, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbHashrate, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbHashrate, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -247,7 +379,7 @@ void UI::miningScreenInit(void)
     lv_obj_set_x(ui_lbRPM, 20);
     lv_obj_set_y(ui_lbRPM, -9);
     lv_obj_set_align(ui_lbRPM, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_lbRPM, "5000");
+    lv_label_set_text(ui_lbRPM, "0");
     lv_obj_set_style_text_color(ui_lbRPM, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbRPM, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbRPM, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -266,8 +398,23 @@ void UI::miningScreenInit(void)
     lv_obj_set_style_text_font(ui_lbASIC, &ui_font_OpenSansBold14, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(ui_MiningScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
 
+    ui_imgNet = lv_img_create(ui_MiningScreen);
+    lv_img_set_src(ui_imgNet, &ui_img_wifi_png);  // default
+
+    lv_obj_set_width(ui_imgNet, 14);
+    lv_obj_set_height(ui_imgNet, 14);
+
+    lv_obj_set_x(ui_imgNet, 41+7);
+    lv_obj_set_y(ui_imgNet, -83+7);
+    lv_obj_set_align(ui_imgNet, LV_ALIGN_CENTER);
+
+    lv_obj_clear_flag(ui_imgNet, LV_OBJ_FLAG_SCROLLABLE);
+
     // lv_obj_add_event_cb(ui_MiningScreen, ui_event_MiningScreen, LV_EVENT_ALL, NULL);
+
+    addMiningScreenOverlays();
 }
+
 void UI::settingsScreenInit(void)
 {
     ui_SettingsScreen = lv_obj_create(NULL);
@@ -287,7 +434,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbIPSet, -16);
     lv_obj_set_y(ui_lbIPSet, -77);
     lv_obj_set_align(ui_lbIPSet, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_lbIPSet, "192.168.1.200");
+    lv_label_set_text(ui_lbIPSet, "--");
     lv_obj_set_style_text_color(ui_lbIPSet, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbIPSet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbIPSet, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -299,7 +446,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbBestDifficultySet, 34);
     lv_obj_set_y(ui_lbBestDifficultySet, 21);
     lv_obj_set_align(ui_lbBestDifficultySet, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbBestDifficultySet, "22M");
+    lv_label_set_text(ui_lbBestDifficultySet, "--");
     lv_obj_set_style_text_color(ui_lbBestDifficultySet, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbBestDifficultySet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbBestDifficultySet, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -323,7 +470,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbVcoreSet, 43);
     lv_obj_set_y(ui_lbVcoreSet, -45);
     lv_obj_set_align(ui_lbVcoreSet, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbVcoreSet, "1200mV");
+    lv_label_set_text(ui_lbVcoreSet, "--");
     lv_obj_set_style_text_color(ui_lbVcoreSet, lv_color_hex(0xDEDADE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbVcoreSet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbVcoreSet, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -335,7 +482,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbFreqSet, 43);
     lv_obj_set_y(ui_lbFreqSet, -25);
     lv_obj_set_align(ui_lbFreqSet, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbFreqSet, "485");
+    lv_label_set_text(ui_lbFreqSet, "--");
     lv_obj_set_style_text_color(ui_lbFreqSet, lv_color_hex(0xDEDADE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbFreqSet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbFreqSet, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -359,7 +506,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbPoolSet, 169);
     lv_obj_set_y(ui_lbPoolSet, -9);
     lv_obj_set_align(ui_lbPoolSet, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbPoolSet, "public-pool.io");
+    lv_label_set_text(ui_lbPoolSet, "--");
     lv_obj_set_style_text_color(ui_lbPoolSet, lv_color_hex(0xDEDADE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbPoolSet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbPoolSet, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -371,7 +518,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbHashrateSet, -208);
     lv_obj_set_y(ui_lbHashrateSet, 59);
     lv_obj_set_align(ui_lbHashrateSet, LV_ALIGN_RIGHT_MID);
-    lv_label_set_text(ui_lbHashrateSet, "500,0");
+    lv_label_set_text(ui_lbHashrateSet, "--");
     lv_obj_set_style_text_color(ui_lbHashrateSet, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbHashrateSet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbHashrateSet, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -395,7 +542,7 @@ void UI::settingsScreenInit(void)
     lv_obj_set_x(ui_lbPortSet, 211);
     lv_obj_set_y(ui_lbPortSet, 13);
     lv_obj_set_align(ui_lbPortSet, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lbPortSet, "3333");
+    lv_label_set_text(ui_lbPortSet, "--");
     lv_obj_set_style_text_color(ui_lbPortSet, lv_color_hex(0xDEDADE), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lbPortSet, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbPortSet, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -455,7 +602,7 @@ void UI::bTCScreenInit(void)
     lv_obj_set_x(ui_lblPriceInc, 193);
     lv_obj_set_y(ui_lblPriceInc, 49);
     lv_obj_set_align(ui_lblPriceInc, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(ui_lblPriceInc, "2%");
+    lv_label_set_text(ui_lblPriceInc, "--");
     lv_obj_set_style_text_color(ui_lblPriceInc, lv_color_hex(0x07FF2A), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_lblPriceInc, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lblPriceInc, &ui_font_OpenSansBold14, LV_PART_MAIN | LV_STATE_DEFAULT);*/
@@ -809,4 +956,16 @@ void UI::init(Board* board, DisplayDriver *display)
     // ui_LogScreen_init();
 
     lv_disp_load_scr(ui_Splash1);
+
+    if (isGenericTheme()) {
+        lv_color_t tint = lv_color_make(255, 255, 255);
+        lv_opa_t opa = 100;
+        tint_screen_bg(ui_Splash1, tint, opa);
+        tint_screen_bg(ui_Splash2, tint, opa);
+        tint_screen_bg(ui_PortalScreen, tint, opa);
+        tint_screen_bg(ui_MiningScreen, tint, opa);
+        tint_screen_bg(ui_SettingsScreen, tint, opa);
+        tint_screen_bg(ui_BTCScreen, tint, opa);
+        tint_screen_bg(ui_GlobalStats, tint, opa);
+    }
 }
