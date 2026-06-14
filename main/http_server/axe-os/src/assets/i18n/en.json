@@ -329,7 +329,8 @@
   "UPDATE": {
     "TITLE": "Updates",
     "VERSION_INFO": "Version Information",
-    "CURRENT_VERSION": "Current Version",
+    "CURRENT_VERSION": "Firmware Version",
+    "CURRENT_WEB_VERSION": "Web UI Version",
     "LATEST_RELEASE": "Latest Release",
     "PUBLISHED": "Published",
     "CHECK": "Check",
@@ -361,7 +362,7 @@
     "SHOW_CHANGELOG": "Show Changelog",
     "HIDE_CHANGELOG": "Hide Changelog",
     "DIRECT_FROM_GITHUB": "Direct from GitHub",
-    "INSTALL_FROM_GITHUB": "Install from GitHub",
+    "INSTALL_FROM_GITHUB": "OTA Update",
     "UPDATE_ONE_CLICK": "One Click Update",
     "MANUAL_FIRMWARE_UPDATE": "Manual Firmware Upload",
     "MANUAL_WWW_UPDATE": "Manual WWW Upload",
