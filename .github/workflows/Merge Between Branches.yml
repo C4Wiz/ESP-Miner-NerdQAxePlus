@@ -1,0 +1,87 @@
+name: Merge Between Branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch to merge FROM'
+        required: true
+        default: 'develop'
+        type: choice
+        options:
+          - master
+          - develop
+          - testing
+      target_branch:
+        description: 'Branch to merge INTO'
+        required: true
+        default: 'master'
+        type: choice
+        options:
+          - develop
+          - master
+          - testing
+
+jobs:
+  merge-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.PAT_TOKEN }}
+
+    - name: Configure git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Fetch all branches
+      run: git fetch origin
+
+    - name: Attempt merge
+      id: merge
+      run: |
+        git checkout ${{ github.event.inputs.target_branch }}
+        if git merge --no-edit origin/${{ github.event.inputs.source_branch }}; then
+          echo "CONFLICTS=false" >> $GITHUB_ENV
+        else
+          echo "CONFLICTS=true" >> $GITHUB_ENV
+          git merge --abort
+        fi
+
+    - name: Push merged branch
+      if: env.CONFLICTS == 'false'
+      run: git push origin ${{ github.event.inputs.target_branch }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+    - name: Open PR if conflicts detected
+      if: env.CONFLICTS == 'true'
+      run: |
+        BRANCH="merge/${{ github.event.inputs.source_branch }}-to-${{ github.event.inputs.target_branch }}-$(date +'%Y%m%d-%H%M%S')"
+        git checkout -b "${BRANCH}" origin/${{ github.event.inputs.target_branch }}
+        git merge --no-edit origin/${{ github.event.inputs.source_branch }} || true
+        git add -A
+        git commit -m "chore: merge ${{ github.event.inputs.source_branch }} into ${{ github.event.inputs.target_branch }} — conflicts need manual resolution"
+        git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
+        git push origin "${BRANCH}"
+        sleep 5
+        gh pr create \
+          --repo ${{ github.repository }} \
+          --title "⚠️ Merge ${{ github.event.inputs.source_branch }} → ${{ github.event.inputs.target_branch }} — conflicts need resolution" \
+          --body "Automated merge of \`${{ github.event.inputs.source_branch }}\` into \`${{ github.event.inputs.target_branch }}\` failed due to conflicts. Please resolve them locally before merging this PR." \
+          --base ${{ github.event.inputs.target_branch }} \
+          --head "${BRANCH}"
+      env:
+        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+    - name: Summary
+      run: |
+        if [ "${{ env.CONFLICTS }}" == "false" ]; then
+          echo "✅ ${{ github.event.inputs.source_branch }} merged into ${{ github.event.inputs.target_branch }} successfully." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Conflicts detected — PR opened for manual resolution." >> $GITHUB_STEP_SUMMARY
+        fi

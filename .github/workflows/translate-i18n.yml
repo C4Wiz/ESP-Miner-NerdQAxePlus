@@ -1,0 +1,137 @@
+name: Translate i18n Files
+
+on:
+  workflow_dispatch:
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Parse supported languages from language.model.ts
+      run: |
+        MODEL_FILE="main/http_server/axe-os/src/app/@i18n/models/language.model.ts"
+        LANG_CODES=$(grep -oP "'[a-z]{2}'" "$MODEL_FILE" | tr -d "'" | grep -v '^en$' | tr '\n' ' ')
+        echo "Detected language codes: $LANG_CODES"
+        echo "LANG_CODES=$LANG_CODES" >> $GITHUB_ENV
+
+    - name: Translate to all languages
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        EN_FILE="main/http_server/axe-os/src/assets/i18n/en.json"
+        HASH_FILE="main/http_server/axe-os/src/assets/i18n/.en_hash"
+        PREV_EN_FILE="main/http_server/axe-os/src/assets/i18n/.en_prev.json"
+        EN_CONTENT=$(cat "$EN_FILE")
+
+        CURRENT_HASH=$(md5sum "$EN_FILE" | cut -d' ' -f1)
+        echo "Current en.json hash: $CURRENT_HASH"
+
+        for CODE in ${{ env.LANG_CODES }}; do
+
+          LANG="$CODE"
+          TARGET_FILE="main/http_server/axe-os/src/assets/i18n/${CODE}.json"
+          echo "Checking $CODE..."
+
+          # New language — do a full translation
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo "New language $CODE — running full translation..."
+            TRANSLATE_CONTENT="$EN_CONTENT"
+            FULL_TRANSLATION=true
+          else
+            # Find keys that need translating (missing or changed vs prev en.json)
+            DIFF=$(python3 .github/scripts/diff_translations.py "$EN_FILE" "$TARGET_FILE" "$PREV_EN_FILE")
+
+            if [ "$DIFF" = "{}" ] || [ -z "$DIFF" ]; then
+              echo "✓ $CODE already up to date — skipping"
+              continue
+            fi
+
+            echo "Found changes for $CODE — running partial translation..."
+            TRANSLATE_CONTENT="$DIFF"
+            FULL_TRANSLATION=false
+          fi
+
+          PROMPT="Translate the following JSON i18n snippet from English to the language with ISO 639-1 code '${LANG}'. Rules:\n- Keep all JSON keys exactly as-is\n- Only translate the string values\n- Keep placeholders like {{variable}}, {value}, %s etc unchanged\n- Keep technical terms like 'PID', 'ASIC', 'MHz', 'TH/s', 'GH/s', 'OTA', 'SHA256', 'NVS', 'VReg', 'stratum', 'hashrate', 'InfluxDB', 'Discord', 'dBm', 'TLS', 'SV2', 'TCP' in English\n- Keep brand names like 'NerdQAxe', 'NerdQX', 'Nebular', 'ngx-admin', 'Authy', 'Google Authenticator' unchanged\n- Keep HTML tags like <strong>, <u>, <a href=...> unchanged\n- Keep URLs unchanged\n- Do NOT use curly/smart quotes like \u201c \u201d \u2018 \u2019 in the output, use only straight ASCII quotes\n- Inside HTML tags, use HTML entities &ldquo; and &rdquo; instead of any kind of quotes around words\n- Return only valid JSON, no markdown, no explanation, no backticks\n\nSnippet to translate:\n${TRANSLATE_CONTENT}"
+
+          # Write payload to file to avoid shell argument size limits
+          jq -n \
+            --arg model "claude-sonnet-4-5" \
+            --arg prompt "$PROMPT" \
+            '{model: $model, max_tokens: 16000, messages: [{role: "user", content: $prompt}]}' \
+            > /tmp/request.json
+
+          curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            --data @/tmp/request.json \
+            > /tmp/api_response.json
+
+          jq -r '.content[0].text' /tmp/api_response.json \
+            | sed 's/^```json[[:space:]]*//;s/^```[[:space:]]*//;s/```[[:space:]]*$//' \
+            > /tmp/raw_translated.txt
+
+          python3 .github/scripts/fix_quotes.py > /tmp/translated_${CODE}.json
+          TRANSLATED=$(cat /tmp/translated_${CODE}.json)
+
+          if [ -z "$TRANSLATED" ] || [ "$TRANSLATED" == "null" ]; then
+            echo "ERROR: Failed to translate to $LANG"
+            cat /tmp/api_response.json
+            exit 1
+          fi
+
+          if ! echo "$TRANSLATED" | jq empty 2>/dev/null; then
+            echo "ERROR: Invalid JSON returned for $LANG"
+            echo "$TRANSLATED"
+            exit 1
+          fi
+
+          if [ "$FULL_TRANSLATION" = "true" ]; then
+            echo "$TRANSLATED" > "$TARGET_FILE"
+            echo "✓ Written full translation for $CODE"
+          else
+            echo "$TRANSLATED" > /tmp/new_keys_${CODE}.json
+            python3 .github/scripts/merge_translations.py "$TARGET_FILE" /tmp/new_keys_${CODE}.json
+          fi
+
+          sleep 10
+        done
+
+        # Store current hash and copy of en.json for next run diffing
+        echo "$CURRENT_HASH" > "$HASH_FILE"
+        cp "$EN_FILE" "$PREV_EN_FILE"
+        echo "✓ Updated $HASH_FILE and $PREV_EN_FILE"
+
+    - name: Update app.component.ts language list
+      run: python3 .github/scripts/update_app_component.py
+
+    - name: Update language selector
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: python3 .github/scripts/update_language_selector.py
+
+    - name: Update INTERNATIONALIZATION.md
+      run: python3 .github/scripts/update_internationalization_md.py
+
+    - name: Commit and push translations
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add main/http_server/axe-os/src/assets/i18n/*.json
+        git add main/http_server/axe-os/src/assets/i18n/.en_hash
+        git add main/http_server/axe-os/src/assets/i18n/.en_prev.json
+        git add main/http_server/axe-os/src/app/@i18n/container/language-selector/language-selector.component.html
+        git add main/http_server/axe-os/src/app/app.component.ts
+        git add main/http_server/axe-os/INTERNATIONALIZATION.md
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: update i18n translations [skip ci]"
+          git pull --rebase
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
