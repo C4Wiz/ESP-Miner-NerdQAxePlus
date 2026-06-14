@@ -1,5 +1,3 @@
-[![](https://dcbadge.vercel.app/api/server/3E8ca2dkcC)](https://discord.gg/3E8ca2dkcC)
-
 # ESP-Miner-Nerdaxe version
 
 | Supported Targets | ESP32-S3              |
@@ -18,13 +16,13 @@ Credits to the devs:
 
 The newest releases are always here:
 
-https://github.com/shufps/ESP-Miner-NerdQAxePlus/releases
+https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/releases
 
 ### Recommended Method: The Webflasher
 
-The [Webflasher](https://shufps.github.io/nerdqaxe-web-flasher/) (modified fork of the great [Bitaxe Webflasher](https://github.com/bitaxeorg/bitaxe-web-flasher) by [Wantclue](https://github.com/WantClue)) is the easiest method of updating all Nerd*axe variants.
+The [Webflasher](https://C4Wiz.github.io/nerdqaxe-web-flasher/) (modified fork of the great [Bitaxe Webflasher](https://github.com/bitaxeorg/bitaxe-web-flasher) by [Wantclue](https://github.com/WantClue)) is the easiest method of updating your NerdQaxe++.
 
-[<img src="https://github.com/user-attachments/assets/4168f23a-bfe7-4536-91e3-7af6df9a203a" style="border:5px solid red;width:200px">](https://shufps.github.io/nerdqaxe-web-flasher/)
+[<img src="web-flasher.png" style="border:5px solid red;width:400px">](https://C4Wiz.github.io/nerdqaxe-web-flasher/)
 
 It uses the official releases published on this repository and is always up-to-date.
 
@@ -36,7 +34,7 @@ First you need to clone the repository and create a local copy of the config fil
 
 ```bash
 # clone repository
-git clone https://github.com/shufps/ESP-Miner-NerdQAxePlus
+git clone https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus
 
 # change into the cloned repository
 cd ESP-Miner-NerdQAxePlus
@@ -187,6 +185,4 @@ pip install --upgrade bitaxetool
 
 <img src="https://github.com/user-attachments/assets/3c485428-5e48-4761-9717-bd88579a747d" width="600px">
 
-The NerdQaxe+ firmware supports Influx and the repository provides an installation with Grafana dashboard that can be started with a few bash commands: https://github.com/shufps/ESP-Miner-NerdQAxePlus/tree/master/monitoring
-
-
+The NerdQaxe+ firmware supports Influx and the repository provides an installation with Grafana dashboard that can be started with a few bash commands: https://github.com/C4Wiz/ESP-Miner-NerdQAxePlus/tree/master/monitoring
