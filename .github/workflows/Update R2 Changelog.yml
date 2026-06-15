@@ -67,6 +67,26 @@ jobs:
              ($old | map(select(.name == $a.name)) | .[0].sha256 // "") as $sha |
              $a + {sha256: $sha}]')
 
+          # Backfill any missing sha256 by downloading the asset and hashing it.
+          # Only do this for factory firmware images (skip www.bin/.elf/etc to save bandwidth).
+          ASSET_COUNT=$(echo "$ASSETS" | jq 'length')
+          for j in $(seq 0 $((ASSET_COUNT - 1))); do
+            ASSET_NAME=$(echo "$ASSETS" | jq -r ".[$j].name")
+            ASSET_SHA=$(echo "$ASSETS" | jq -r ".[$j].sha256")
+            ASSET_URL=$(echo "$ASSETS" | jq -r ".[$j].browser_download_url")
+
+            if [ -z "$ASSET_SHA" ] && [[ "$ASSET_NAME" == esp-miner-factory-*.bin ]]; then
+              echo "Computing sha256 for $ASSET_NAME ..."
+              COMPUTED_SHA=$(curl -sL "$ASSET_URL" | sha256sum | awk '{print $1}')
+              if [ -n "$COMPUTED_SHA" ]; then
+                ASSETS=$(echo "$ASSETS" | jq --argjson i "$j" --arg sha "$COMPUTED_SHA" '.[$i].sha256 = $sha')
+                echo "  -> $COMPUTED_SHA"
+              else
+                echo "  -> failed to download/hash $ASSET_NAME"
+              fi
+            fi
+          done
+
           # Check if this version already exists in releases_updated.json
           EXISTING=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .version' releases_updated.json)
 
