@@ -19,7 +19,7 @@ jobs:
             upload_www: true
             label: NerdQAxe++
           - board: NERDOCTAXEGAMMA
-            upload_www: true
+            upload_www: false
             label: NerdOCTAXE-Gamma
 
     steps:
