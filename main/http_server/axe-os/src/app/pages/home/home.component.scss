@@ -1152,6 +1152,35 @@ nb-card-header{
   min-width: 0;
 }
 
+.chart-resize-handle {
+  width: 100%;
+  height: 10px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+  user-select: none;
+  margin-top: -2px;
+
+  &::before {
+    content: '';
+    width: 48px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--bar-label-color, #fff);
+  }
+
+  &:hover {
+    opacity: 0.75;
+  }
+
+  &:active {
+    opacity: 1;
+  }
+}
+
 .chart-canvas__wrap{
   position: relative;
   width: 100%;
@@ -1257,35 +1286,6 @@ nb-card-header{
 @media (max-width: 576px) {
   .chart-canvas__wrap--tall{
     height: 280px;
-  }
-}
-
-.chart-resize-handle {
-  width: 100%;
-  height: 10px;
-  cursor: ns-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.35;
-  transition: opacity 0.15s;
-  user-select: none;
-  margin-top: -2px;
-
-  &::before {
-    content: '';
-    width: 48px;
-    height: 3px;
-    border-radius: 2px;
-    background: var(--bar-label-color, #fff);
-  }
-
-  &:hover {
-    opacity: 0.75;
-  }
-
-  &:active {
-    opacity: 1;
   }
 }
 
@@ -2289,31 +2289,6 @@ nb-card-header{
   gap: 16px;
 }
 
-.pool-summary-square__row2{
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.pool-summary-square__uptime{
-  text-align: right;
-}
-
-.pool-summary-square__uptime-value{
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--bar-value-color);
-  line-height: 1;
-}
-
-.pool-summary-square__uptime-label{
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--unit-in-fill-color, var(--unit-color));
-  line-height: 1.1;
-}
-
 /* --- Chip hashrate grid (2x2, inline next to total hashrate) --- */
 .pool-summary-square__hashrate-row {
   display: flex;
@@ -2347,4 +2322,29 @@ nb-card-header{
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--bar-fill, var(--text-basic-color));
+}
+
+.pool-summary-square__row2{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pool-summary-square__uptime{
+  text-align: right;
+}
+
+.pool-summary-square__uptime-value{
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--bar-value-color);
+  line-height: 1;
+}
+
+.pool-summary-square__uptime-label{
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--unit-in-fill-color, var(--unit-color));
+  line-height: 1.1;
 }

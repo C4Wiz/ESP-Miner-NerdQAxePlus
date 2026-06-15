@@ -68,7 +68,7 @@ export class GithubUpdateService {
 
   /**
    * Fetch releases from R2 instead of GitHub API.
-   * Returns up to 10 releases of the selected type.
+   * Returns up to 10 releases of the selected type, sorted newest-first.
    */
   public getReleases(includePrereleases = false): Observable<GithubRelease[]> {
     return this.httpClient.get<R2ReleasesJson>(this.r2ReleasesUrl).pipe(
@@ -82,7 +82,7 @@ export class GithubUpdateService {
 
         // Mark the first entry as latest
         return sliced.map((r, index) => ({
-          id: index,  // ← unique per release
+          id: index,  // unique per release
           tag_name: r.version,
           name: r.name,
           prerelease: r.prerelease,

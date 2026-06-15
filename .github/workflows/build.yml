@@ -12,11 +12,15 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         include:
           - board: NERDQAXEPLUS2
             upload_www: true
             label: NerdQAxe++
+          - board: NERDOCTAXEGAMMA
+            upload_www: false
+            label: NerdOCTAXE-Gamma
 
     steps:
     - name: Checkout repository
@@ -48,7 +52,7 @@ jobs:
         COMMIT_HASH=$(git rev-parse --short HEAD)
         sed -e "s|__COMMIT__|${COMMIT_HASH}|g" -i ./main/http_server/axe-os/src/app/app.module.ts
         sed -e "s|__VERSION__|${VERSION_TAG}|g" -i ./main/http_server/axe-os/src/app/app.module.ts
-        for l in de en es fr; do
+        for l in de en es fr it ja pl ro ru sk sv tr zh; do
           mv "./main/http_server/axe-os/src/assets/i18n/${l}.json" "./main/http_server/axe-os/src/assets/i18n/${l}.${COMMIT_HASH}.json"
         done
 
@@ -146,9 +150,18 @@ jobs:
            --arg published_at "${PUBLISHED_AT}" \
            --arg body "${BODY}" \
            --argjson prerelease "${IS_PRERELEASE}" \
-           '.updated_at = $now |
-            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
-            (.releases | map(select(.version != $version)))' \
+           '
+           (.releases | map(.version) | index($version)) as $idx |
+           .updated_at = $now |
+           if $idx == null then
+             .releases = [{"version": $version, "name": $name, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": [{"name": $asset_name, "browser_download_url": $url, "sha256": $sha256}]}] + .releases
+           else
+             .releases[$idx].prerelease = $prerelease |
+             .releases[$idx].published_at = $published_at |
+             .releases[$idx].body = $body |
+             .releases[$idx].assets = ([.releases[$idx].assets[] | select(.name != $asset_name)] + [{"name": $asset_name, "browser_download_url": $url, "sha256": $sha256}])
+           end
+           ' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
         echo "Updated releases.json:"

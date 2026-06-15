@@ -114,7 +114,7 @@ Web-UI: {{ currentWebVersion }}<br/>
 
       <hr style="border-color: var(--card-divider-color); margin: 20px 0; opacity:1.0;" />
 
-       <!-- Update CTA + progress -->
+      <!-- Update CTA + progress -->
       <div class="update-section">
         <div class="d-flex align-items-center justify-content-between mt-2">
           <button nbButton [status]="updateStatus === UpdateStatus.UPDATE_AVAILABLE ? 'warning' : 'primary'"
@@ -140,7 +140,7 @@ Web-UI: {{ currentWebVersion }}<br/>
             {{ 'UPDATE.INITIALIZING' | translate }}
           </ng-container>
           <ng-container *ngIf="otaProgress > 0 && otaProgress < 100">
-            {{ (currentStep || 'STEP_UNKNOWN') | translate }}: {{ otaProgress }}%
+            {{ (otaCurrentStep || 'STEP_UNKNOWN') | translate }}: {{ otaProgress }}%
           </ng-container>
           <ng-container *ngIf="otaProgress >= 100">
             {{ 'UPDATE.INSTALLATION_COMPLETE' | translate }}

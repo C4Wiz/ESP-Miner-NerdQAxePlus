@@ -105,13 +105,13 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   private readonly chartCollapsedKey: string = HOME_CFG.storage.keys.chartCollapsed;
 
   // Chart height persistence
-    private readonly chartHeightKey = 'nerdCharts_chartHeight';
-    private readonly chartHeightDefault = 570;
-    private readonly chartHeightMin = 200;
-    private readonly chartHeightMax = 1200;
-    public chartHeightPx: number = 570;
-    private chartWindowMs: number = HOME_CFG.xAxis.fixedWindowMs;
-    private zoomCfg: ChartZoomCfg = {
+  private readonly chartHeightKey = 'nerdCharts_chartHeight';
+  private readonly chartHeightDefault = 570;
+  private readonly chartHeightMin = 200;
+  private readonly chartHeightMax = 1200;
+  public chartHeightPx: number = 570;
+  private chartWindowMs: number = HOME_CFG.xAxis.fixedWindowMs;
+  private zoomCfg: ChartZoomCfg = {
     minWindowMs: HOME_CFG.xAxis.minWindowMs,
     maxWindowMs: HOME_CFG.xAxis.maxWindowMs,
     zoomStepMs: HOME_CFG.xAxis.zoomStepMs,
@@ -219,9 +219,10 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
    * Input Voltage warn-band (yellow) should be data-driven (HOME_CFG) and centralized.
    * We keep the template free of thresholds by routing through this method.
    */
-  public isInputVoltageWarn(voltage: any): boolean {
-    const band = HOME_CFG.tiles.inputVoltageBand;
-    return isOutsideBand(voltage, band.low, band.high);
+  public isInputVoltageWarn(voltage: any, voltageMin?: number, voltageMax?: number): boolean {
+    const low = voltageMin ?? HOME_CFG.tiles.inputVoltageBand.low;
+    const high = voltageMax ?? HOME_CFG.tiles.inputVoltageBand.high;
+    return isOutsideBand(voltage, low, high);
   }
 
   /**
@@ -245,34 +246,114 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
     return isBarCrit(currentA, minA, maxA, critRel);
   }
 
-  /** Voltage Regulator temperature bands (yellow/red) are configured in HOME_CFG. */
-  /**public isVrTempWarn(vrTempC: any): boolean {
-    const band = HOME_CFG.tiles.vrTempBand;
-    return isBetween(vrTempC, band.warnC, band.critC);
+  /** Voltage Regulator temperature bands (yellow/red) are derived from the
+   *  fan-2 overheat temperature when available, falling back to BAR_LIMITS.vrTemp.max. */
+  public vrTempMax(info: any): number {
+    const overheat = Number(info?.fans?.[1]?.overheatTemp);
+    return Number.isFinite(overheat) && overheat > 0 ? overheat : BAR_LIMITS.vrTemp.max;
   }
 
-  public isVrTempCrit(vrTempC: any): boolean {
-    const band = HOME_CFG.tiles.vrTempBand;
-    return isAtLeast(vrTempC, band.critC);
-  }*/
+  public isVrTempWarn(vrTempC: any, info?: any): boolean {
+    const max = this.vrTempMax(info);
+    const warnC = max * 0.94;
+    return isBetween(vrTempC, warnC, max);
+  }
 
-  public vrTempMax(info: any): number {
-  const overheat = Number(info?.fans?.[1]?.overheatTemp);
-  return Number.isFinite(overheat) && overheat > 0 ? overheat : BAR_LIMITS.vrTemp.max;
-}
+  public isVrTempCrit(vrTempC: any, info?: any): boolean {
+    const max = this.vrTempMax(info);
+    const critC = max * 0.98;
+    return isAtLeast(vrTempC, critC);
+  }
 
-public isVrTempWarn(vrTempC: any, info?: any): boolean {
-  const max = this.vrTempMax(info);
-  const warnC = max * 0.94;
-  return isBetween(vrTempC, warnC, max);
-}
+  private readonly lowRpmHintThresholdPct: number = 35;
+  private readonly hoverTooltipOffsetX: number = 14;
+  private readonly hoverTooltipOffsetY: number = 18;
+  private readonly hoverTooltipWidthPx: number = 360;
+  private readonly hoverTooltipHeightPx: number = 140;
+  public activeHoverTooltipId: string | null = null;
+  public hoverTooltipX: number = 0;
+  public hoverTooltipY: number = 0;
 
-public isVrTempCrit(vrTempC: any, info?: any): boolean {
-  const max = this.vrTempMax(info);
-  const critC = max * 0.98;
-  return isAtLeast(vrTempC, critC);
-}
-  
+  public shouldShowLowRpmHint(percent: any, rpm: any): boolean {
+    const pct = Number(percent);
+    const rpmValue = Number(rpm);
+    return Number.isFinite(pct)
+      && pct > 0
+      && pct < this.lowRpmHintThresholdPct
+      && !(Number.isFinite(rpmValue) && rpmValue > 0);
+  }
+
+  public shouldShowFanRpm(percent: any, rpm: any): boolean {
+    const rpmValue = Number(rpm);
+    return Number.isFinite(rpmValue) && rpmValue > 0;
+  }
+
+  public getFanAriaLabel(channel: number | null, percent: any, rpm: any): string {
+    const pctValue = Number(percent);
+    const rpmValue = Number(rpm);
+    const pctText = `${Number.isFinite(pctValue) ? Math.round(pctValue) : 0} %`;
+    const label = channel != null
+      ? this.translateService.instant('HOME.FAN_CHANNEL', { channel })
+      : this.translateService.instant('HOME.FAN_SPEED');
+
+    if (this.shouldShowLowRpmHint(percent, rpm)) {
+      return `${label}: ${pctText}. ${this.translateService.instant('HOME.FAN_LOW_RPM_HINT')}`;
+    }
+
+    if (!(Number.isFinite(rpmValue) && rpmValue > 0)) {
+      return `${label}: ${pctText}`;
+    }
+
+    const rpmText = `${Number.isFinite(rpmValue) ? Math.round(rpmValue) : 0} RPM`;
+    return `${label}: ${pctText} (${rpmText})`;
+  }
+
+  public showHoverTooltip(id: string, event: MouseEvent): void {
+    this.activeHoverTooltipId = id;
+    this.updateHoverTooltipPosition(event);
+  }
+
+  public showConditionalHoverTooltip(id: string, enabled: boolean, event: MouseEvent): void {
+    if (!enabled) return;
+    this.showHoverTooltip(id, event);
+  }
+
+  public moveHoverTooltip(event: MouseEvent): void {
+    if (!this.activeHoverTooltipId) return;
+    this.updateHoverTooltipPosition(event);
+  }
+
+  public moveConditionalHoverTooltip(enabled: boolean, event: MouseEvent): void {
+    if (!enabled || !this.activeHoverTooltipId) return;
+    this.updateHoverTooltipPosition(event);
+  }
+
+  public hideHoverTooltip(id?: string): void {
+    if (!id || this.activeHoverTooltipId === id) {
+      this.activeHoverTooltipId = null;
+    }
+  }
+
+  private updateHoverTooltipPosition(event: MouseEvent): void {
+    const viewportWidth = window.innerWidth || 0;
+    const viewportHeight = window.innerHeight || 0;
+    const pad = 12;
+
+    let x = event.clientX + this.hoverTooltipOffsetX;
+    let y = event.clientY + this.hoverTooltipOffsetY;
+
+    if (x + this.hoverTooltipWidthPx > viewportWidth - pad) {
+      x = Math.max(pad, viewportWidth - this.hoverTooltipWidthPx - pad);
+    }
+
+    if (y + this.hoverTooltipHeightPx > viewportHeight - pad) {
+      y = Math.max(pad, event.clientY - this.hoverTooltipHeightPx - 10);
+    }
+
+    this.hoverTooltipX = x;
+    this.hoverTooltipY = y;
+  }
+
   // ASIC temperature scaling + warn/crit thresholds (used by ASIC °C + A1/A2… squares)
   public shutdownTempC = shutdownTempC;
   public isAsicTempWarn = isAsicTempWarn;
@@ -686,12 +767,14 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
         }
       },
       mapInfo: (info) => {
+        // MOCK
+        //(info as any).asicTemps = [50, 51, 52, 53, 54, 55, 53, 51];
+
         // Normalize/derive everything the tiles need (bars + squares).
         const derived = normalizeHomeTileInfo(info as any, {
           powerUsageAliases: HOME_CFG.tiles.powerUsageAliases,
           vrTempLimits: (BAR_LIMITS as any).vrTemp,
         });
-
         this.currentInputBarMaxWanted = derived.currentInputBarMaxWanted;
         this.vrTempBarCritWanted = derived.vrTempBarCritWanted;
 
@@ -787,16 +870,58 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     }, 280);
   }
 
+  /**
+   * Returns a pool-specific dashboard / stats URL for the given stratum endpoint.
+   *
+   * The function delegates to the shared quicklink helper which:
+   * - normalizes the stratum URL (supports stratum+tcp://, host:port, host)
+   * - extracts the wallet / address from the stratum user
+   * - maps known pools to their corresponding web dashboards
+   *
+   * If no known pool matches, a normalized URL representation of the stratum
+   * endpoint is returned as a fallback.
+   *
+   * @param stratumURL  Stratum pool URL or host
+   * @param stratumUser Stratum user string (wallet[.worker])
+   * @returns A pool-specific dashboard URL or `undefined` if input is empty
+   */
   public getQuickLink(stratumURL: string, stratumUser: string): string | undefined {
     return getQuickLink(stratumURL, stratumUser);
   }
 
+  /**
+   * Ensure the "Input current" meter bar can still colorize correctly.
+   *
+   * The HTML expects these aliases:
+   *  - info.currentA
+   *  - info.minCurrentA
+   *  - info.maxCurrentA
+   *
+   * Priority for limits:
+   *  1) If the backend already provides explicit current limits (in A or mA), keep them.
+   *  2) Otherwise derive maxCurrentA from configured power/voltage bounds.
+   */
   public supportsPing(stratumURL: string): boolean {
     return supportsPing(stratumURL);
   }
 
   private readonly poolIconErrorCache = new Set<string>();
 
+  /**
+   * Resolves the icon URL for a given pool host.
+   *
+   * Logic:
+   * - Uses the existing pool registry / quicklink resolution via `getPoolIconUrl`
+   * - If the pool host previously failed to load an icon (favicon or registry icon),
+   *   the default pool icon is returned immediately
+   * - This guarantees a valid icon for:
+   *   - local pools
+   *   - registered pools
+   *   - unknown public pools
+   *
+   * @param host Pool hostname
+   * @returns URL to the pool icon or the default pool icon
+   */
   public poolIconUrl(host: string | undefined | null): string {
     const key = (host ?? '').trim().toLowerCase();
     if (!key) return DEFAULT_POOL_ICON_URL;
@@ -808,6 +933,20 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     return resolvePoolIconUrl(key);
   }
 
+  /**
+   * Handles icon load errors for pool icons.
+   *
+   * When a favicon or registry-provided icon cannot be loaded (e.g. 404, CORS),
+   * this method:
+   * - stores the host in an internal error cache
+   * - replaces the broken image with the default pool icon
+   * - prevents repeated failing network requests for the same pool
+   *
+   * This ensures graceful fallback behavior for unknown public pools.
+   *
+   * @param evt Image error event
+   * @param host Pool hostname associated with the icon
+   */
   public onPoolIconError(evt: Event, host: string | undefined | null): void {
     const key = (host ?? '').trim().toLowerCase();
     if (key) this.poolIconErrorCache.add(key);
@@ -824,6 +963,11 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     img.src = fallback;
   }
 
+  // LocalStorage can throw (privacy mode/quota) and may be unavailable in some environments.
+  // Centralize access to keep persistence robust.
+  /**
+   * Read a value from localStorage safely (guards against privacy/quota errors).
+   */
   private localStorageGet(key: string): string | null {
     try {
       return localStorage.getItem(key);
@@ -832,6 +976,9 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     }
   }
 
+  /**
+   * Write a value to localStorage safely (no-ops if storage is unavailable).
+   */
   private localStorageSet(key: string, value: string): void {
     try {
       localStorage.setItem(key, value);
@@ -840,6 +987,9 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
     }
   }
 
+  /**
+   * Remove a localStorage key safely (ignores storage access errors).
+   */
   private localStorageRemove(key: string): void {
     try {
       localStorage.removeItem(key);
@@ -850,6 +1000,7 @@ public isVrTempCrit(vrTempC: any, info?: any): boolean {
 
 ngOnInit() {
     this.chartWindowMs = clampWindowMs(HOME_CFG.xAxis.fixedWindowMs, this.zoomCfg);
+
     // Restore persisted chart height
     const storedHeight = Number(this.localStorageGet(this.chartHeightKey));
     if (Number.isFinite(storedHeight) && storedHeight >= this.chartHeightMin && storedHeight <= this.chartHeightMax) {
@@ -857,6 +1008,7 @@ ngOnInit() {
     } else {
       this.chartHeightPx = this.chartHeightDefault;
     }
+
     // Chart.js plugins are global; register once.
     registerHomeChartPlugins();
     installNerdChartsDebugBootstrap(globalThis, {
@@ -902,6 +1054,9 @@ ngOnInit() {
           this.updateChart();
         } catch {}
       },
+
+      // Console helper: restart device via backend endpoint.
+      // Note: mirrors the SystemComponent.restart() backend call; OTP is optional depending on device settings.
       restart: async (totp?: string) => {
         try {
           const res = await firstValueFrom(this.systemService.restart('', (totp || '').trim()));
@@ -1024,7 +1179,11 @@ ngOnInit() {
     this.chartState.clear();
   }
 
+  // Hashrate for pill (and any live reference): ALWAYS from API info, converted to H/s.
+  // Supports APIs that may return H/s, GH/s or TH/s depending on firmware.
   private getPoolHashrateHsSum(): number {
+    // Hashrate for pill (and any live reference): ALWAYS from pool sums, converted to H/s.
+    // getPoolHashrate() returns GH/s, while the chart series values are in H/s.
     try {
       const a = Number(this.getPoolHashrate(0));
       const b = Number(this.getPoolHashrate(1));
@@ -1094,11 +1253,14 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
     if (!this.chart || !this.chartOptions?.scales) return;
 
+    // Always enforce a stable X-window (e.g. 1h), regardless of how many points exist.
     const { xMinMs, xMaxMs } = computeXWindow(this.dataLabel || [], this.chartWindowMs);
     this.applyXWindowToChart(xMinMs, xMaxMs);
 
     const labels = this.dataLabel || [];
 
+    // If there are no labels yet, we still keep the fixed X-window (handled above),
+    // but we can't compute Y-bounds without data.
     if (!labels.length) return;
 
     const temp4 = this.chart.isDatasetVisible(4);
@@ -1147,6 +1309,8 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
   }
 
+  // --- Sanitizing helpers (invalid samples become NaN => visual gap / never plotted)
+
   private sanitizeHashrateHs(v: any): number {
     const n = Number(v);
     if (!Number.isFinite(n)) return NaN;
@@ -1157,10 +1321,13 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
   private sanitizeTempC(v: any): number {
     const n = Number(v);
     if (!Number.isFinite(n)) return NaN;
+    // Never plot negative temps or crazy sensor values. Warmup gating is handled separately.
     if (n < HOME_CFG.sanitize.tempMinC) return NaN;
     if (n > HOME_CFG.sanitize.tempMaxC) return NaN;
     return n;
   }
+
+  // --- Optional: one-time page reload after smooth 1m startup (only after miner restart)
 
   private clearHr1mReloadTimer(): void {
     if (this.hr1mReloadTimer != null) {
@@ -1177,6 +1344,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     const windowMs = Math.max(0, Math.round(Number(HOME_CFG.startup.hr1mSmoothWindowMs ?? 0)));
     if (!windowMs) return;
 
+    // Guard: only once per restart token (session-scoped) + cooldown to avoid loops.
     const token = String(this.hr1mRestartTokenMs);
     try {
       const consumed = sessionStorage.getItem(this.hr1mReloadConsumedKey);
@@ -1202,7 +1370,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     }
 
     this.clearHr1mReloadTimer();
-    this.hr1mSmoothArmed = false;
+    this.hr1mSmoothArmed = false; // ensure we don't schedule twice for the same restart
     this.hr1mReloadTimer = setTimeout(() => {
       try {
         window.location.reload();
@@ -1212,23 +1380,37 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     }, windowMs);
   }
 
+  /**
+   * Inserts a single NaN break-point across all series to create a hard visual cut.
+   * This is used on restarts so charts don't "fall" to 0 but end cleanly.
+   */
   private insertHardBreakSample(breakAtMs: number): void {
+    // Reset startup/bypass state per restart.
     this.startupUnlocked = false;
     this.bypassRemaining = {};
     this.hr1mStarted = false;
     this.hr1mStartTsMs = null;
 
+    // Cancel any pending auto-reload from a previous restart cycle.
     this.clearHr1mReloadTimer();
 
+    // Arm smooth-start behavior ONLY after an actual restart/hard cut.
+    // This prevents smooth mode (and optional reload) from triggering on normal page loads/refreshes.
     this.hr1mSmoothArmed = true;
 
+    // Start a fresh guard baseline for the new post-restart segment.
+    // (Otherwise the first post-restart point may be compared against stale pre-restart state.)
     try { this.graphGuardEngine.reset(); } catch {}
 
     const last = this.dataLabel.length ? this.dataLabel[this.dataLabel.length - 1] : 0;
     const ts = Math.max(Number(breakAtMs) || Date.now(), last > 0 ? last + 1 : 0);
     if (last > 0 && ts <= last) return;
 
+    // Remember the break timestamp to prevent a later in-place overwrite when the next
+    // history point happens to have the same timestamp (would remove the visual gap).
     this.lastHardBreakTs = ts;
+
+    // Use the break timestamp as a per-restart token for "run once" logic.
     this.hr1mRestartTokenMs = ts;
 
     this.dataLabel.push(ts);
@@ -1239,6 +1421,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     this.dataVregTemp.push(NaN);
     this.dataAsicTemp.push(NaN);
 
+    // Advance stored timestamp so polling doesn't keep refetching the same restart window.
     this.storeTimestamp(ts);
   }
 
@@ -1259,6 +1442,11 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       this.startupUnlocked = true;
       const n = Math.max(0, Math.round(Number(HOME_CFG.startup.bypassGuardSamples ?? 0)));
       this.bypassRemaining = {
+        // Do NOT bypass GraphGuard for 1m hashrate.
+        // The 1m history stream can emit a short transient low plateau shortly after restart
+        // (typically 2–3 ticks) even though the miner is already hashing steadily.
+        // Bypassing the guard for 1m would let that dip through and create the visible "Zack".
+        // We keep the optional bypass for the slower series only.
         hashrate_1m: 0,
         hashrate_10m: n,
         hashrate_1h: n,
@@ -1301,11 +1489,14 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     this.lastLivePoolSumHs = livePoolSum;
     this.graphGuardEngine.configure({ debug: this.debugSpikeGuard });
 
+    // History is appended sorted; last element is the highest timestamp (cheaper than Math.max(...)).
     const lastTimestamp = this.dataLabel.length > 0 ? this.dataLabel[this.dataLabel.length - 1] : -Infinity;
 
+    // Filter new data to include only timestamps greater than the lastTimestamp
     const newData: any[] = [];
     for (let i = 0; i < n; i++) {
       let tsAbs = Number(timestamps[i]) + baseTimestamp;
+      // API safety: accept both seconds and milliseconds
       if (tsAbs > 0 && tsAbs < 1000000000000) tsAbs *= 1000;
       if (!Number.isFinite(tsAbs)) continue;
       if (this.historyMinTimestampMs != null && tsAbs < this.historyMinTimestampMs) continue;
@@ -1324,23 +1515,33 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
     newData.sort((a, b) => a.timestamp - b.timestamp);
 
+    // If a restart was detected (warmup reset), insert a single NaN "break" sample
+    // to end all curves cleanly. We place it just before the next incoming history point
+    // so it can never be overwritten by a duplicate timestamp.
     if (this.warmupMachine.consumeBreakPending()) {
       const nextTs = newData.length ? Number(newData[0].timestamp) : Date.now();
       const breakAt = Number.isFinite(nextTs) ? (nextTs - 1) : Date.now();
       this.insertHardBreakSample(breakAt);
     }
 
+    // Append only new data (spike-guarded, line-break free)
+    // If we push duplicates, Chart.js draws a vertical segment at the same X ("treppenhaus").
     for (const entry of newData) {
+      // If we inserted a hard NaN break-point, ensure the next incoming history sample
+      // cannot overwrite it via the duplicate-timestamp in-place update path.
       if (this.lastHardBreakTs && Number(entry.timestamp) <= this.lastHardBreakTs) {
         entry.timestamp = this.lastHardBreakTs + 1;
       }
+      // Warmup gates (progress is driven by live values from polling)
       const vregEnabled = this.warmupMachine.isVregEnabled();
       const asicEnabled = this.warmupMachine.isAsicEnabled();
       const hr1mEnabled = this.warmupMachine.isHr1mEnabled();
       const otherHashEnabled = this.warmupMachine.isOtherHashEnabled();
 
+      // Startup unlock for optional GraphGuard bypass (uses hashrate pill / live pool sum)
       this.ensureStartupUnlocked(livePoolSum);
 
+      // Sanitize raw inputs (invalid => NaN => never plotted)
       const hr1mRaw = this.sanitizeHashrateHs(entry.hashrate_1m);
       const hr10mRaw = this.sanitizeHashrateHs(entry.hashrate_10m);
       const hr1hRaw = this.sanitizeHashrateHs(entry.hashrate_1h);
@@ -1348,12 +1549,23 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       const vregRaw = this.sanitizeTempC(entry.vregTemp);
       const asicRaw = this.sanitizeTempC(entry.asicTemp);
 
+      // 1m hashrate: avoid starting from 0/low history samples.
+      // When warmup enables 1m, we seed the first visible point from the live pill.
+      // Afterwards, if the history 1m value is still bogus (<=0 / NaN) but the pill is live,
+      // we keep plotting the live pill as a proxy to prevent brief drops.
+            // 1m hashrate start gating:
+      // - Pill/live is ONLY used to decide when we're allowed to start (startupUnlocked).
+      // - The plotted value still comes from the history (hr1mRaw), as before.
+      // - To avoid any visible "shoot" from 0 or a short drop, we only start once the HISTORY 1m
+      //   itself is valid and has reached the expected unlock ratio as well.
       let hr1mCandidate: number = NaN;
       if (hr1mEnabled) {
         const expectedHs = Number(this.expectedHashrateHsLast);
         const ratio = Number(HOME_CFG.startup.expectedUnlockRatio ?? 0.75);
         const histOk = Number.isFinite(hr1mRaw) && hr1mRaw > 0;
 
+        // Require the history value to also be at/above the unlock ratio on first start.
+        // After start, we keep using the history value (GraphGuard will smooth rare glitches).
         const histUnlockOk = (expectedHs > 0)
           ? (histOk && hr1mRaw >= expectedHs * ratio)
           : histOk;
@@ -1367,6 +1579,8 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
             isHistoryImporting: this.isHistoryImporting,
           })) {
             this.hr1mStarted = true;
+            // Smooth startup + optional reload should only trigger after an actual restart (hard cut).
+            // On normal page loads, we keep snappy behavior (no smooth window).
             if (this.hr1mSmoothArmed) {
               this.hr1mStartTsMs = Number(entry.timestamp);
               this.scheduleHr1mReloadAfterSmooth();
@@ -1381,7 +1595,10 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
           hr1mCandidate = hr1mRaw;
         }
       }
-
+      // --- Restart hard-cut detection based on incoming history samples.
+      // We intentionally do NOT rely on temperatures dropping quickly.
+      // If live hashrate (pill) is gone and the history starts emitting boot/glitch samples
+      // (0/NaN temps or 0 hashrate), we cut immediately so the curve doesn't fall to the 0-line.
       const liveOkNow = Number.isFinite(livePoolSum) && livePoolSum > 0;
       const stageNow = this.warmupMachine.getStage();
       const historyHr1m = Number(entry.hashrate_1m);
@@ -1395,12 +1612,18 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
       if (stageNow === 'READY' && restartMarker) {
         this.warmupMachine.reset(entry.timestamp);
+        // Consume the break flag immediately and insert the cut at the current timestamp.
         this.warmupMachine.consumeBreakPending();
+        // Place the break just before the first post-restart timestamp so the cut
+        // can't be overwritten by an in-place update at the same X.
         this.insertHardBreakSample(entry.timestamp - 1);
+        // Do not append this (bogus) sample; also advance the stored timestamp.
         this.storeTimestamp(entry.timestamp);
         continue;
       }
 
+      // While locked (restart window / VR delay), do not append any new points (no tracking).
+      // Curves were already terminated via the break marker.
       if (this.warmupMachine.isLocked()) {
         this.storeTimestamp(entry.timestamp);
         continue;
@@ -1408,10 +1631,17 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
       const applyHash = (key: string, v: number, thr: number): number => {
         if (!Number.isFinite(v)) return NaN;
+        // Optional startup bypass for GraphGuard: allow the first N samples after warmup
+        // to be plotted unguarded (prevents brief artificial drops caused by an unstable
+        // live reference right after restart). This does NOT trigger on frequency changes
+        // because startupUnlocked is only set once when live reaches the expected ratio.
         if (this.shouldBypassHashGuard(key)) {
           this.consumeBypassHashGuard(key);
           return v;
         }
+        // Super smooth startup for 1m: for ~2 minutes after restart-start, require more
+        // confirmation to accept short-lived dips (prevents 2-3 tick artifacts). After
+        // that, switch to a snappier confirmation level.
         let confirmOverride: number | undefined = undefined;
         if (key === 'hashrate_1m') {
           if (this.hr1mStarted) {
@@ -1419,6 +1649,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
             const inStartupWindow = start != null && (Number(entry.timestamp) - start) <= HOME_CFG.startup.hr1mSmoothWindowMs;
             confirmOverride = inStartupWindow ? HOME_CFG.startup.hr1mConfirmStartup : HOME_CFG.startup.hr1mConfirmNormal;
           } else {
+            // If not started yet (or restored from storage), default to snappy.
             confirmOverride = HOME_CFG.startup.hr1mConfirmNormal;
           }
         }
@@ -1435,6 +1666,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
       const lastIdx = this.dataLabel.length - 1;
       if (lastIdx >= 0 && this.dataLabel[lastIdx] === entry.timestamp) {
+        // In-place update for duplicate timestamp (keep gating + sanitizing)
         this.dataVregTemp[lastIdx] = vregEnabled ? applyTemp('vregTemp', vregRaw, HOME_CFG.graphGuard.thresholds.vregTemp) : NaN;
         this.dataAsicTemp[lastIdx] = asicEnabled ? applyTemp('asicTemp', asicRaw, HOME_CFG.graphGuard.thresholds.asicTemp) : NaN;
 
@@ -1472,6 +1704,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
   }
 
   private loadChartData(): void {
+    // Allow persistence from now on (even if there is no data yet on first run).
     this.wasLoaded = true;
 
     const persisted = this.chartStorage.loadPersistedState();
@@ -1480,8 +1713,13 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     try {
       this.chartState = HomeChartState.fromPersisted(persisted);
 
+      // IMPORTANT: persisted history can contain bogus 0/invalid samples (e.g. during restarts)
+      // that must never be plotted. During a normal run, warmup gating prevents these samples
+      // from being pushed, but on a page refresh we restore raw arrays and must sanitize them
+      // again so refreshes never re-introduce spikes to the 0-line.
       this.sanitizeLoadedHistory();
 
+      // If we already have finite 1m points (from persisted history), treat startup as already started.
       try {
         const lastFinite = findLastFinite(this.dataData1m);
         this.hr1mStarted = Number.isFinite(lastFinite as any);
@@ -1489,6 +1727,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
         this.hr1mStarted = false;
       }
 
+      // Keep chartData in sync with the restored arrays.
       if (this.chartData) {
         this.updateChart();
       }
@@ -1497,6 +1736,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     } catch (err) {
       console.warn('[HomeComponent] Failed to load chartData from storage (keeping it untouched).', err);
 
+      // Reset in-memory only, but do NOT wipe storage automatically.
       this.chartState.clear();
 
       if (this.chartData) {
@@ -1520,6 +1760,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     const len = this.dataLabel.length;
     if (!len) return;
 
+    // Re-run loaded points through the spike-guard so cached spikes can't persist.
     this.graphGuardEngine.reset();
 
     const out1m: number[] = [];
@@ -1587,6 +1828,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
 
   private filterOldData(): void {
     const now = new Date().getTime();
+    // Keep the in-memory series consistent with the current x-axis viewport.
     this.chartState.trimToWindow(now, this.zoomCfg.maxWindowMs);
 
     if (this.chartState.labels.length) {
@@ -1650,6 +1892,8 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     }
   }
 
+  // Toggle only if feature exists, then persist
+
   public getPoolHashrate(i: 0 | 1) {
     if (!this._info?.stratum) return 0;
     const balance = this.getActiveBalance(i);
@@ -1662,16 +1906,20 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     const connected = stratum.pools.map(p => p.connected);
     const balance = stratum.poolBalance;
 
+    // If neither pool is connected
     if (!connected[0] && !connected[1]) {
       return 0;
     }
 
+    // If both pools are connected
     if (connected[0] && connected[1]) {
       return i === 0 ? balance : 100 - balance;
     }
 
+    // Only one pool is connected → return 100 for that pool, 0 for the other
     return connected[i] ? 100 : 0;
   }
+
 
   public getPoolInfo(i?: 0 | 1): IPool {
     const stratum = this._info?.stratum;
@@ -1679,6 +1927,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       return {} as IPool;
     }
 
+    // failover logic, "current" pool — backend always emits the active pool as pools[0]
     if (i === undefined) {
       const useFallback = stratum?.usingFallback ?? false;
       const base = stratum?.pools[0] ?? {};
@@ -1691,6 +1940,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
       };
     }
 
+    // explicit pool 0 / 1 (dual pool)
     const base = stratum.pools[i];
 
     return {
@@ -1708,9 +1958,12 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     this.clearChartData();
     this.graphGuardEngine.reset();
 
+    // Clear persisted history
     this.chartStorage.clearPersistedState();
     this.chartStorage.clearLastTimestamp();
 
+    // Prevent immediate refill with old history (API/local) after clearing.
+    // Seed a minimum timestamp slightly in the past to allow the very next sample through.
     const seed = Date.now() - 30000;
     this.historyMinTimestampMs = seed;
     this.chartStorage.saveMinHistoryTimestampMs(seed);
@@ -1729,6 +1982,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
         this.systemService.getInfoWithSpan(start, this.chunkSizeDrainer, windowMs)
       );
     } catch {
+      // ignore (next polling tick will retry)
       return;
     }
 
@@ -1743,11 +1997,14 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
         && Number.isFinite(fetchedOldest as any)
         && (fetchedOldest as number) < (existingOldest as number) - 2000);
 
+    // If the fetched history does NOT extend further back than what we already have,
+    // avoid wiping local history (e.g. after a miner reboot when firmware history reset).
     if (!shouldReplace) {
       this.importHistoricalData(info.history);
       return;
     }
 
+    // Reset state so older points can be re-imported in one pass.
     this.historyDrainer?.stop();
     this.historyDrainRunning = false;
     this.suppressChartUpdatesDuringHistoryDrain = false;
@@ -1763,24 +2020,30 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     this.importHistoricalData(info.history);
   }
 
+  // edge case where chart data in the browser is not consistent
+  // this happens when adding new charts
+
   public rejectRate(id?: number): number {
-    const pools = this._info?.stratum?.pools;
-    if (!Array.isArray(pools) || pools.length === 0) return 0;
+  // Template can call this before the first info payload arrived.
+  // Be defensive to avoid breaking the whole dashboard render.
+  const pools = this._info?.stratum?.pools;
+  if (!Array.isArray(pools) || pools.length === 0) return 0;
 
-    const idx = (typeof id === 'number' && Number.isFinite(id)) ? id : 0;
+  // In some template contexts (e.g. single pool tile) `idx` may be undefined.
+  // For UI consistency we default to the PRIMARY pool (index 0), which also matches the Shares card.
+  const idx = (typeof id === 'number' && Number.isFinite(id)) ? id : 0;
 
-    const pool = pools[idx];
-    if (!pool) return 0;
+  const pool = pools[idx];
+  if (!pool) return 0;
 
-    const rejected = Number(pool.rejected ?? 0);
-    const accepted = Number(pool.accepted ?? 0);
+  const rejected = Number(pool.rejected ?? 0);
+  const accepted = Number(pool.accepted ?? 0);
 
-    const total = accepted + rejected;
-    if (!total) return 0;
+  const total = accepted + rejected;
+  if (!total) return 0;
 
-    return (rejected / total) * 100;
-  }
-
+  return (rejected / total) * 100;
+}
   public openResetStatsDialog(template: any): void {
     this.dialogService.open(template);
   }
@@ -1799,7 +2062,7 @@ private setAxisPadding(cfg: any, persist: boolean = false): void {
     });
   }
 
-  private importHistoricalDataChunked(history: any): void {
+private importHistoricalDataChunked(history: any): void {
     this.historyDrainer.ingest(history);
   }
 }

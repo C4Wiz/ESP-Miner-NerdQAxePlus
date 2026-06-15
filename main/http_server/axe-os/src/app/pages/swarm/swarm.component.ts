@@ -237,7 +237,7 @@ export class SwarmComponent implements OnInit, OnDestroy {
   public edit(axe: any) {
     if (!axe?.supportsAsicApi) {
       this.toastrService.warning(
-        'To edit settings from the Swarm page, please update this devices firmware.',
+        'To edit settings from the Swarm page, please update this device’s firmware.',
         'Firmware Update Needed'
       );
       return;
@@ -365,11 +365,8 @@ export class SwarmComponent implements OnInit, OnDestroy {
   }
 
   private calculateTotals() {
-    this.totals = {
-      hashRate: this.swarm.reduce((sum, axe) => sum + (parseFloat(axe.hashRate) || 0), 0),
-      power: this.swarm.reduce((sum, axe) => sum + (parseFloat(axe.power) || 0), 0),
-      bestDiff: 0,
-    };
+    this.totals.hashRate = this.swarm.reduce((sum, axe) => sum + (parseFloat(axe.hashRate) || 0), 0);
+    this.totals.power = this.swarm.reduce((sum, axe) => sum + (parseFloat(axe.power) || 0), 0);
 
     const numericDiffs = this.swarm
       .map(axe => this.convertBestDiffToNumber(axe.bestDiff))
