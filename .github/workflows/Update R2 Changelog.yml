@@ -57,26 +57,30 @@ jobs:
           PUBLISHED_AT=$(echo "$RELEASE" | jq -r '.published_at')
           BODY=$(echo "$RELEASE" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
-          # Build asset list from GitHub release
-          ASSETS=$(echo "$RELEASE" | jq '[.assets[] | {name: .name, browser_download_url: .browser_download_url}]')
+          # Preserve existing per-asset sha256 values (set by build.yml), keyed by asset name
+          OLD_ASSETS=$(jq -c --arg v "$TAG" '[.releases[] | select(.version == $v) | .assets[]?] // []' releases_updated.json)
+
+          # Build asset list from GitHub release (source of truth for name/url across all boards),
+          # merging in sha256 from the previously stored asset with the same name, if any.
+          ASSETS=$(echo "$RELEASE" | jq --argjson old "$OLD_ASSETS" '
+            [.assets[] | {name: .name, browser_download_url: .browser_download_url} as $a |
+             ($old | map(select(.name == $a.name)) | .[0].sha256 // "") as $sha |
+             $a + {sha256: $sha}]')
 
           # Check if this version already exists in releases_updated.json
           EXISTING=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .version' releases_updated.json)
 
           if [ -z "$EXISTING" ]; then
             echo "Adding missing release: $TAG"
-            # Get SHA256 from existing releases.json if available, otherwise empty
-            SHA256=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .sha256 // ""' releases.json)
 
             jq --arg version "$TAG" \
-               --arg sha256 "$SHA256" \
                --arg published_at "$PUBLISHED_AT" \
                --arg body "$BODY" \
                --arg now "$NOW" \
                --argjson prerelease "$IS_PRERELEASE" \
                --argjson assets "$ASSETS" \
                '.updated_at = $now |
-                .releases = [{"version": $version, "name": $version, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": $assets}] +
+                .releases = [{"version": $version, "name": $version, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": $assets}] +
                 .releases' \
                releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
           else
