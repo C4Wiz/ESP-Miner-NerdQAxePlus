@@ -60,14 +60,16 @@ jobs:
           # Preserve existing per-asset sha256 values (set by build.yml), keyed by asset name
           OLD_ASSETS=$(jq -c --arg v "$TAG" '[.releases[] | select(.version == $v) | .assets[]?] // []' releases_updated.json)
 
-          # Build asset list from GitHub release (source of truth for name/url across all boards),
-          # merging in sha256 from the previously stored asset with the same name, if any.
+          # Build asset list from GitHub release (source of truth for name/url across all boards).
+          # sha256 precedence: GitHub-reported asset digest > previously stored value > "" (computed below if missing).
           ASSETS=$(echo "$RELEASE" | jq --argjson old "$OLD_ASSETS" '
             [.assets[] | {name: .name, browser_download_url: .browser_download_url} as $a |
-             ($old | map(select(.name == $a.name)) | .[0].sha256 // "") as $sha |
-             $a + {sha256: $sha}]')
+             ((.digest // "") | sub("^sha256:"; "")) as $gh_sha |
+             ($old | map(select(.name == $a.name)) | .[0].sha256 // "") as $old_sha |
+             $a + {sha256: (if $gh_sha != "" then $gh_sha else $old_sha end)}]')
 
-          # Backfill any missing sha256 by downloading the asset and hashing it.
+          # Backfill any still-missing sha256 by downloading the asset and hashing it.
+          # (Only needed if GitHub doesn't report a digest for this asset and no prior value existed.)
           # Only do this for factory firmware images (skip www.bin/.elf/etc to save bandwidth).
           ASSET_COUNT=$(echo "$ASSETS" | jq 'length')
           for j in $(seq 0 $((ASSET_COUNT - 1))); do
@@ -76,7 +78,7 @@ jobs:
             ASSET_URL=$(echo "$ASSETS" | jq -r ".[$j].browser_download_url")
 
             if [ -z "$ASSET_SHA" ] && [[ "$ASSET_NAME" == esp-miner-factory-*.bin ]]; then
-              echo "Computing sha256 for $ASSET_NAME ..."
+              echo "No digest from GitHub for $ASSET_NAME, computing sha256 by downloading..."
               COMPUTED_SHA=$(curl -sL "$ASSET_URL" | sha256sum | awk '{print $1}')
               if [ -n "$COMPUTED_SHA" ]; then
                 ASSETS=$(echo "$ASSETS" | jq --argjson i "$j" --arg sha "$COMPUTED_SHA" '.[$i].sha256 = $sha')
@@ -84,6 +86,8 @@ jobs:
               else
                 echo "  -> failed to download/hash $ASSET_NAME"
               fi
+            elif [ -n "$ASSET_SHA" ]; then
+              echo "sha256 for $ASSET_NAME: $ASSET_SHA"
             fi
           done
 
