@@ -12,6 +12,7 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         include:
           - board: NERDQAXEPLUS2
@@ -149,9 +150,18 @@ jobs:
            --arg published_at "${PUBLISHED_AT}" \
            --arg body "${BODY}" \
            --argjson prerelease "${IS_PRERELEASE}" \
-           '.updated_at = $now |
-            .releases = [{"version": $version, "name": $name, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": [{"name": $asset_name, "browser_download_url": $url}]}] +
-            (.releases | map(select(.version != $version)))' \
+           '
+           (.releases | map(.version) | index($version)) as $idx |
+           .updated_at = $now |
+           if $idx == null then
+             .releases = [{"version": $version, "name": $name, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": [{"name": $asset_name, "browser_download_url": $url, "sha256": $sha256}]}] + .releases
+           else
+             .releases[$idx].prerelease = $prerelease |
+             .releases[$idx].published_at = $published_at |
+             .releases[$idx].body = $body |
+             .releases[$idx].assets = ([.releases[$idx].assets[] | select(.name != $asset_name)] + [{"name": $asset_name, "browser_download_url": $url, "sha256": $sha256}])
+           end
+           ' \
            releases.json > releases_updated.json && mv releases_updated.json releases.json
 
         echo "Updated releases.json:"
