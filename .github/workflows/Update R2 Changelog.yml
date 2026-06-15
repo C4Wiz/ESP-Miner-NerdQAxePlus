@@ -57,26 +57,54 @@ jobs:
           PUBLISHED_AT=$(echo "$RELEASE" | jq -r '.published_at')
           BODY=$(echo "$RELEASE" | jq -r '.body // ""' | sed 's/[[:space:]]*\r$/\r/g')
 
-          # Build asset list from GitHub release
-          ASSETS=$(echo "$RELEASE" | jq '[.assets[] | {name: .name, browser_download_url: .browser_download_url}]')
+          # Preserve existing per-asset sha256 values (set by build.yml), keyed by asset name
+          OLD_ASSETS=$(jq -c --arg v "$TAG" '[.releases[] | select(.version == $v) | .assets[]?] // []' releases_updated.json)
+
+          # Build asset list from GitHub release (source of truth for name/url across all boards).
+          # sha256 precedence: GitHub-reported asset digest > previously stored value > "" (computed below if missing).
+          ASSETS=$(echo "$RELEASE" | jq --argjson old "$OLD_ASSETS" '
+            [.assets[] | {name: .name, browser_download_url: .browser_download_url} as $a |
+             ((.digest // "") | sub("^sha256:"; "")) as $gh_sha |
+             ($old | map(select(.name == $a.name)) | .[0].sha256 // "") as $old_sha |
+             $a + {sha256: (if $gh_sha != "" then $gh_sha else $old_sha end)}]')
+
+          # Backfill any still-missing sha256 by downloading the asset and hashing it.
+          # (Only needed if GitHub doesn't report a digest for this asset and no prior value existed.)
+          # Only do this for factory firmware images (skip www.bin/.elf/etc to save bandwidth).
+          ASSET_COUNT=$(echo "$ASSETS" | jq 'length')
+          for j in $(seq 0 $((ASSET_COUNT - 1))); do
+            ASSET_NAME=$(echo "$ASSETS" | jq -r ".[$j].name")
+            ASSET_SHA=$(echo "$ASSETS" | jq -r ".[$j].sha256")
+            ASSET_URL=$(echo "$ASSETS" | jq -r ".[$j].browser_download_url")
+
+            if [ -z "$ASSET_SHA" ] && [[ "$ASSET_NAME" == esp-miner-factory-*.bin ]]; then
+              echo "No digest from GitHub for $ASSET_NAME, computing sha256 by downloading..."
+              COMPUTED_SHA=$(curl -sL "$ASSET_URL" | sha256sum | awk '{print $1}')
+              if [ -n "$COMPUTED_SHA" ]; then
+                ASSETS=$(echo "$ASSETS" | jq --argjson i "$j" --arg sha "$COMPUTED_SHA" '.[$i].sha256 = $sha')
+                echo "  -> $COMPUTED_SHA"
+              else
+                echo "  -> failed to download/hash $ASSET_NAME"
+              fi
+            elif [ -n "$ASSET_SHA" ]; then
+              echo "sha256 for $ASSET_NAME: $ASSET_SHA"
+            fi
+          done
 
           # Check if this version already exists in releases_updated.json
           EXISTING=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .version' releases_updated.json)
 
           if [ -z "$EXISTING" ]; then
             echo "Adding missing release: $TAG"
-            # Get SHA256 from existing releases.json if available, otherwise empty
-            SHA256=$(jq -r --arg v "$TAG" '.releases[] | select(.version == $v) | .sha256 // ""' releases.json)
 
             jq --arg version "$TAG" \
-               --arg sha256 "$SHA256" \
                --arg published_at "$PUBLISHED_AT" \
                --arg body "$BODY" \
                --arg now "$NOW" \
                --argjson prerelease "$IS_PRERELEASE" \
                --argjson assets "$ASSETS" \
                '.updated_at = $now |
-                .releases = [{"version": $version, "name": $version, "sha256": $sha256, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": $assets}] +
+                .releases = [{"version": $version, "name": $version, "prerelease": $prerelease, "published_at": $published_at, "body": $body, "assets": $assets}] +
                 .releases' \
                releases_updated.json > releases_tmp.json && mv releases_tmp.json releases_updated.json
           else

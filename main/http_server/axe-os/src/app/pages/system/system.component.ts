@@ -54,6 +54,9 @@ export class SystemComponent implements OnDestroy, AfterViewInit {
   /** Periodic system info stream. */
   public info$: Observable<ISystemInfo>;
 
+  /** Web UI build version (from app.module). */
+  public currentWebVersion: string = getAppVersion();
+
   /** Full log buffer (capped by `maxLogs`). */
   public logs: LogLine[] = [];
 
@@ -71,9 +74,6 @@ export class SystemComponent implements OnDestroy, AfterViewInit {
 
   /** Used to select light/dark logo variants. */
   public logoPrefix = '';
-  
-  /** Get the current webui version. */
-  public currentWebVersion: string = getAppVersion();
 
   /** Virtual scroll tuning (must match SCSS line-height). */
   public logItemSize = 18;

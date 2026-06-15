@@ -165,7 +165,7 @@ void migrate_config()
         setTempControlMode(0);
         setFanSpeed(100);
     }
-    
+
     // migrate VReg overheat temp: if not yet set, inherit ASIC overheat temp
     if (!nvs_config_has_u16(NVS_CONFIG_FAN1_OVERHEAT)) {
         uint16_t asic_temp = getOverheatTemp();

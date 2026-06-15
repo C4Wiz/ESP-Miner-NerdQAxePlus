@@ -13,6 +13,7 @@ select {
 
 .restart {
   margin-bottom: 1.5rem;
+
 }
 
 @media only screen and (min-width:900px) {
@@ -44,10 +45,12 @@ a {
   border-radius: 5px;
 }
 
+
 .cards-container {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  /* Ensures cards wrap on smaller screens */
 }
 
 .card-item {
@@ -55,10 +58,12 @@ a {
   display: flex;
   flex-direction: column;
   min-width: 300px;
+  /* Prevents cards from getting too narrow */
 }
 
 .card-item nb-card-body {
   flex: 1;
+  /* Makes the card body fill available vertical space */
 }
 
 .action-buttons button {
@@ -68,15 +73,18 @@ a {
 
 .upload-overlay {
   position: fixed;
+  /* changed from absolute to fixed */
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   background-color: rgba(255, 255, 255, 0.8);
+  /* semi-transparent overlay */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  /* high z-index to ensure it's on top */
 }
 
 .progress-box {
@@ -272,8 +280,10 @@ a {
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  /* clicks go through to underlying controls */
   font-size: 0.85rem;
   font-weight: 600;
+
 }
 
 :host ::ng-deep nb-progress-bar .progress-container {
@@ -331,6 +341,12 @@ a {
   margin-top: 10px;
 }
 
+.keep-config-toggle {
+  margin-top: 3px;
+  margin-left: 20px;
+  margin-right: 10px;
+}
+
 // prerelease toggle sits left, check for updates button sits right
 .release-checkbox-row {
   display: flex;
@@ -353,3 +369,4 @@ a {
     font-size: 0.8em;
   }
 }
+

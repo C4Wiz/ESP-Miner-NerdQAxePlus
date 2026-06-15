@@ -76,6 +76,7 @@
                       {{ (isChartCollapsed ? 'HOME.SHOW_CHART' : 'HOME.HIDE_CHART') | translate }}
                     </span>
 
+                    <!-- Thick, high-contrast chevron (SVG) for better visibility than nb-icon. -->
                     <span
                       class="chart-toggle__icon"
                       [class.chart-toggle__icon--up]="!isChartCollapsed"
@@ -104,30 +105,44 @@
 
       <!-- Hashrate summary + Pools (side-by-side) -->
       <div class="row mt-3 d-flex align-items-stretch">
+        <!-- Hashrate summary square -->
+        <!-- Use the XL breakpoint so the pool tile wraps under the hashrate tile on smaller viewports -->
         <div class="col-12 col-xl-6">
           <div class="pool-summary-square h-100" role="group" [attr.aria-label]="'HOME.HASH_RATE' | translate">
+            <!-- Left column: Hashrate + Expected + ASIC Frequency bar -->
             <div class="pool-summary-square__left">
               <div class="pool-summary-square__top">
+                <!-- Row 1: Hashrate (left) + Model (right) -->
                 <div class="pool-summary-square__hashrate-row">
                   <div class="pool-summary-square__hashrate">
+                    <!-- Always show total hashrate as the big number -->
                     <div class="pool-summary-square__hashrate-main">
                       <div class="pool-summary-square__hashrate-value">
                         {{ info.hashRate * 1000000000 | hashSuffix }}
                       </div>
+
+                      <!-- Dual pool: dotted separator to the right of the main value -->
                       <span *ngIf="isDualPool" class="pool-summary-square__hashrate-main-divider"
                             aria-hidden="true"></span>
                     </div>
 
+                    <!-- Dual pool: show per-pool hashrates stacked, without units + with assignment % -->
                     <div *ngIf="isDualPool" class="pool-summary-square__hashrate-split" aria-hidden="true">
                       <div class="pool-summary-square__hashrate-split-row">
-                        <span class="pool-summary-square__hashrate-split-value">{{ getPoolHashrate(0) * 1000000000 | hashSuffix }}</span>
+                        <span
+                          class="pool-summary-square__hashrate-split-value">{{ getPoolHashrate(0) * 1000000000 | hashSuffix }}</span>
                         <span class="pool-summary-square__hashrate-split-divider" aria-hidden="true"></span>
-                        <span class="pool-summary-square__hashrate-split-pct">{{ getActiveBalance(0) | number: '1.0-0' }} %</span>
+                        <span
+                          class="pool-summary-square__hashrate-split-pct">{{ getActiveBalance(0) | number: '1.0-0' }}
+                          %</span>
                       </div>
                       <div class="pool-summary-square__hashrate-split-row">
-                        <span class="pool-summary-square__hashrate-split-value">{{ getPoolHashrate(1) * 1000000000 | hashSuffix }}</span>
+                        <span
+                          class="pool-summary-square__hashrate-split-value">{{ getPoolHashrate(1) * 1000000000 | hashSuffix }}</span>
                         <span class="pool-summary-square__hashrate-split-divider" aria-hidden="true"></span>
-                        <span class="pool-summary-square__hashrate-split-pct">{{ getActiveBalance(1) | number: '1.0-0' }} %</span>
+                        <span
+                          class="pool-summary-square__hashrate-split-pct">{{ getActiveBalance(1) | number: '1.0-0' }}
+                          %</span>
                       </div>
                     </div>
                   </div>
@@ -145,6 +160,7 @@
                   </div>
                 </div>
 
+                <!-- Row 2: Expected (left) + Uptime (right) -->
                 <div class="pool-summary-square__row2">
                   <ng-container *ngIf="expectedHashRate$ | async as expectedHashRate">
                     <div class="pool-summary-square__expected">
@@ -166,21 +182,25 @@
                     <span class="pool-summary-square__expected-label">{{ 'HOME.ERROR_RATE' | translate }}</span>
                   </div>
                 </div>
-
               </div>
 
               <div class="pool-summary-square__bottom">
+                <!-- ASIC frequency bar (device-scaled using m_asicFrequencies when available) -->
+                <!-- Never warn-color within normal range; only turn yellow when above max. -->
                 <div class="power-bar pool-summary-square__bar" role="img"
                      [class.power-bar--warn]="isBarOver(info.frequency, asicFreqMax(info))"
                      [class.power-bar--max]="isBarMax(info.frequency, asicFreqMax(info))"
                      [attr.aria-label]="('PERFORMANCE.ASIC_FREQUENCY' | translate) + ': ' + (info.frequency | number: '1.0-0') + ' MHz'">
                   <div class="power-bar__fill" [style.width.%]="toPct(info.frequency, 0, asicFreqMax(info))"></div>
                   <div class="power-bar__label">{{ 'PERFORMANCE.ASIC_FREQUENCY' | translate }}</div>
-                  <div class="power-bar__value">{{ info.frequency | number: '1.0-0' }}<span class="unit">&nbsp;MHz</span></div>
+                  <div class="power-bar__value">{{ info.frequency | number: '1.0-0' }}<span
+                    class="unit">&nbsp;MHz</span></div>
                 </div>
               </div>
             </div>
 
+
+            <!-- Right column: All‑time best square -->
             <div class="pool-summary-square__best" role="img"
                  [attr.aria-label]="('PERFORMANCE.BEST_DIFFICULTY' | translate) + ': ' + (info.bestDiff | humanReadable)">
               <div class="pool-summary-square__best-inner">
@@ -196,6 +216,7 @@
           </div>
         </div>
 
+        <!-- Pools container (to the right of the hashrate summary) -->
         <div class="col-12 col-xl-6 mt-3 mt-xl-0">
           @let poolLeft = isDualPool ? getPoolInfo(0) : getPoolInfo();
           @let poolRight = isDualPool ? getPoolInfo(1) : null;
@@ -216,6 +237,7 @@
 
               <div class="pool-tile-layout pool-tile-layout--mirror" [class.pool-tile-layout--dual]="isDualPool">
 
+                <!-- SINGLE POOL -->
                 <ng-container *ngIf="!isDualPool">
                   <div class="pool-tile-section pool-tile-section--single" role="group">
                     <ng-container *ngIf="poolLeft?.connected; else poolDisconnectedLeft">
@@ -227,6 +249,7 @@
                   </div>
                 </ng-container>
 
+                <!-- DUAL POOL: stack pool 2 under pool 1 inside the same white container -->
                 <ng-container *ngIf="isDualPool">
                   <div class="pool-tile-section pool-tile-section--top" role="group">
                     <ng-container *ngIf="poolLeft?.connected; else poolDisconnectedLeft">
@@ -249,9 +272,11 @@
 
               </div>
 
+              <!-- Templates -->
               <ng-template #poolHalf let-pool="pool" let-idx="idx" let-usingFallback="usingFallback">
                 <div class="pool-tile-half" dir="ltr" [class.pool-tile-half--dual]="isDualPool">
 
+                  <!-- Grey metric bar (full width of the half) -->
                   <div class="pool-tile-metricbar fill-colors" role="group"
                        [attr.aria-label]="('POOL_INFO.TITLE' | translate) + ': ' + (pool.host ?? '')"
                        [class.pool-tile-metricbar--alloc]="isDualPool">
@@ -259,18 +284,22 @@
                          [style.width.%]="getActiveBalance((idx ?? 0) === 0 ? 0 : 1)"></div>
 
                     <div class="pool-tile-metricbar__inner">
+
+                      <!-- LEFT: Since connect (value + label) -->
                       <div class="pool-tile-metricbar__left">
                         <div class="pool-tile-metricbar__since">
                           <div class="pool-tile-metricbar__value">
                             <ng-container *ngIf="splitHumanReadable(pool.bestDiff | humanReadable) as bd">
                               {{ bd.value }}<span class="unit" *ngIf="bd.unit">&nbsp;{{ bd.unit }}</span>
+                              <!-- Place label directly after the unit (only show in single pool or pool 1) -->
                               <span class="pool-tile-metricbar__label-inline" *ngIf="(!isDualPool || (idx ?? 0) === 0)">
-                                {{ 'HOME.BEST_DIFF_BOOT' | translate }}
-                              </span>
+                                    {{ 'HOME.BEST_DIFF_BOOT' | translate }}
+                                  </span>
                             </ng-container>
                           </div>
                         </div>
 
+                        <!-- User in the grey bar (bottom-left) -->
                         <div class="pool-tile-metricbar__user" *ngIf="pool.user">
                           <span class="pool-tile-metricbar__user-label">{{ 'POOL_INFO.USER' | translate }}:</span>
                           <span class="pool-tile-metricbar__user-value"
@@ -278,10 +307,12 @@
                         </div>
                       </div>
 
+                      <!-- RIGHT: Shares + Rejected, aligned bottom-right -->
                       <div class="pool-tile-metricbar__right">
                         <div class="pool-tile-metricbar__shares">
                           <div class="pool-tile-metricbar__shares-label">{{ 'HOME.SHARES' | translate }}</div>
-                          <div class="pool-tile-metricbar__shares-value">{{ (pool.accepted ?? 0) | number: '1.0-0' }}</div>
+                          <div class="pool-tile-metricbar__shares-value">{{ (pool.accepted ?? 0) | number: '1.0-0' }}
+                          </div>
                         </div>
 
                         <div class="pool-tile-metricbar__rejected">
@@ -295,14 +326,18 @@
                           <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.DIFF' | translate }}</span>
                         </div>
 
-                        <div class="pool-tile-metricbar__rejected">
+                        <div class="pool-tile-metricbar__rejected" *ngIf="info.networkDifficulty">
                           <span class="pool-tile-info__value">{{ info.networkDifficulty | humanReadable }}</span>
                           <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.NETWORK_DIFF' | translate }}</span>
                         </div>
                       </div>
+
                     </div>
+
+                    <!-- Dual pool: allocation % is shown in the pool title (not inside the grey bar) -->
                   </div>
 
+                  <!-- Details below the grey bar -->
                   <div class="pool-tile-details">
                     <div class="pool-tile-details__header">
                       <div class="pool-tile-details__header-left">
@@ -316,26 +351,27 @@
                         </a>
 
                         <span *ngIf="!isDualPool" class="text-hint">
-                          {{ 'POOL_INFO.TITLE' | translate }}
+                              {{ 'POOL_INFO.TITLE' | translate }}
                           (
                           {{
                             usingFallback ? ('POOL_INFO.FALLBACK' | translate)
                               : ('POOL_INFO.PRIMARY' | translate)
                           }}
                           )
-                        </span>
-                        <span *ngIf="isDualPool" class="text-hint">Pool {{ (idx ?? 0) + 1 }}
                           {{ (usingFallback ? info.fallbackStratumProtocol : info.stratumProtocol) === 1 ? 'SV2' : 'SV1' }}
                             </span>
                         <span *ngIf="isDualPool" class="text-hint">Pool {{ (idx ?? 0) + 1 }} {{ ((idx ?? 0) === 0 ? info.stratumProtocol : info.fallbackStratumProtocol) === 1 ? 'SV2' : 'SV1' }}</span>
                       </div>
 
+                      <!-- Dual pool: show the pool allocation % in the title (right-aligned) -->
                       <div *ngIf="isDualPool" class="pool-tile-details__header-right">
-                        <span class="pool-tile-details__allocpct">{{ getActiveBalance(idx ?? 0) | number: '1.0-0' }} %</span>
+                        <span class="pool-tile-details__allocpct">{{ getActiveBalance(idx ?? 0) | number: '1.0-0' }}
+                          %</span>
                       </div>
                     </div>
 
                     <div class="pool-tile-info__bottom">
+                      <!-- Order (top -> bottom): HOST, PING + LOSS (same line), DIFF. Labels are placed AFTER values. -->
                       <div class="pool-tile-info__line">
                         <a class="pool-tile-hostlink pool-tile-info__value" [href]="getQuickLink(pool.host, pool.user)"
                            target="_blank"> {{ pool.host }}</a>
@@ -344,14 +380,14 @@
                       </div>
 
                       <div class="pool-tile-info__line">
-                        <span class="pool-tile-info__value">
-                          {{
-                            supportsPing(pool.host) && pool.pingRtt !== undefined && pool.pingRtt !== null
-                              ? (pool.pingRtt.toFixed(2) + ' ' + ('PERFORMANCE.MS' | translate)
-                                + ' (' + ('PERFORMANCE.AVG' | translate) + ')')
-                              : 'n/a'
-                          }}
-                        </span>
+                            <span class="pool-tile-info__value">
+                              {{
+                                supportsPing(pool.host) && pool.pingRtt !== undefined && pool.pingRtt !== null
+                                  ? (pool.pingRtt.toFixed(2) + ' ' + ('PERFORMANCE.MS' | translate)
+                                    + ' (' + ('PERFORMANCE.AVG' | translate) + ')')
+                                  : 'n/a'
+                              }}
+                            </span>
                         <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.PING' | translate }}</span>
 
                         <span class="pool-tile-info__value">&nbsp;
@@ -360,15 +396,18 @@
                               ? (pool.pingLoss * 100).toFixed(2) + ' %'
                               : 'n/a'
                           }}
-                        </span>
+                            </span>
                         <span class="pool-tile-info__label">&nbsp;{{ 'POOL_INFO.LOSS' | translate }}</span>
                       </div>
+
                     </div>
+
                   </div>
                 </div>
               </ng-template>
 
               <ng-template #poolDisconnectedLeft>
+                <!-- Use the existing pool metric bar UI for the disconnected warning (no extra alert chrome). -->
                 <div class="pool-tile-half pool-tile-half--disconnected" dir="ltr"
                      [class.pool-tile-half--dual]="isDualPool">
                   <div
@@ -382,6 +421,7 @@
               </ng-template>
 
               <ng-template #poolDisconnectedRight>
+                <!-- Use the existing pool metric bar UI for the disconnected warning (no extra alert chrome). -->
                 <div class="pool-tile-half pool-tile-half--disconnected" dir="ltr"
                      [class.pool-tile-half--dual]="isDualPool">
                   <div
@@ -402,11 +442,14 @@
       <!-- Power Usage + Heat (new row under pools) -->
       <div class="row mt-3 d-flex align-items-stretch">
         <div class="col-12 col-xl-6">
+          <!-- Power Section (no tile/box) -->
           <div class="plain-section">
             <div class="no-scroll power-usage power-usage--plain">
+              <!-- Boxed container (same visual style as the pool summary square) -->
               <div class="power-usage-box">
                 <div class="power-bars-layout">
                   <div class="power-bars" [attr.aria-label]="'PERFORMANCE.TITLE_POWER_USAGE' | translate">
+                    <!-- Measured ASIC voltage bar (keep this in the Power tile) -->
                     <div class="power-bar" role="img"
                          [class.power-bar--max]="isBarMax(info.coreVoltageActual, asicCoreVoltageMax(info))"
                          [attr.aria-label]="('PERFORMANCE.ASIC_VOLTAGE_MEASURED' | translate) + ': ' + (info.coreVoltageActual | number: '1.2-2') + ' V'">
@@ -419,6 +462,7 @@
                       </div>
                     </div>
 
+                    <!-- Input current bar -->
                     <div class="power-bar" role="img"
                          [class.power-bar--warn]="isInputCurrentWarn(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)"
                          [class.power-bar--crit]="isInputCurrentCrit(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)"
@@ -428,11 +472,13 @@
                            [style.width.%]="toPct(info.currentA, info.minCurrentA ?? 0, info.maxCurrentA ?? 6)">
                       </div>
                       <div class="power-bar__label">{{ 'PERFORMANCE.INPUT_CURRENT' | translate }}</div>
-                      <div class="power-bar__value">{{ info.currentA | number: '1.2-2' }}<span class="unit">&nbsp;A</span></div>
+                      <div class="power-bar__value">{{ info.currentA | number: '1.2-2' }}<span
+                        class="unit">&nbsp;A</span></div>
                     </div>
 
+                    <!-- Input voltage bar -->
                     <div class="power-bar" role="img"
-                         [class.power-bar--warn]="isInputVoltageWarn(info.voltage)"
+                         [class.power-bar--warn]="isInputVoltageWarn(info.voltage, info.minVoltage, info.maxVoltage)"
                          [class.power-bar--crit]="false"
                          [class.power-bar--max]="isBarMax(info.voltage, info.maxVoltage)"
                          [attr.aria-label]="('PERFORMANCE.INPUT_VOLTAGE' | translate) + ': ' + (info.voltage | number: '1.1-1') + ' V'">
@@ -440,10 +486,13 @@
                            [style.width.%]="toPct(info.voltage, info.minVoltage, info.maxVoltage)">
                       </div>
                       <div class="power-bar__label">{{ 'PERFORMANCE.INPUT_VOLTAGE' | translate }}</div>
-                      <div class="power-bar__value">{{ info.voltage | number: '1.1-1' }}<span class="unit">&nbsp;V</span></div>
+                      <div class="power-bar__value">{{ info.voltage | number: '1.1-1' }}<span
+                        class="unit">&nbsp;V</span></div>
                     </div>
+
                   </div>
 
+                  <!-- Efficiency square (spans the height of the 3 bars) -->
                   <div class="power-watt-box" role="img"
                        [attr.aria-label]="('HOME.EFFICIENCY' | translate) + ': ' + (info.power / (info.hashRate / 1000) | number: '1.2-2') + ' J/Th'">
                     <div class="power-watt-box__inner">
@@ -454,6 +503,7 @@
                     </div>
                   </div>
 
+                  <!-- Power bar (full width under the 3 bars + square) -->
                   <div class="power-bar power-bar--full" role="img"
                        [class.power-bar--warn]="info.maxPower ? isBarWarn(info.power, info.minPower ?? 0, info.maxPower) : false"
                        [class.power-bar--crit]="info.maxPower ? isBarCrit(info.power, info.minPower ?? 0, info.maxPower) : false"
@@ -463,7 +513,8 @@
                          [style.width.%]="toPct(info.power, info.minPower ?? 0, info.maxPower ?? info.power)">
                     </div>
                     <div class="power-bar__label">{{ 'PERFORMANCE.POWER' | translate }}</div>
-                    <div class="power-bar__value">{{ info.power | number: '1.1-1' }}<span class="unit">&nbsp;W</span></div>
+                    <div class="power-bar__value">{{ info.power | number: '1.1-1' }}<span class="unit">&nbsp;W</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -472,6 +523,7 @@
         </div>
 
         <div class="col-12 col-xl-6 mt-3 mt-xl-0">
+          <!-- Heat Section (no tile/box) -->
           <div class="plain-section">
             <div class="no-scroll heat-usage heat-usage--plain">
               <div class="heat-usage-box">
@@ -515,15 +567,43 @@
                       </div>
                     </div>
 
-                    <div class="power-bar" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
+                    <div class="power-bar power-bar--interactive" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
                         [class.power-bar--warn]="isVrTempWarn(info.vrTemp, info)"
                         [class.power-bar--crit]="isVrTempCrit(info.vrTemp, info)"
                         [class.power-bar--max]="isVrTempCrit(info.vrTemp, info)"
+                        (mouseenter)="showHoverTooltip('vr-temp', $event)"
+                        (mousemove)="moveHoverTooltip($event)"
+                        (mouseleave)="hideHoverTooltip('vr-temp')"
                         [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
                    <div class="power-bar__fill"
                         [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, vrTempMax(info))"></div>
                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
-                     <div class="power-bar__value">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">&nbsp;°C</span></div>
+                     <span class="power-bar-tooltip"
+                           [class.power-bar-tooltip--active]="activeHoverTooltipId === 'vr-temp'"
+                           [style.left.px]="hoverTooltipX"
+                           [style.top.px]="hoverTooltipY"
+                           aria-hidden="true">
+                       <span class="power-bar-tooltip__lead">{{ 'PERFORMANCE.VR_TEMP_TOOLTIP_LINE1' | translate }}</span>
+                       <span class="power-bar-tooltip__bullet">{{ 'PERFORMANCE.VR_TEMP_TOOLTIP_LINE2' | translate }}</span>
+                       <span class="power-bar-tooltip__bullet">{{ 'PERFORMANCE.VR_TEMP_TOOLTIP_LINE3' | translate }}</span>
+                       <span class="power-bar-tooltip__footer">{{ 'PERFORMANCE.VR_TEMP_TOOLTIP_LINE4' | translate }}</span>
+                     </span>
+                     <div class="power-bar__value power-bar__value--inline power-bar__value--vr">
+                       <span class="fan-inline fan-inline--vr">
+                         <span class="power-bar__subvalue power-bar__subvalue--vrmeta" *ngIf="info.vrTempInt > 0">
+                           <span class="power-bar__meta-row">
+                             <span class="power-bar__meta-label">{{ 'PERFORMANCE.VR_TEMP_EXT' | translate }}</span>
+                             <span class="power-bar__meta-number">{{ info.vrTemp | number: '1.1-1' }}</span><span class="unit">°C</span>
+                           </span>
+                           <span class="power-bar__meta-row">
+                             <span class="power-bar__meta-label">{{ 'PERFORMANCE.VR_TEMP_INT' | translate }}</span>
+                             <span class="power-bar__meta-number">{{ info.vrTempInt | number: '1.1-1' }}</span><span class="unit">°C</span>
+                           </span>
+                         </span>
+                         <span class="power-bar__sep" *ngIf="info.vrTempInt > 0">/</span>
+                         <span class="power-bar__mainvalue">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">°C</span></span>
+                       </span>
+                     </div>
                     </div>
 
                     <div class="power-bar" *ngIf="showFanC2" role="img"

@@ -205,6 +205,12 @@
         opacity: 0.75;
     }
 
+    .fan-sync-hint--important {
+        opacity: 1;
+        font-weight: 600;
+        color: var(--color-warning-default, #ffaa00);
+    }
+
     .fan-column .form-row {
         align-items: center;
     }

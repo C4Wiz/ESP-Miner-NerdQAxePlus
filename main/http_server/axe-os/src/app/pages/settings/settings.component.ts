@@ -6,6 +6,7 @@ import { switchMap, tap, take, startWith } from 'rxjs/operators';
 import { GithubUpdateService, UpdateStatus, VersionComparison, GithubRelease } from '../../services/github-update.service';
 import { LoadingService } from '../../services/loading.service';
 import { SystemService } from '../../services/system.service';
+import { OtaPollingService } from '../../services/ota-polling.service';
 import { eASICModel } from '../../models/enum/eASICModel';
 import { NbToastrService } from '@nebular/theme';
 import { TranslateService } from '@ngx-translate/core';
@@ -43,8 +44,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public isCheckingForUpdates = false;
   public isLoadingChangelog = false;
 
-  private updateStatusSub?: Subscription;
-  private sawRebooting = false;
+  private rebootSub?: Subscription;
 
   public currentStep: string = "";
 
@@ -59,15 +59,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   public otpEnabled: boolean = false;
 
-  // Enhanced progress tracking
-  public otaProgress: number = 0;
   private rebootCheckInterval?: any;
 
   private normalizedModel: string = '';
 
   public keepConfigCtrl = new FormControl<boolean>(true);
   public includePrereleasesCtrl = new FormControl<boolean>(false);
-  public releases$!: Observable<GithubRelease[]>;
+  public releases$!: Observable<GithubRelease[]>;   // list shown in dropdown
   public selectedRelease: GithubRelease | null = null;
   private latestStableRelease: GithubRelease | null = null;
 
@@ -78,6 +76,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private readonly githubApiBase =
     'https://api.github.com/repos/C4Wiz/ESP-Miner-NerdQAxePlus/releases/tags';
 
+  // Expose OTA polling service status to template
+  public get otaProgress(): number {
+    return this.otaPolling.status?.progress ?? 0;
+  }
+
+  public get otaCurrentStep(): string {
+    return `UPDATE.STEP_${(this.otaPolling.status?.step ?? 'UNKNOWN').toUpperCase()}`;
+  }
+
   constructor(
     private systemService: SystemService,
     private toastrService: NbToastrService,
@@ -86,6 +93,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private translate: TranslateService,
     private otpAuth: OtpAuthService,
     private httpClient: HttpClient,
+    public otaPolling: OtaPollingService,
   ) {
     this.info$ = this.systemService.getInfo().pipe(
       shareReplay({ refCount: true, bufferSize: 1 })
@@ -93,20 +101,39 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Show success toast if we just came back from a reboot after an OTA update
+    if (localStorage.getItem('ota_success') === '1') {
+      localStorage.removeItem('ota_success');
+      this.toastrService.success(
+        this.translate.instant('TOAST.FIRMWARE_UPDATED'),
+        this.translate.instant('TOAST.SUCCESS')
+      );
+    }
+
+    // If polling was already running (navigated away and back), re-attach
+    if (this.otaPolling.isPolling) {
+      this.isOneClickUpdate = true;
+      this.attachRebootListener();
+    }
+
     this.info$.pipe(this.loadingService.lockUIUntilComplete())
       .subscribe(info => {
         this.currentVersion = info.version;
         this.currentWebVersion = this.getAppVersion();
+        //this.deviceModel = "NerdQAxe++";
         this.deviceModel = info.deviceModel;
         this.ASICModel = info.ASICModel;
         this.otpEnabled = !!info.otp;
 
-        this.normalizedModel = this.normalizeModel(this.deviceModel);
+        // Replace 'γ' with 'Gamma' if present and remove spaces
+        // Keep special characters like + as GitHub releases use them
+        this.normalizedModel = this.normalizeModel(this.deviceModel)
         this.expectedFileName = `esp-miner-${this.normalizedModel}.bin`;
 
         console.log('Device model from API:', this.deviceModel);
         console.log('Expected filename:', this.expectedFileName);
 
+        // Update version status after we have both current version and latest release
         this.updateVersionStatus();
         this.checkForUpdates();
       });
@@ -153,13 +180,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
         if (this.includePrereleasesCtrl.value) {
           if (list.length === 0) {
-            this.toastrService.info(
+            this.toastrService.warning(
               this.translate.instant('UPDATE.NO_PRERELEASES'),
               this.translate.instant('UPDATE.STATUS_UP_TO_DATE'),
-              { duration: 6000 }
+              { duration: 4000 }
             );
           } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
-            this.toastrService.info(
+            this.toastrService.warning(
               `${this.selectedRelease?.tag_name ?? ''}`,
               this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
               { duration: 6000 }
@@ -167,7 +194,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           }
         } else {
           if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
-            this.toastrService.info(
+            this.toastrService.warning(
               `${this.latestStableRelease?.tag_name ?? ''}`,
               this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
               { duration: 6000 }
@@ -193,9 +220,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Clear reboot check interval
     if (this.rebootCheckInterval) {
       clearInterval(this.rebootCheckInterval);
     }
+    this.rebootSub?.unsubscribe();
     this.refreshTrigger$.complete();
   }
 
@@ -206,33 +235,52 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.refreshTrigger$.next();
   }
 
+  private attachRebootListener() {
+    this.rebootSub?.unsubscribe();
+    this.rebootSub = this.otaPolling.onRebooting$.pipe(take(1)).subscribe(() => {
+      localStorage.setItem('ota_success', '1');
+      this.startRebootCheck();
+    });
+  }
+
+  private startUpdatePolling() {
+    this.otaPolling.start();
+    this.attachRebootListener();
+  }
+
   /**
    * Start checking if device has rebooted and is back online
    */
   private startRebootCheck() {
+    // Wait 5 seconds before starting to check (give device time to actually reboot)
     setTimeout(() => {
       let attemptCount = 0;
-      const maxAttempts = 60;
+      const maxAttempts = 60; // Try for 60 seconds
 
       this.rebootCheckInterval = setInterval(() => {
         attemptCount++;
 
+        // Try to fetch system info
         this.systemService.getInfo().subscribe({
           next: (info) => {
+            // Device is back online!
             clearInterval(this.rebootCheckInterval);
+
+            // Reload page after a short delay
             setTimeout(() => {
               window.location.reload();
             }, 2000);
           },
           error: (err) => {
+            // Device not ready yet, keep trying
             if (attemptCount >= maxAttempts) {
               clearInterval(this.rebootCheckInterval);
               this.isOneClickUpdate = false;
             }
           }
         });
-      }, 1000);
-    }, 5000);
+      }, 1000); // Check every second
+    }, 5000); // Wait 5 seconds before starting
   }
 
   public onFirmwareFileSelected(event: Event) {
@@ -290,6 +338,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.selectedFirmwareFile = null;
   }
 
+
   public onWebsiteFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -343,9 +392,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       });
 
+
     this.selectedWebsiteFile = null;
   }
 
+
+  /**
+   * Update version status based on current and latest versions
+   */
   private updateVersionStatus() {
     if (this.currentVersion && this.latestStableRelease) {
       this.updateStatus = this.githubUpdateService.getUpdateStatus(
@@ -360,6 +414,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.updateSelectedReleaseDeps();
   }
 
+  /** Refresh filename for the selected release */
   private updateSelectedReleaseDeps() {
     if (!this.selectedRelease) {
       this.expectedFactoryFilename = '';
@@ -368,6 +423,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.expectedFactoryFilename = this.buildFactoryNameFor(this.selectedRelease);
   }
 
+
+  /**
+   * Get status badge color based on update status
+   */
   public getStatusBadgeColor(): string {
     switch (this.updateStatus) {
       case UpdateStatus.UP_TO_DATE:
@@ -381,18 +440,23 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Get translation key for status badge
+   * Converts 'up-to-date' to 'UPDATE.STATUS_UP_TO_DATE'
+   */
   public getStatusTranslationKey(): string {
     const statusKey = this.updateStatus.toUpperCase().replace(/-/g, '_');
     return `UPDATE.STATUS_${statusKey}`;
   }
 
+  /** Label for dropdown: "vX.Y.Z (latest)" for the newest item */
   public getReleaseLabel(r: GithubRelease, idx: number): string {
     return r.isLatest ? `${r.tag_name} (latest)` : r.tag_name;
   }
 
   /**
    * Toggle changelog visibility. On first expand, lazily fetch the release
-   * body from GitHub API — only one call, only when the user asks for it.
+   * body from GitHub API if not already cached — only one call, only when needed.
    */
   public toggleChangelog() {
     this.showChangelog = !this.showChangelog;
@@ -427,6 +491,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Direct update from GitHub via backend proxy
+   */
   public directUpdateFromGithub() {
     if (!this.selectedRelease) {
       this.toastrService.warning(this.translate.instant('TOAST.NO_RELEASE_INFO'), this.translate.instant('TOAST.WARNING'));
@@ -458,10 +525,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     )
       .pipe(
         switchMap(({ totp }: EnsureOtpResult) => {
-          this.otaProgress = 0;
+          // reset UI states
           this.isOneClickUpdate = true;
           this.firmwareUpdateProgress = 0;
 
+          // kick the backend update
           const keepConfig = this.keepConfigCtrl.value ?? true;
           return this.systemService.performGithubOTAUpdate(assetUrl, keepConfig, totp);
         })
@@ -477,53 +545,27 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  private startUpdatePolling() {
-    this.stopUpdatePolling();
-    this.sawRebooting = false;
-
-    this.updateStatusSub = interval(1000)
-      .pipe(
-        switchMap(() => this.systemService.getGithubOTAStatus()),
-        tap((status: IUpdateStatus) => {
-          this.otaProgress = status.progress;
-          this.currentStep = `UPDATE.STEP_${status.step.toUpperCase()}`;
-
-          if (status.step === 'rebooting' && !this.sawRebooting) {
-            this.sawRebooting = true;
-            this.toastrService.success(this.translate.instant('TOAST.FIRMWARE_UPDATED'), this.translate.instant('TOAST.SUCCESS'));
-            this.startRebootCheck();
-          }
-        })
-      )
-      .subscribe({
-        error: (err) => {
-          // ignore errors
-        }
-      });
-  }
-
+  // we can resume the update progress status on a page reload because
+  // the OTA update is not done in HTTP server context anymore! 😍
   private checkUpdateStatus() {
+    // Single-shot status fetch
     this.systemService.getGithubOTAStatus()
       .pipe(take(1))
       .subscribe({
         next: (status: IUpdateStatus) => {
+          // If update is ongoing, (re)start polling
           if (status.pending || status.running) {
             this.isOneClickUpdate = true;
-            this.otaProgress = status.progress;
-            this.currentStep = `UPDATE.STEP_${status.step.toUpperCase()}`;
+            this.otaPolling.status = status;
             this.startUpdatePolling();
           }
         },
       });
   }
 
-  private stopUpdatePolling() {
-    if (this.updateStatusSub) {
-      this.updateStatusSub.unsubscribe();
-      this.updateStatusSub = undefined;
-    }
-  }
-
+  /**
+   * Get filtered assets (only matching factory firmware)
+   */
   public getFilteredAssets(): any[] {
     return this.latestStableRelease?.assets?.filter(asset =>
       asset.name === this.expectedFactoryFilename
@@ -544,6 +586,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   public trackRelease = (_: number, r: GithubRelease) => r.id;
 
+  // Helper to build expected factory filename for a given release
   private buildFactoryNameFor(release: GithubRelease): string {
     return `esp-miner-factory-${this.normalizedModel}-${release.tag_name}.bin`;
   }
@@ -551,4 +594,5 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public getAppVersion() {
     return getAppVersion();
   }
+
 }

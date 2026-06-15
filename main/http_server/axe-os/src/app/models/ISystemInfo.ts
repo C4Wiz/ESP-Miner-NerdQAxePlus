@@ -118,7 +118,7 @@ export interface ISystemInfo {
     chipHashrates?: number[];
 }
 
-// fields swarm is using
+// fields swam is using
 export interface ISwarmInfo {
     power: number,
     voltage: number,
