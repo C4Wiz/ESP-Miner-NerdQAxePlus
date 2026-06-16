@@ -32,6 +32,15 @@ function settingsLocalStorageGet(key: string): string | null {
   }
 }
 
+function settingsLocalStorageSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+    console.log(`[settings] localStorage.setItem('${key}', '${value}') succeeded`);
+  } catch (e) {
+    console.warn(`[settings] localStorage.setItem('${key}', '${value}') failed:`, e);
+  }
+}
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -82,7 +91,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   public keepConfigCtrl = new FormControl<boolean>(true);
   public includePrereleasesCtrl = new FormControl<boolean>(
-    localStorage.getItem('include_prereleases') === '1'
+    settingsLocalStorageGet('include_prereleases') === '1'
   );
   public releases$!: Observable<GithubRelease[]>;   // list shown in dropdown
   public selectedRelease: GithubRelease | null = null;
@@ -223,7 +232,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.checkUpdateStatus();
 
     // Re-fetch when prerelease toggle changes
-    this.includePrereleasesCtrl.valueChanges.subscribe(() => {
+    this.includePrereleasesCtrl.valueChanges.subscribe((value) => {
+      settingsLocalStorageSet('include_prereleases', value ? '1' : '0');
       this.refreshTrigger$.next();
     });
   }
