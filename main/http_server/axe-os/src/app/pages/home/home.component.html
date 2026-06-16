@@ -147,17 +147,20 @@
                     </div>
                   </div>
 
-                  <!-- Chip hashrates: 2x2 grid inline next to total hashrate -->
-                  <div class="pool-summary-square__chip-grid"
-                       *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
-                       role="img"
-                       [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
-                    <div class="pool-summary-square__chip-cell"
-                         *ngFor="let hr of info.chipHashrates; let i = index">
-                      <span class="pool-summary-square__chip-label">A{{ i + 1 }}:&nbsp;</span>
-                      <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
-                    </div>
-                  </div>
+                  <!-- Chip hashrates: grid inline next to total hashrate.
+                        Use more columns for boards with more ASICs (e.g. 8 on Gamma)
+                        so the grid stays compact in height instead of growing tall. -->
+                   <div class="pool-summary-square__chip-grid"
+                        *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
+                        role="img"
+                        [style.grid-template-columns]="info.chipHashrates.length > 4 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)'"
+                        [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
+                     <div class="pool-summary-square__chip-cell"
+                          *ngFor="let hr of info.chipHashrates; let i = index">
+                       <span class="pool-summary-square__chip-label">A{{ i + 1 }}:&nbsp;</span>
+                       <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
+                     </div>
+                   </div>
                 </div>
 
                 <!-- Row 2: Expected (left) + Uptime (right) -->
