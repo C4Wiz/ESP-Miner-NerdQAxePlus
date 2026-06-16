@@ -56,7 +56,7 @@ Web-UI: {{ currentWebVersion }}<br/>
           <label class="release-label">
             <strong>{{ 'UPDATE.SELECT_RELEASE' | translate }}:</strong>
           </label>
-          <nb-select [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
+          <nb-select #releaseSelect [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
                 [placeholder]="lastChecked && releases.length === 0 ? (includePrereleasesCtrl.value ? ('UPDATE.NO_PRERELEASES' | translate) : ('UPDATE.NO_RELEASES' | translate)) : ('UPDATE.SELECT_RELEASE' | translate)"
                 [disabled]="isOneClickUpdate || isCheckingForUpdates">
             <nb-option *ngFor="let r of releases; let i = index" [value]="r.id">
