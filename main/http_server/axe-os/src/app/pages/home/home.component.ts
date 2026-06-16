@@ -216,6 +216,19 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   public BAR_LIMITS = BAR_LIMITS;
 
   /**
+   * Column count for the per-chip hashrate grid, scaled so the grid stays
+   * roughly 2 rows tall regardless of ASIC count (e.g. 4 chips -> 2 cols,
+   * 8 chips -> 4 cols, 16 chips -> 8 cols), instead of a fixed 2 columns
+   * that grows arbitrarily tall on boards with many ASICs.
+   */
+  public chipGridColumns(count: number): number {
+    if (!count || count <= 4) {
+      return 2;
+    }
+    return Math.ceil(count / 2);
+  }
+
+  /**
    * Input Voltage warn-band (yellow) should be data-driven (HOME_CFG) and centralized.
    * We keep the template free of thresholds by routing through this method.
    */
