@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, BehaviorSubject } from 'rxjs';
 import { switchMap, tap, take, startWith } from 'rxjs/operators';
@@ -8,7 +8,7 @@ import { LoadingService } from '../../services/loading.service';
 import { SystemService } from '../../services/system.service';
 import { OtaPollingService } from '../../services/ota-polling.service';
 import { eASICModel } from '../../models/enum/eASICModel';
-import { NbToastrService } from '@nebular/theme';
+import { NbToastrService, NbSelectComponent } from '@nebular/theme';
 import { TranslateService } from '@ngx-translate/core';
 import { IUpdateStatus } from 'src/app/models/IUpdateStatus';
 import { OtpAuthService, EnsureOtpResult, EnsureOtpOptions } from '../../services/otp-auth.service';
@@ -94,6 +94,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     settingsLocalStorageGet('include_prereleases') === '1'
   );
   public releases$!: Observable<GithubRelease[]>;   // list shown in dropdown
+  @ViewChild('releaseSelect') releaseSelect?: NbSelectComponent;
   public selectedRelease: GithubRelease | null = null;
   private latestStableRelease: GithubRelease | null = null;
 
@@ -196,16 +197,24 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
       }),
       tap(list => {
-        // Defer assigning selectedRelease to the next microtask. nb-select's
-        // [selected] input is matched against its nb-option children, which
-        // are rendered from this same list via *ngFor; if we assign the new
-        // selectedRelease in the same tick as the list change, nb-select can
-        // try to match before the new options exist and silently fail to
-        // highlight/select anything until the user manually opens the
-        // dropdown (which forces it to re-evaluate).
-        Promise.resolve().then(() => {
-          this.selectedRelease = list[0] ?? null;
-          this.updateSelectedReleaseDeps();
+        // nb-select's canSelectValue() only checks whether *any* options
+        // currently exist (this.options.length), not whether the new id
+        // actually matches one of them. So writing a new selected id in the
+        // same tick as a list change can silently fail: canSelectValue()
+        // sees the *old* (stale) options and returns true, so nb-select
+        // tries to match against them immediately rather than queuing/
+        // retrying, and the failed match is never revisited once the new
+        // nb-options actually render. A plain microtask isn't enough to
+        // guarantee Angular has re-rendered the *ngFor by then, so we use
+        // setTimeout to push past a real render cycle, then explicitly
+        // re-assign `selected` on the select instance to force it to
+        // re-evaluate against the now-current options.
+        this.selectedRelease = list[0] ?? null;
+        this.updateSelectedReleaseDeps();
+        setTimeout(() => {
+          if (this.releaseSelect) {
+            this.releaseSelect.selected = this.selectedRelease?.id ?? null;
+          }
           this.cdr.markForCheck();
         });
 
