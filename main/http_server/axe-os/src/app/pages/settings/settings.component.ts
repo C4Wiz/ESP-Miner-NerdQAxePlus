@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, BehaviorSubject } from 'rxjs';
 import { switchMap, tap, take, startWith } from 'rxjs/operators';
@@ -122,6 +122,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private otpAuth: OtpAuthService,
     private httpClient: HttpClient,
     public otaPolling: OtaPollingService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.info$ = this.systemService.getInfo().pipe(
       shareReplay({ refCount: true, bufferSize: 1 })
@@ -195,12 +196,23 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
       }),
       tap(list => {
-        this.selectedRelease = list[0] ?? null;
+        // Defer assigning selectedRelease to the next microtask. nb-select's
+        // [selected] input is matched against its nb-option children, which
+        // are rendered from this same list via *ngFor; if we assign the new
+        // selectedRelease in the same tick as the list change, nb-select can
+        // try to match before the new options exist and silently fail to
+        // highlight/select anything until the user manually opens the
+        // dropdown (which forces it to re-evaluate).
+        Promise.resolve().then(() => {
+          this.selectedRelease = list[0] ?? null;
+          this.updateSelectedReleaseDeps();
+          this.cdr.markForCheck();
+        });
+
         this.latestStableRelease = list.find(r => !r.prerelease) ?? list[0] ?? null;
         this.showChangelog = false;
         this.changelog = '';
         this.updateVersionStatus();
-        this.updateSelectedReleaseDeps();
 
         if (this.includePrereleasesCtrl.value) {
           if (list.length === 0) {
