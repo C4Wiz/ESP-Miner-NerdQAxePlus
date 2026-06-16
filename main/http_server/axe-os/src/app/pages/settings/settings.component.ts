@@ -15,6 +15,23 @@ import { OtpAuthService, EnsureOtpResult, EnsureOtpOptions } from '../../service
 import { ISystemInfo } from '../../models/ISystemInfo';
 import { getAppVersion } from 'src/app/app.module';
 
+/**
+ * Safe localStorage helpers. Wrapped in try/catch because some embedded
+ * browser contexts (kiosk mode, certain WebViews, private/restricted modes)
+ * throw on storage access instead of just returning null. Logs failures to
+ * the console so the cause is visible rather than silently failing.
+ */
+function settingsLocalStorageGet(key: string): string | null {
+  try {
+    const value = localStorage.getItem(key);
+    console.log(`[settings] localStorage.getItem('${key}') ->`, value);
+    return value;
+  } catch (e) {
+    console.warn(`[settings] localStorage.getItem('${key}') failed:`, e);
+    return null;
+  }
+}
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
