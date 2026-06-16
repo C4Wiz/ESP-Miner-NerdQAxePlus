@@ -64,7 +64,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private normalizedModel: string = '';
 
   public keepConfigCtrl = new FormControl<boolean>(true);
-  public includePrereleasesCtrl = new FormControl<boolean>(false);
+  public includePrereleasesCtrl = new FormControl<boolean>(
+    localStorage.getItem('include_prereleases') === '1'
+  );
   public releases$!: Observable<GithubRelease[]>;   // list shown in dropdown
   public selectedRelease: GithubRelease | null = null;
   private latestStableRelease: GithubRelease | null = null;
@@ -181,7 +183,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
               this.translate.instant('UPDATE.STATUS_UP_TO_DATE'),
               { duration: 4000 }
             );
-          } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+          } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE) {
             this.toastrService.warning(
               `${this.selectedRelease?.tag_name ?? ''}`,
               this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
@@ -189,7 +191,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
             );
           }
         } else {
-          if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+          if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE) {
             this.toastrService.warning(
               `${this.latestStableRelease?.tag_name ?? ''}`,
               this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
