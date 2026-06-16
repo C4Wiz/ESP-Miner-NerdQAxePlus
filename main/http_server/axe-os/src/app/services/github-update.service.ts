@@ -199,6 +199,7 @@ export class GithubUpdateService {
     }
 
     let html = release.body
+      .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
