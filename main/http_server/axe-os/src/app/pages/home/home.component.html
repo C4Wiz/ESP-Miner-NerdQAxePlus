@@ -571,15 +571,15 @@
                     </div>
 
                     <div class="power-bar power-bar--interactive" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
-                        [class.power-bar--warn]="isVrTempWarn(info.vrTemp, info)"
-                        [class.power-bar--crit]="isVrTempCrit(info.vrTemp, info)"
-                        [class.power-bar--max]="isVrTempCrit(info.vrTemp, info)"
+                        [class.power-bar--warn]="isVrTempWarn(vrTempAvg(info), info)"
+                        [class.power-bar--crit]="isVrTempCrit(vrTempAvg(info), info)"
+                        [class.power-bar--max]="isVrTempCrit(vrTempAvg(info), info)"
                         (mouseenter)="showHoverTooltip('vr-temp', $event)"
                         (mousemove)="moveHoverTooltip($event)"
                         (mouseleave)="hideHoverTooltip('vr-temp')"
-                        [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
+                        [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (vrTempAvg(info) | number: '1.1-1') + ' °C'">
                    <div class="power-bar__fill"
-                        [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, vrTempMax(info))"></div>
+                        [style.width.%]="toPct(vrTempAvg(info), BAR_LIMITS.vrTemp.min, vrTempMax(info))"></div>
                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
                      <span class="power-bar-tooltip"
                            [class.power-bar-tooltip--active]="activeHoverTooltipId === 'vr-temp'"
@@ -604,7 +604,7 @@
                            </span>
                          </span>
                          <span class="power-bar__sep" *ngIf="info.vrTempInt > 0">/</span>
-                         <span class="power-bar__mainvalue">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">°C</span></span>
+                         <span class="power-bar__mainvalue">{{ vrTempAvg(info) | number: '1.1-1' }}<span class="unit">°C</span></span>
                        </span>
                      </div>
                     </div>
