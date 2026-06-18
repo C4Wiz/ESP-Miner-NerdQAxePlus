@@ -266,6 +266,24 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
     return Number.isFinite(overheat) && overheat > 0 ? overheat : BAR_LIMITS.vrTemp.max;
   }
 
+   /**
+   * Average of the external (vrTemp) and internal (vrTempInt) VR temperature
+   * sensors, used as the primary displayed/driving VR temperature wherever
+   * both readings are available. Falls back to whichever single reading is
+   * present if the other is missing/zero, so boards reporting only one
+   * sensor still work correctly.
+   */
+  public vrTempAvg(info: any): number {
+    const ext = Number(info?.vrTemp);
+    const int = Number(info?.vrTempInt);
+    const hasExt = Number.isFinite(ext) && ext > 0;
+    const hasInt = Number.isFinite(int) && int > 0;
+    if (hasExt && hasInt) {
+      return (ext + int) / 2;
+    }
+    return hasExt ? ext : (hasInt ? int : 0);
+  }
+
   public isVrTempWarn(vrTempC: any, info?: any): boolean {
     const max = this.vrTempMax(info);
     const warnC = max * 0.94;
