@@ -256,18 +256,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.checkUpdateStatus();
 
-<<<<<<< HEAD
     // If the user toggles the prerelease checkbox, re-fetch with the new setting
     this.includePrereleasesCtrl.valueChanges.subscribe(() => {
       if (this.lastChecked) {
         this.refreshTrigger$.next();
       }
-=======
     // Re-fetch when prerelease toggle changes
     this.includePrereleasesCtrl.valueChanges.subscribe((value) => {
       settingsLocalStorageSet('include_prereleases', value ? '1' : '0');
       this.refreshTrigger$.next();
->>>>>>> origin/testing
     });
   }
 
