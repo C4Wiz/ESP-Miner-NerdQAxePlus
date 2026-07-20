@@ -26,12 +26,12 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_pidSettings[0].i = 10;   //  0.10
     m_pidSettings[0].d = 1000; // 10.00
 
-    m_maxPin = 144.0; // max power now 144w (12A fuse)
+    m_maxPin = 180.0; // max power now 180w (15A fuse)
     m_minPin = 52.0;
     m_maxVin = 13.0;
     m_minVin = 11.0;
     m_minCurrentA = 0.0f;
-    m_maxCurrentA = 12.0f; // max amps now 12a (12a fuse required)
+    m_maxCurrentA = 15.0f; // max amps now 15a (15a fuse required)
 
     m_asicMaxDifficulty = 2048;
     m_asicMinDifficulty = 512;
