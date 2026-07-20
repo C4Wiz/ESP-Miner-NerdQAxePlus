@@ -147,17 +147,20 @@
                     </div>
                   </div>
 
-                  <!-- Chip hashrates: 2x2 grid inline next to total hashrate -->
-                  <div class="pool-summary-square__chip-grid"
-                       *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
-                       role="img"
-                       [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
-                    <div class="pool-summary-square__chip-cell"
-                         *ngFor="let hr of info.chipHashrates; let i = index">
-                      <span class="pool-summary-square__chip-label">A{{ i + 1 }}:&nbsp;</span>
-                      <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
-                    </div>
-                  </div>
+                  <!-- Chip hashrates: grid inline next to total hashrate.
+                        Use more columns for boards with more ASICs (e.g. 8 on Gamma)
+                        so the grid stays compact in height instead of growing tall. -->
+                   <div class="pool-summary-square__chip-grid"
+                        *ngIf="info.chipHashrates && info.chipHashrates.length > 0"
+                        role="img"
+                        [style.grid-template-columns]="'repeat(' + chipGridColumns(info.chipHashrates.length) + ', 1fr)'"
+                        [attr.aria-label]="'HOME.CHIP_HASHRATES' | translate">
+                     <div class="pool-summary-square__chip-cell"
+                          *ngFor="let hr of info.chipHashrates; let i = index">
+                       <span class="pool-summary-square__chip-label">A{{ i + 1 }}:&nbsp;</span>
+                       <span class="pool-summary-square__chip-value">{{ hr * 1000000000 | hashSuffix }}</span>
+                     </div>
+                   </div>
                 </div>
 
                 <!-- Row 2: Expected (left) + Uptime (right) -->
@@ -568,15 +571,15 @@
                     </div>
 
                     <div class="power-bar power-bar--interactive" *ngIf="info.vrTemp > 0" role="img" data-bar="vr-temp"
-                        [class.power-bar--warn]="isVrTempWarn(info.vrTemp, info)"
-                        [class.power-bar--crit]="isVrTempCrit(info.vrTemp, info)"
-                        [class.power-bar--max]="isVrTempCrit(info.vrTemp, info)"
+                        [class.power-bar--warn]="isVrTempWarn(vrTempAvg(info), info)"
+                        [class.power-bar--crit]="isVrTempCrit(vrTempAvg(info), info)"
+                        [class.power-bar--max]="isVrTempCrit(vrTempAvg(info), info)"
                         (mouseenter)="showHoverTooltip('vr-temp', $event)"
                         (mousemove)="moveHoverTooltip($event)"
                         (mouseleave)="hideHoverTooltip('vr-temp')"
-                        [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (info.vrTemp | number: '1.1-1') + ' °C'">
+                        [attr.aria-label]="('PERFORMANCE.VR_TEMP' | translate) + ': ' + (vrTempAvg(info) | number: '1.1-1') + ' °C'">
                    <div class="power-bar__fill"
-                        [style.width.%]="toPct(info.vrTemp, BAR_LIMITS.vrTemp.min, vrTempMax(info))"></div>
+                        [style.width.%]="toPct(vrTempAvg(info), BAR_LIMITS.vrTemp.min, vrTempMax(info))"></div>
                      <div class="power-bar__label">{{ 'PERFORMANCE.VR_TEMP' | translate }}</div>
                      <span class="power-bar-tooltip"
                            [class.power-bar-tooltip--active]="activeHoverTooltipId === 'vr-temp'"
@@ -601,7 +604,7 @@
                            </span>
                          </span>
                          <span class="power-bar__sep" *ngIf="info.vrTempInt > 0">/</span>
-                         <span class="power-bar__mainvalue">{{ info.vrTemp | number: '1.1-1' }}<span class="unit">°C</span></span>
+                         <span class="power-bar__mainvalue">{{ vrTempAvg(info) | number: '1.1-1' }}<span class="unit">°C</span></span>
                        </span>
                      </div>
                     </div>

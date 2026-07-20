@@ -216,6 +216,19 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   public BAR_LIMITS = BAR_LIMITS;
 
   /**
+   * Column count for the per-chip hashrate grid, scaled so the grid stays
+   * roughly 2 rows tall regardless of ASIC count (e.g. 4 chips -> 2 cols,
+   * 8 chips -> 4 cols, 16 chips -> 8 cols), instead of a fixed 2 columns
+   * that grows arbitrarily tall on boards with many ASICs.
+   */
+  public chipGridColumns(count: number): number {
+    if (!count || count <= 4) {
+      return 2;
+    }
+    return Math.ceil(count / 2);
+  }
+
+  /**
    * Input Voltage warn-band (yellow) should be data-driven (HOME_CFG) and centralized.
    * We keep the template free of thresholds by routing through this method.
    */
@@ -251,6 +264,24 @@ export class HomeComponent implements AfterViewChecked, OnInit, OnDestroy {
   public vrTempMax(info: any): number {
     const overheat = Number(info?.fans?.[1]?.overheatTemp);
     return Number.isFinite(overheat) && overheat > 0 ? overheat : BAR_LIMITS.vrTemp.max;
+  }
+
+   /**
+   * Average of the external (vrTemp) and internal (vrTempInt) VR temperature
+   * sensors, used as the primary displayed/driving VR temperature wherever
+   * both readings are available. Falls back to whichever single reading is
+   * present if the other is missing/zero, so boards reporting only one
+   * sensor still work correctly.
+   */
+  public vrTempAvg(info: any): number {
+    const ext = Number(info?.vrTemp);
+    const int = Number(info?.vrTempInt);
+    const hasExt = Number.isFinite(ext) && ext > 0;
+    const hasInt = Number.isFinite(int) && int > 0;
+    if (hasExt && hasInt) {
+      return (ext + int) / 2;
+    }
+    return hasExt ? ext : (hasInt ? int : 0);
   }
 
   public isVrTempWarn(vrTempC: any, info?: any): boolean {
