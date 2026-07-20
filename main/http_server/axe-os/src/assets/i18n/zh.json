@@ -104,7 +104,7 @@
     "VR_TEMP_TOOLTIP_LINE1": "在这里您可以看到电压调节器的内部和外部温度。",
     "VR_TEMP_TOOLTIP_LINE2": "内部温度是指:直接在传感器处测量。",
     "VR_TEMP_TOOLTIP_LINE3": "外部温度是指:调节器周围PCB上的温度。",
-    "VR_TEMP_TOOLTIP_LINE4": "外部温度通常更重要,因为它也会影响其他组件。",
+    "VR_TEMP_TOOLTIP_LINE4": "VReg温度条和温度显示代表内部和外部温度的平均值。",
     "FAN_SPEED": "风扇转速",
     "FAN_RPM": "风扇RPM",
     "ASIC_FREQUENCY": "ASIC频率",

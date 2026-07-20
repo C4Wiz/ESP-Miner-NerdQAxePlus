@@ -51,15 +51,15 @@ Web-UI: {{ currentWebVersion }}<br/>
       <hr style="border-color: var(--card-divider-color); margin: 20px 0; opacity:1.0;" />
 
       <!-- Row: Release selector -->
-      <div class="release-row">
+      <div class="release-row" *ngIf="releases$ | async as releases">
         <div class="release-select">
           <label class="release-label">
             <strong>{{ 'UPDATE.SELECT_RELEASE' | translate }}:</strong>
           </label>
-          <nb-select [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
-                [placeholder]="lastChecked && (releases$ | async)?.length === 0 ? (includePrereleasesCtrl.value ? ('UPDATE.NO_PRERELEASES' | translate) : ('UPDATE.NO_RELEASES' | translate)) : ('UPDATE.SELECT_RELEASE' | translate)"
+          <nb-select #releaseSelect [selected]="selectedRelease?.id" (selectedChange)="onSelectReleaseId($event)"
+                [placeholder]="lastChecked && releases.length === 0 ? (includePrereleasesCtrl.value ? ('UPDATE.NO_PRERELEASES' | translate) : ('UPDATE.NO_RELEASES' | translate)) : ('UPDATE.SELECT_RELEASE' | translate)"
                 [disabled]="isOneClickUpdate || isCheckingForUpdates">
-            <nb-option *ngFor="let r of (releases$ | async) ?? []; let i = index" [value]="r.id">
+            <nb-option *ngFor="let r of releases; let i = index" [value]="r.id">
               {{ getReleaseLabel(r, i) }}
             </nb-option>
           </nb-select>

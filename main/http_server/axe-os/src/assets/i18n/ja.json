@@ -104,7 +104,7 @@
     "VR_TEMP_TOOLTIP_LINE1": "ここで電圧レギュレータの内部および外部温度を確認できます。",
     "VR_TEMP_TOOLTIP_LINE2": "内部：センサーで直接測定された温度。",
     "VR_TEMP_TOOLTIP_LINE3": "外部：レギュレータ周辺のPCB上の温度。",
-    "VR_TEMP_TOOLTIP_LINE4": "外部温度は他のコンポーネントにも影響するため、通常より重要です。",
+    "VR_TEMP_TOOLTIP_LINE4": "VReg温度バーと温度表示は、内部温度と外部温度の平均を表します。",
     "FAN_SPEED": "ファン速度",
     "FAN_RPM": "ファンRPM",
     "ASIC_FREQUENCY": "ASIC周波数",

@@ -65,11 +65,11 @@ NerdOctaxeGamma::NerdOctaxeGamma()
         m_tps = new TPS53667();
 
         // Extended frequency range for TPS53667 (6 phases, higher power capacity)
-        m_asicFrequencies = {525, 550, 575, 600, 625, 650, 675, 700, 725, 750, 775, 800};
-        m_absMaxAsicFrequency = 850; // Absolute max for manual input (danger zone)
+        m_asicFrequencies = {500, 515, 525, 550, 575, 600, 615, 625, 650, 675, 690, 700, 715, 725, 750, 775, 790, 800, 805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880, 885, 890, 895, 900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950};
+        m_absMaxAsicFrequency = 950; // Absolute max for manual input (danger zone)
 
         // Extended voltage range for TPS53667 (6 phases, higher current capacity)
-        m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210, 1220, 1230, 1240, 1250, 1260};
+        m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1205, 1210, 1215, 1220, 1225, 1230, 1235, 1240, 1245, 1250, 1255, 1260, 1265, 1270, 1275, 1280, 1285, 1290, 1295, 1300, 1305, 1310, 1315, 1320, 1325, 1330, 1335, 1340, 1345, 1350, 1355, 1360, 1365, 1370, 1375, 1380, 1385, 1390, 1395, 1400};
 
         // Set higher default values for 6-phase configuration
         m_defaultAsicFrequency = m_asicFrequency = 700;

@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { combineLatest, map, Observable, catchError, of, shareReplay, Subscription, interval, Subject } from 'rxjs';
 import { switchMap, tap, take, startWith } from 'rxjs/operators';
@@ -8,12 +8,38 @@ import { LoadingService } from '../../services/loading.service';
 import { SystemService } from '../../services/system.service';
 import { OtaPollingService } from '../../services/ota-polling.service';
 import { eASICModel } from '../../models/enum/eASICModel';
-import { NbToastrService } from '@nebular/theme';
+import { NbToastrService, NbSelectComponent } from '@nebular/theme';
 import { TranslateService } from '@ngx-translate/core';
 import { IUpdateStatus } from 'src/app/models/IUpdateStatus';
 import { OtpAuthService, EnsureOtpResult, EnsureOtpOptions } from '../../services/otp-auth.service';
 import { ISystemInfo } from '../../models/ISystemInfo';
 import { getAppVersion } from 'src/app/app.module';
+
+/**
+ * Safe localStorage helpers. Wrapped in try/catch because some embedded
+ * browser contexts (kiosk mode, certain WebViews, private/restricted modes)
+ * throw on storage access instead of just returning null. Logs failures to
+ * the console so the cause is visible rather than silently failing.
+ */
+function settingsLocalStorageGet(key: string): string | null {
+  try {
+    const value = localStorage.getItem(key);
+    console.log(`[settings] localStorage.getItem('${key}') ->`, value);
+    return value;
+  } catch (e) {
+    console.warn(`[settings] localStorage.getItem('${key}') failed:`, e);
+    return null;
+  }
+}
+
+function settingsLocalStorageSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+    console.log(`[settings] localStorage.setItem('${key}', '${value}') succeeded`);
+  } catch (e) {
+    console.warn(`[settings] localStorage.setItem('${key}', '${value}') failed:`, e);
+  }
+}
 
 @Component({
   selector: 'app-settings',
@@ -64,8 +90,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private normalizedModel: string = '';
 
   public keepConfigCtrl = new FormControl<boolean>(true);
-  public includePrereleasesCtrl = new FormControl<boolean>(false);
+  public includePrereleasesCtrl = new FormControl<boolean>(
+    settingsLocalStorageGet('include_prereleases') === '1'
+  );
   public releases$!: Observable<GithubRelease[]>;   // list shown in dropdown
+  @ViewChild('releaseSelect') releaseSelect?: NbSelectComponent;
   public selectedRelease: GithubRelease | null = null;
   private latestStableRelease: GithubRelease | null = null;
 
@@ -94,6 +123,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private otpAuth: OtpAuthService,
     private httpClient: HttpClient,
     public otaPolling: OtaPollingService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.info$ = this.systemService.getInfo().pipe(
       shareReplay({ refCount: true, bufferSize: 1 })
@@ -171,12 +201,31 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
       }),
       tap(list => {
+        // nb-select's canSelectValue() only checks whether *any* options
+        // currently exist (this.options.length), not whether the new id
+        // actually matches one of them. So writing a new selected id in the
+        // same tick as a list change can silently fail: canSelectValue()
+        // sees the *old* (stale) options and returns true, so nb-select
+        // tries to match against them immediately rather than queuing/
+        // retrying, and the failed match is never revisited once the new
+        // nb-options actually render. A plain microtask isn't enough to
+        // guarantee Angular has re-rendered the *ngFor by then, so we use
+        // setTimeout to push past a real render cycle, then explicitly
+        // re-assign `selected` on the select instance to force it to
+        // re-evaluate against the now-current options.
         this.selectedRelease = list[0] ?? null;
+        this.updateSelectedReleaseDeps();
+        setTimeout(() => {
+          if (this.releaseSelect) {
+            this.releaseSelect.selected = this.selectedRelease?.id ?? null;
+          }
+          this.cdr.markForCheck();
+        });
+
         this.latestStableRelease = list.find(r => !r.prerelease) ?? list[0] ?? null;
         this.showChangelog = false;
         this.changelog = '';
         this.updateVersionStatus();
-        this.updateSelectedReleaseDeps();
 
         if (this.includePrereleasesCtrl.value) {
           if (list.length === 0) {
@@ -185,7 +234,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
               this.translate.instant('UPDATE.STATUS_UP_TO_DATE'),
               { duration: 4000 }
             );
-          } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+          } else if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE) {
             this.toastrService.warning(
               `${this.selectedRelease?.tag_name ?? ''}`,
               this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
@@ -193,7 +242,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
             );
           }
         } else {
-          if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE || this.updateStatus === UpdateStatus.OUTDATED) {
+          if (this.updateStatus === UpdateStatus.UPDATE_AVAILABLE) {
             this.toastrService.warning(
               `${this.latestStableRelease?.tag_name ?? ''}`,
               this.translate.instant('UPDATE.STATUS_UPDATE_AVAILABLE'),
@@ -207,11 +256,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.checkUpdateStatus();
 
+<<<<<<< HEAD
     // If the user toggles the prerelease checkbox, re-fetch with the new setting
     this.includePrereleasesCtrl.valueChanges.subscribe(() => {
       if (this.lastChecked) {
         this.refreshTrigger$.next();
       }
+=======
+    // Re-fetch when prerelease toggle changes
+    this.includePrereleasesCtrl.valueChanges.subscribe((value) => {
+      settingsLocalStorageSet('include_prereleases', value ? '1' : '0');
+      this.refreshTrigger$.next();
+>>>>>>> origin/testing
     });
   }
 

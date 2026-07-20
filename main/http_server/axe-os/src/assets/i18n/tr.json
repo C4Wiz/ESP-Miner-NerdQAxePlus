@@ -104,7 +104,7 @@
     "VR_TEMP_TOOLTIP_LINE1": "Burada voltaj regülatörünün iç ve dış sıcaklıklarını görebilirsiniz.",
     "VR_TEMP_TOOLTIP_LINE2": "İç: doğrudan sensörde ölçülen.",
     "VR_TEMP_TOOLTIP_LINE3": "Dış: regülatörün etrafındaki PCB üzerindeki sıcaklık.",
-    "VR_TEMP_TOOLTIP_LINE4": "Dış sıcaklık genellikle daha önemlidir çünkü diğer bileşenleri de etkiler.",
+    "VR_TEMP_TOOLTIP_LINE4": "VReg sıcaklık çubuğu ve sıcaklık göstergesi, dahili ve harici sıcaklıkların ortalamasını temsil eder.",
     "FAN_SPEED": "Fan Hızı",
     "FAN_RPM": "Fan RPM",
     "ASIC_FREQUENCY": "ASIC Frekansı",
